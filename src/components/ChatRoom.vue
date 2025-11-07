@@ -147,9 +147,10 @@ onMounted(() => {
   if (messages.value.length === 0) {
     messages.value.push({
       id: 'welcome',
-      content: '你好！我是AI助手，有什么可以帮助你的吗？',
+      content: '你好呀！看来今天心情不错呢～ 😊 是想随便聊聊，还是有什么事情需要我帮忙呀？',
       sender: 'ai',
       timestamp: new Date(),
+      thinking: '用户看起来心情很好，使用了笑脸表情，可以采用轻松愉快的语气进行交流。用户可能希望获得帮助或只是想聊天，需要判断用户的意图。'
     });
     saveMessages();
   }
@@ -162,9 +163,7 @@ onMounted(() => {
   <div class="chat-room">
     <div class="chat-header">
       <h2>AI对话助手</h2>
-      <button class="clear-history-btn" @click="clearHistory" title="清空历史">
-        +
-      </button>
+      <button class="clear-history-btn" @click="clearHistory" title="清空历史">+</button>
     </div>
     
     <div id="chat-container" class="chat-container">
@@ -224,6 +223,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* 确保子元素垂直居中 */
 }
 
 .clear-history-btn {
@@ -241,7 +243,6 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 0;
-  transform: rotate(45deg);
 }
 
 .clear-history-btn:hover {

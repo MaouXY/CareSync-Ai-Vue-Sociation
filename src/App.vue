@@ -5,6 +5,7 @@ import ChatRoom from './components/ChatRoom.vue'
 
 <template>
   <div id="app">
+    <!-- Using the existing ChatRoom component instead of the missing CubeWall -->
     <ChatRoom />
   </div>
 </template>
