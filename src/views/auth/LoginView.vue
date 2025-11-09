@@ -1,118 +1,103 @@
 <template>
   <div class="login-container">
-    <div class="login-wrapper">
-      <!-- 登录卡片 -->
-      <div class="login-card">
-        <div class="login-header ">
-          <h1 class="login-title">欢迎登录 CareSync AI</h1>
-          <p class="login-subtitle">专注于留守儿童情感陪伴与服务的智能平台</p>
+    <!-- 登录卡片 -->
+    <div class="login-wrapper shadow-lg card-hover rounded-xl">
+      <!-- 紫色气泡卡片 -->
+      <div class="bg-primary-6 p-6 rounded-t-xl ">
+        <div class="text-center py-6 mb-2">
+          <div class="h-6"></div>
+          <div class="w-16 h-16 rounded-full flex items-center justify-center ml-6" style="background-color: #726BEA;">
+            <i class="fa fa-file-text text-2xl text-primary"></i>
+          </div>
+          <h2 class="mt-2">社工登录</h2>
+          <p class="pb-4">欢迎回到 CareSync AI</p>
         </div>
-        
-        <!-- 登录表单 -->
-        <form class="login-form" @submit.prevent="handleLogin">
-          <!-- 登录类型切换 -->
-          <div class="login-type-switch">
-            <button
-              type="button"
-              :class="['switch-btn', { active: loginType === 'socialWorker' }]"
-              @click="loginType = 'socialWorker'"
-            >
-              社工端
-            </button>
-            <button
-              type="button"
-              :class="['switch-btn', { active: loginType === 'child' }]"
-              @click="loginType = 'child'"
-            >
-              儿童端
-            </button>
-          </div>
-          
-          <!-- 账号输入 -->
-          <div class="form-group">
-            <label for="username" class="form-label">账号</label>
-            <div class="input-wrapper">
-              <i class="icon-user"></i>
-              <input
-                id="username"
-                v-model="form.username"
-                type="text"
-                class="form-input"
-                :placeholder="loginType === 'socialWorker' ? '请输入工号' : '请输入学生号'"
-                required
-                autocomplete="username"
-              />
-            </div>
-            <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
-          </div>
+      </div>
+
+      <!-- 登录表单 -->
+      <div class="p-8">
+        <a-form id="loginForm" :model="form" @submit="handleLogin" layout="vertical">
+          <!-- 社工账号输入 -->
+          <a-form-item 
+            field="username" 
+            :validate-status="errors.username ? 'error' : ''"
+            :feedback="errors.username"
+            label="账号"
+            class="mb-6"
+          >
+            <a-input 
+                v-model="form.username" 
+                placeholder="请输入您的账号" 
+                size="large"
+                allow-clear
+                :style="{ borderRadius: '10px', 'border-color': '#EEF5FF' }" 
+              >
+              <template #prefix>
+                <icon-user />
+              </template>
+            </a-input>
+          </a-form-item>
           
           <!-- 密码输入 -->
-          <div class="form-group">
-            <label for="password" class="form-label">密码</label>
-            <div class="input-wrapper">
-              <i class="icon-lock"></i>
-              <input
-                id="password"
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                class="form-input"
-                placeholder="请输入密码"
-                required
-                autocomplete="current-password"
-              />
-              <button
-                type="button"
-                class="toggle-password-btn"
-                @click="showPassword = !showPassword"
-                aria-label="切换密码可见性"
+          <a-form-item 
+            field="password" 
+            :validate-status="errors.password ? 'error' : ''"
+            :feedback="errors.password"
+            class="mb-6"
+          >
+            <template #label>
+                  <div class="flex justify-between items-center w-full">
+                    <span>密码</span>
+                  </div>
+                </template>
+            <a-input-password 
+                v-model="form.password" 
+                placeholder="请输入您的密码" 
+                size="large"
+                :visibility="showPassword"
+                @visibility-change="showPassword = $event"
+                :style="{ borderRadius: '10px', 'border-color': '#EEF5FF' }"
               >
-                <i :class="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
-              </button>
-            </div>
-            <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
-          </div>
+              <template #prefix>
+                <icon-lock />
+              </template>
+            </a-input-password>
+          </a-form-item>
           
-          <!-- 记住我 -->
-          <div class="form-options">
-            <label class="remember-me">
-              <input type="checkbox" v-model="form.rememberMe" class="checkbox" />
-              <span class="checkbox-label">记住我</span>
-            </label>
-            <button type="button" class="forgot-password" @click="handleForgotPassword">
-              忘记密码？
-            </button>
-          </div>
+          <!-- 记住账号 -->
+          <a-form-item class="mb-8">
+            <a-checkbox v-model="form.rememberMe">
+              记住账号
+            </a-checkbox>
+          </a-form-item>
           
           <!-- 登录按钮 -->
-          <button
-            type="submit"
-            class="login-btn"
-            :disabled="isLoading"
-          >
-            <span v-if="!isLoading">登录</span>
-            <span v-else class="loading-spinner">
-              <i class="icon-loading"></i> 登录中...
-            </span>
-          </button>
+          <a-form-item>
+            <a-button 
+                type="primary" 
+                html-type="submit" 
+                :loading="isLoading" 
+                size="large"
+                long
+                :style="{ backgroundColor: '#4F46E5', borderRadius: '10px' }"
+                class="w-full h-12 text-base font-medium"
+              >
+              <template #icon>
+                <icon-login />
+              </template>
+              {{ isLoading ? '登录中...' : '登录' }}
+            </a-button>
+          </a-form-item>
           
-          <!-- 模拟账号提示 -->
-          <div class="demo-accounts">
-            <div class="demo-title">模拟账号：</div>
-            <div class="demo-item">
-              <span class="demo-label">社工端：</span>
-              <span class="demo-account">admin / 123456</span>
-            </div>
-            <div class="demo-item">
-              <span class="demo-label">儿童端：</span>
-              <span class="demo-account">student / 123456</span>
-            </div>
-          </div>
-        </form>
-      </div>
-      
-      <!-- 底部版权信息 -->
-      <div class="login-footer">
-        <p>&copy; 2024 CareSync AI 留守儿童情感陪伴平台. 保留所有权利.</p>
+          <!-- 错误消息 -->
+          <a-alert 
+            v-if="errors.general" 
+            type="error" 
+            :title="errors.general"
+            class="mt-4"
+            closable
+          />
+        </a-form>
       </div>
     </div>
     
@@ -126,11 +111,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores';
 
 // 路由实例
 const router = useRouter();
+
+// 认证store
+const authStore = useAuthStore();
 
 // 登录类型
 const loginType = ref<'socialWorker' | 'child'>('socialWorker');
@@ -174,7 +163,7 @@ const validateForm = (): boolean => {
   if (!form.password) {
     errors.password = '请输入密码';
     isValid = false;
-  } else if (form.password.length < 6) {
+  } else if (form.password.length < 4) {
     errors.password = '密码长度至少为6位';
     isValid = false;
   }
@@ -183,7 +172,12 @@ const validateForm = (): boolean => {
 };
 
 // 处理登录
-const handleLogin = async () => {
+const handleLogin = async (e?: Event) => {
+  // 如果传递了Event对象，阻止默认行为
+  if (e && typeof e.preventDefault === 'function') {
+    e.preventDefault();
+  }
+  
   // 验证表单
   if (!validateForm()) {
     return;
@@ -192,23 +186,18 @@ const handleLogin = async () => {
   try {
     isLoading.value = true;
     
-    // 模拟登录请求延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 调用认证store进行登录
+    const loginData = {
+      workerNo: form.username,
+      password: form.password
+    };
     
-    // 简单的模拟登录逻辑
-    let isSuccess = false;
+    const result = await authStore.login(loginData);
     
-    if (loginType.value === 'socialWorker') {
-      // 社工端登录验证
-      isSuccess = form.username === 'admin' && form.password === '123456';
-    } else {
-      // 儿童端登录验证
-      isSuccess = form.username === 'student' && form.password === '123456';
-    }
-    
-    if (isSuccess) {
-      // 保存登录信息到本地存储
+    if (result.code === 1) {
+      // 登录成功
       if (form.rememberMe) {
+        // 保存记住账号信息（不包含敏感信息）
         localStorage.setItem('careSyncUser', JSON.stringify({
           username: form.username,
           type: loginType.value
@@ -222,23 +211,14 @@ const handleLogin = async () => {
         router.push('/child/dashboard');
       }
     } else {
-      errors.general = '账号或密码错误，请重试';
-      // 显示错误提示（可以使用toast组件）
-      alert(errors.general);
+      errors.general = result.msg || '登录失败，请重试';
     }
-  } catch (error) {
-    console.error('登录失败:', error);
-    errors.general = '登录失败，请稍后重试';
-    alert(errors.general);
+  } catch (error: any) {
+    console.error('登录失败，完整错误信息:', error);
+    errors.general = error.message || '登录失败，请稍后重试';
   } finally {
     isLoading.value = false;
   }
-};
-
-// 处理忘记密码
-const handleForgotPassword = () => {
-  // 在实际应用中，这里可以跳转到忘记密码页面或显示忘记密码的模态框
-  alert('忘记密码功能暂未开放，请联系管理员重置密码。');
 };
 
 // 尝试从本地存储恢复登录信息
@@ -260,6 +240,11 @@ const recoverLoginInfo = () => {
 
 // 初始化时恢复登录信息
 recoverLoginInfo();
+
+// 组件挂载时初始化认证store
+onMounted(() => {
+  authStore.initialize();
+});
 </script>
 
 <style scoped>
@@ -279,31 +264,6 @@ recoverLoginInfo();
   max-width: 480px;
   position: relative;
   z-index: 1;
-}
-
-.login-card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
-  transition: all 0.3s ease;
-}
-
-.login-card:hover {
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.login-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #4F46E5;
-  margin: 0 0 10px 0;
 }
 
 .login-subtitle {
@@ -610,6 +570,9 @@ recoverLoginInfo();
   right: 10%;
   animation: float 12s ease-in-out infinite;
 }
+
+/* 背景色 */
+.bg-f9fafb { background-color: #f9fafb; }
 
 @keyframes float {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
