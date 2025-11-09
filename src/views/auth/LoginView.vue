@@ -3,7 +3,7 @@
     <div class="login-wrapper">
       <!-- 登录卡片 -->
       <div class="login-card">
-        <div class="login-header">
+        <div class="login-header ">
           <h1 class="login-title">欢迎登录 CareSync AI</h1>
           <p class="login-subtitle">专注于留守儿童情感陪伴与服务的智能平台</p>
         </div>
