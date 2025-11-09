@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import ChatRoom from './components/ChatRoom.vue'
+// App组件
 </script>
 
 
 <template>
   <div id="app">
-    <!-- Using the existing ChatRoom component instead of the missing CubeWall -->
-    <ChatRoom />
+    <!-- 路由视图占位符 -->
+    <router-view />
   </div>
 </template>
 

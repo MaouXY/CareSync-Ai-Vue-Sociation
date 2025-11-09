@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareSync AI - 留守儿童情感陪伴与服务平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 变量定义 */
+        :root {
+            --primary: #4F46E5;
+            --secondary: #10B981;
+            --accent: #F97316;
+            --neutral: #6B7280;
+            --light: #F3F4F6;
+            --dark: #1F2937;
+            --white: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #E0F2FE 0%, #E0E7FF 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                padding: 0 2rem;
+            }
+        }
+
+        /* 通用样式 */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .font-normal { font-weight: 400; }
+        
+        .text-primary { color: var(--primary); }
+        .text-secondary { color: var(--secondary); }
+        .text-accent { color: var(--accent); }
+        .text-neutral { color: var(--neutral); }
+        .text-dark { color: var(--dark); }
+        .text-white { color: var(--white); }
+        
+        .bg-primary { background-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        .bg-accent { background-color: var(--accent); }
+        .bg-light { background-color: var(--light); }
+        .bg-white { background-color: var(--white); }
+        .bg-dark { background-color: var(--dark); }
+        
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-full { border-radius: 9999px; }
+        
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow-md { box-shadow: var(--shadow-md); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+        
+        .transition-custom {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 布局样式 */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-shrink-0 { flex-shrink: 0; }
+
+        /* 间距样式 */
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-x-8 > * + * { margin-left: 2rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-8 { gap: 2rem; }
+        .gap-12 { gap: 3rem; }
+
+        /* 尺寸样式 */
+        .w-10 { width: 2.5rem; }
+        .w-12 { width: 3rem; }
+        .w-14 { width: 3.5rem; }
+        .w-20 { width: 5rem; }
+        .h-10 { height: 2.5rem; }
+        .h-12 { height: 3rem; }
+        .h-14 { height: 3.5rem; }
+        .h-16 { height: 4rem; }
+        .h-20 { height: 5rem; }
+        .min-h-screen { min-height: 100vh; }
+
+        /* 文本大小 */
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+
+        /* 响应式文本 */
+        .responsive-heading {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .responsive-subheading {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .responsive-text {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            line-height: 1.6;
+        }
+
+        /* 网格布局 */
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: 1fr; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+        @media (min-width: 768px) {
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .md\:flex { display: flex; }
+            .md\:hidden { display: none; }
+            .md\:flex-row { flex-direction: row; }
+            .md\:order-1 { order: 1; }
+            .md\:order-2 { order: 2; }
+        }
+
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* 内边距 */
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .p-10 { padding: 2.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-8 { padding-left: 2rem; padding-right: 2rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+        .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+        .pt-32 { padding-top: 8rem; }
+        .pb-20 { padding-bottom: 5rem; }
+
+        /* 外边距 */
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mb-10 { margin-bottom: 2.5rem; }
+        .mb-16 { margin-bottom: 4rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mr-4 { margin-right: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+
+        /* 最大宽度 */
+        .max-w-2xl { max-width: 42rem; }
+        .max-w-3xl { max-width: 48rem; }
+        .max-w-5xl { max-width: 64rem; }
+
+        /* 定位 */
+        .fixed { position: fixed; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .top-0 { top: 0; }
+        .left-0 { left: 0; }
+        .right-0 { right: 0; }
+        .bottom-6 { bottom: 1.5rem; }
+        .right-6 { right: 1.5rem; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+
+        /* 层级 */
+        .z-10 { z-index: 10; }
+        .z-50 { z-index: 50; }
+
+        /* 可见性 */
+        .opacity-0 { opacity: 0; }
+        .opacity-100 { opacity: 1; }
+        .invisible { visibility: hidden; }
+        .visible { visibility: visible; }
+
+        /* 变换 */
+        .transform { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
+        .hover\:-translate-y-1:hover { transform: translateY(-0.25rem); }
+        .hover\:scale-105:hover { transform: scale(1.05); }
+        .rotate-3 { transform: rotate(3deg); }
+
+        /* 背景模糊 */
+        .backdrop-blur-md {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* 对象适配 */
+        .object-cover { object-fit: cover; }
+
+        /* 悬停效果 */
+        .hover\:bg-primary\/90:hover { background-color: rgba(79, 70, 229, 0.9); }
+        .hover\:bg-secondary\/90:hover { background-color: rgba(16, 185, 129, 0.9); }
+        .hover\:bg-gray-50:hover { background-color: var(--gray-50); }
+        .hover\:text-primary:hover { color: var(--primary); }
+        .hover\:text-white:hover { color: var(--white); }
+        .hover\:shadow-md:hover { box-shadow: var(--shadow-md); }
+        .hover\:shadow-xl:hover { box-shadow: var(--shadow-xl); }
+
+        /* 边框 */
+        .border { border-width: 1px; }
+        .border-primary { border-color: var(--primary); }
+        .border-gray-800 { border-color: var(--gray-800); }
+        .border-t { border-top-width: 1px; }
+
+        /* 焦点样式 */
+        .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+
+        /* 响应式显示 */
+        .hidden { display: none; }
+
+        @media (max-width: 767px) {
+            .sm\:flex-row { flex-direction: row; }
+            .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        }
+
+        /* 自定义渐变背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #E0F2FE 0%, #E0E7FF 100%);
+        }
+
+        .gradient-blue-green {
+            background: linear-gradient(135deg, #E0F2FE 0%, #D1FAE5 100%);
+        }
+
+        .gradient-indigo-blue {
+            background: linear-gradient(135deg, #E0E7FF 0%, #DBEAFE 100%);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--white);
+        }
+
+        .btn-outline {
+            background-color: var(--white);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-0.125rem);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* 卡片悬停效果 */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-0.25rem);
+            box-shadow: var(--shadow-xl);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- 导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white backdrop-blur-md shadow-sm z-50 transition-custom" style="background-color: rgba(255, 255, 255, 0.8);">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="text-primary font-bold text-xl flex items-center">
+                        <i class="fa fa-heartbeat mr-2 text-accent"></i>
+                        <span>CareSync AI</span>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-dark hover:text-primary transition-custom">核心功能</a>
+                    <a href="#advantages" class="text-dark hover:text-primary transition-custom">平台优势</a>
+                    <a href="#login" class="text-dark hover:text-primary transition-custom">登录入口</a>
+                    <a href="#about" class="text-dark hover:text-primary transition-custom">关于我们</a>
+                </nav>
+                <div class="md:hidden">
+                    <button type="button" class="text-dark hover:text-primary focus:outline-none">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div class="container text-center">
+            <h1 class="responsive-heading text-dark mb-6 leading-tight text-shadow">
+                <span class="text-primary">AI 智能陪伴</span> + 
+                <span class="text-secondary">社工精准介入</span>
+            </h1>
+            <p class="responsive-text text-neutral max-w-3xl mx-auto mb-10">
+                为留守儿童提供有温度、可信赖的即时情感回应和安全的倾诉出口，
+                依托结构化数据支撑社工开展针对性服务
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#login" class="btn btn-primary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
+                    立即开始体验
+                </a>
+                <a href="#features" class="btn btn-outline py-3 px-8 rounded-lg shadow hover:shadow-md transition-custom">
+                    了解更多功能
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心功能 -->
+    <section id="features" class="py-20 bg-white">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="responsive-subheading text-dark mb-4">核心功能</h2>
+                <p class="text-neutral max-w-2xl">全方位满足留守儿童情感陪伴与社工服务需求</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 功能卡片1 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+                        <i class="fa fa-comments text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">AI 情感陪伴</h3>
+                    <p class="text-neutral">安全合规的 AI 交互填补日常情感空白，提供即时回应和情感支持</p>
+                </div>
+                
+                <!-- 功能卡片2 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+                        <i class="fa fa-users text-2xl text-secondary"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">社工精准服务</h3>
+                    <p class="text-neutral">基于 AI 分析的结构化数据，帮助社工快速定位需求，实现精准介入</p>
+                </div>
+                
+                <!-- 功能卡片3 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(249, 115, 22, 0.1);">
+                        <i class="fa fa-bell text-2xl text-accent"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">紧急呼叫</h3>
+                    <p class="text-neutral">提供安全快捷的紧急求助通道，确保儿童在需要时能及时获得帮助</p>
+                </div>
+                
+                <!-- 功能卡片4 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+                        <i class="fa fa-file-text text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">AI 服务方案</h3>
+                    <p class="text-neutral">基于儿童情况智能生成个性化服务方案，为社工提供专业参考</p>
+                </div>
+                
+                <!-- 功能卡片5 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+                        <i class="fa fa-calendar-check-o text-2xl text-secondary"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">服务跟踪</h3>
+                    <p class="text-neutral">全程记录服务过程，跟踪进度和效果，确保服务计划有效实施</p>
+                </div>
+                
+                <!-- 功能卡片6 -->
+                <div class="bg-light rounded-xl shadow-md p-6 card-hover">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(249, 115, 22, 0.1);">
+                        <i class="fa fa-shield text-2xl text-accent"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-dark">安全保障</h3>
+                    <p class="text-neutral">多重安全过滤机制，确保儿童交互环境安全，保护隐私信息</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 平台优势 -->
+    <section id="advantages" class="py-20 gradient-indigo-blue">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="responsive-subheading text-dark mb-4">平台优势</h2>
+                <p class="text-neutral max-w-2xl">为什么选择 CareSync AI</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="order-2 md:order-1">
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                                <i class="fa fa-child text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold mb-2 text-dark">儿童友好设计</h3>
+                                <p class="text-neutral">界面简洁直观，操作简单易用，专为儿童用户习惯设计，提供舒适的交互体验</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                                <i class="fa fa-rocket text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold mb-2 text-dark">AI 智能分析</h3>
+                                <p class="text-neutral">先进的 AI 模型实时分析儿童情绪和需求，为社工提供数据支持和决策参考</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                                <i class="fa fa-lock text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold mb-2 text-dark">安全合规保障</h3>
+                                <p class="text-neutral">严格遵守儿童隐私保护法规，多重内容过滤和安全机制，确保平台使用安全</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-1 md:order-2">
+                    <div class="relative">
+                        <div class="absolute inset-0 rounded-2xl transform rotate-3 transition-custom" style="background-color: rgba(79, 70, 229, 0.2);"></div>
+                        <img src="https://picsum.photos/id/1005/800/600" alt="留守儿童与社工互动" class="rounded-xl shadow-lg relative z-10 w-full object-cover h-auto transition-custom hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 登录入口 -->
+    <section id="login" class="py-20 bg-white">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="responsive-subheading text-dark mb-4">登录入口</h2>
+                <p class="text-neutral max-w-2xl">选择您的身份进入平台</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+                <!-- 儿童端入口 -->
+                <div class="rounded-xl shadow-md p-8 text-center card-hover" style="background: linear-gradient(135deg, #E0F2FE 0%, #E0E7FF 100%);">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+                        <i class="fa fa-child text-3xl text-primary"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-3 text-dark">儿童端</h3>
+                    <p class="text-neutral mb-6">AI 智能陪伴，情感倾诉，紧急求助</p>
+                    <a href="child-login（弃用）.html" class="btn btn-primary py-3 px-8 rounded-lg shadow hover:shadow-md transition-custom">
+                        进入儿童端
+                    </a>
+                </div>
+                
+                <!-- 社工端入口 -->
+                <div class="rounded-xl shadow-md p-8 text-center card-hover" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+                        <i class="fa fa-user-md text-3xl text-secondary"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold mb-3 text-dark">社工端</h3>
+                    <p class="text-neutral mb-6">儿童管理，服务方案，跟踪评估</p>
+                    <a href="social-worker-login.html" class="btn btn-secondary py-3 px-8 rounded-lg shadow hover:shadow-md transition-custom">
+                        进入社工端
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我们 -->
+    <section id="about" class="py-20 gradient-indigo-blue">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="responsive-subheading text-dark mb-6">关于我们</h2>
+                <p class="text-neutral mb-8 leading-relaxed">
+                    CareSync AI 是一个专注于留守儿童情感陪伴与服务的项目，旨在通过技术力量，
+                    为留守儿童提供有温度的情感支持，同时为社工提供数据驱动的精准服务工具。
+                    我们希望通过 "AI 智能陪伴 + 社工精准介入" 的模式，让每一位留守儿童都能感受到关爱与陪伴。
+                </p>
+                <div class="flex justify-center space-x-6">
+                    <a href="#" class="text-primary hover:text-primary transition-custom">
+                        <i class="fa fa-weixin text-3xl"></i>
+                    </a>
+                    <a href="#" class="text-primary hover:text-primary transition-custom">
+                        <i class="fa fa-weibo text-3xl"></i>
+                    </a>
+                    <a href="#" class="text-primary hover:text-primary transition-custom">
+                        <i class="fa fa-envelope text-3xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-10">
+        <div class="container px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="text-white font-bold text-xl flex items-center">
+                        <i class="fa fa-heartbeat mr-2 text-accent"></i>
+                        <span>CareSync AI</span>
+                    </div>
+                    <p class="text-gray-400 mt-2">让关爱更有温度</p>
+                </div>
+                <div class="flex flex-wrap justify-center gap-x-8 gap-y-4">
+                    <a href="#features" class="text-gray-400 hover:text-white transition-custom">核心功能</a>
+                    <a href="#advantages" class="text-gray-400 hover:text-white transition-custom">平台优势</a>
+                    <a href="#login" class="text-gray-400 hover:text-white transition-custom">登录入口</a>
+                    <a href="#about" class="text-gray-400 hover:text-white transition-custom">关于我们</a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 CareSync AI. 保留所有权利。</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-6 right-6 bg-primary text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center opacity-0 invisible transition-custom hover:bg-primary/90 focus:outline-none">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // 滚动监听，显示/隐藏返回顶部按钮
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.scrollY > 300) {
+                backToTop.classList.remove('opacity-0', 'invisible');
+                backToTop.classList.add('opacity-100', 'visible');
+            } else {
+                backToTop.classList.remove('opacity-100', 'visible');
+                backToTop.classList.add('opacity-0', 'invisible');
+            }
+        });
+        
+        // 返回顶部功能
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('shadow-sm');
+            }
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
