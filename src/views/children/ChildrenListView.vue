@@ -46,7 +46,8 @@
         </Card>
       </div>
       
-      <!-- 搜索和筛选区域 --<Card class="search-filter-card">
+      <!-- 搜索和筛选区域 -->
+      <Card class="search-filter-card">
         <div class="search-filter-content">
           <div class="search-group">
             <Input
