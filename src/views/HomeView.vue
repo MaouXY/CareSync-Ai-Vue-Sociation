@@ -1,16 +1,16 @@
 <template>
-  <div class="gradient-bg min-h-screen">
+  <div class="min-h-screen">
     <!-- 导航栏 -->
     <header class="fixed top-0 left-0 right-0 bg-white backdrop-blur-md shadow-sm z-50 transition-custom" style="background-color: rgba(255, 255, 255, 0.8);">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
             <div class="text-primary font-bold text-xl flex items-center">
-              <i class="fa fa-heartbeat mr-2 text-accent"></i>
-              <span>CareSync AI</span>
+              <i class="fa fa-heartbeat mr-2 text-primary"></i>
+              <span class="text-primary">CareSync AI</span>
             </div>
           </div>
-          <nav class="hidden md:flex space-x-8">
+          <nav class="hidden md:flex space-x-8 mr-8">
             <a href="#features" class="text-dark hover:text-primary transition-custom" @click="scrollToSection('features')">核心功能</a>
             <a href="#advantages" class="text-dark hover:text-primary transition-custom" @click="scrollToSection('advantages')">平台优势</a>
             <a href="#login" class="text-dark hover:text-primary transition-custom" @click="scrollToSection('login')">登录入口</a>
@@ -26,7 +26,7 @@
     </header>
 
     <!-- 英雄区域 -->
-    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-primary">
       <div class="container text-center">
         <h1 class="responsive-heading text-dark mb-6 leading-tight text-shadow">
           <span class="text-primary">AI 智能陪伴</span> + 
@@ -48,17 +48,17 @@
     </section>
 
     <!-- 核心功能 -->
-    <section id="features" class="py-20 bg-white">
+    <section id="features" class="py-20 bg-white bg-light">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="responsive-subheading text-dark mb-4">核心功能</h2>
-          <p class="text-neutral max-w-2xl">全方位满足留守儿童情感陪伴与社工服务需求</p>
+          <p class="text-neutral max-w-8xl">全方位满足留守儿童情感陪伴与社工服务需求</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <!-- 功能卡片1 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(79, 70, 229, 0.1);">
               <i class="fa fa-comments text-2xl text-primary"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">AI 情感陪伴</h3>
@@ -66,8 +66,8 @@
           </div>
           
           <!-- 功能卡片2 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(16, 185, 129, 0.1);">
               <i class="fa fa-users text-2xl text-secondary"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">社工精准服务</h3>
@@ -75,8 +75,8 @@
           </div>
           
           <!-- 功能卡片3 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(249, 115, 22, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(249, 115, 22, 0.1);">
               <i class="fa fa-bell text-2xl text-accent"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">紧急呼叫</h3>
@@ -84,8 +84,8 @@
           </div>
           
           <!-- 功能卡片4 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(79, 70, 229, 0.1);">
               <i class="fa fa-file-text text-2xl text-primary"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">AI 服务方案</h3>
@@ -93,8 +93,8 @@
           </div>
           
           <!-- 功能卡片5 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(16, 185, 129, 0.1);">
               <i class="fa fa-calendar-check-o text-2xl text-secondary"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">服务跟踪</h3>
@@ -102,8 +102,8 @@
           </div>
           
           <!-- 功能卡片6 -->
-          <div class="bg-light rounded-xl shadow-md p-6 card-hover">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(249, 115, 22, 0.1);">
+          <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(249, 115, 22, 0.1);">
               <i class="fa fa-shield text-2xl text-accent"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">安全保障</h3>
@@ -114,18 +114,19 @@
     </section>
 
     <!-- 平台优势 -->
-    <section id="advantages" class="py-20 gradient-indigo-blue">
-      <div class="container px-4 sm:px-6 lg:px-8">
+    <section id="advantages" class="py-20 bg-primary"> 
+      <div class="container px-4 sm:px-6 lg:px-8 mx-auto">
         <div class="text-center mb-16">
           <h2 class="responsive-subheading text-dark mb-4">平台优势</h2>
-          <p class="text-neutral max-w-2xl">为什么选择 CareSync AI</p>
+          <p class="text-neutral max-w-8xl">为什么选择 CareSync AI</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div class="order-2 md:order-1">
             <div class="space-y-6">
+
               <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full flex justify-center mr-4 mt-6" style="background-color: rgba(79, 70, 229, 0.1);">
                   <i class="fa fa-child text-primary"></i>
                 </div>
                 <div>
@@ -135,7 +136,7 @@
               </div>
               
               <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full flex justify-center mr-4 mt-6" style="background-color: rgba(79, 70, 229, 0.1);">
                   <i class="fa fa-rocket text-primary"></i>
                 </div>
                 <div>
@@ -145,7 +146,7 @@
               </div>
               
               <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4 mt-1" style="background-color: rgba(79, 70, 229, 0.1);">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full flex justify-center mr-4 mt-6" style="background-color: rgba(79, 70, 229, 0.1);">
                   <i class="fa fa-lock text-primary"></i>
                 </div>
                 <div>
@@ -153,9 +154,16 @@
                   <p class="text-neutral">严格遵循儿童保护相关法律法规，确保平台运营的合法性和安全性</p>
                 </div>
               </div>
+
             </div>
           </div>
-          <div class="order-1 md:order-2">
+          <div class="image-container">
+              <div class="image-wrapper">
+                  <div class="floating-background"></div>
+                  <img src="https://picsum.photos/id/1005/800/600" alt="留守儿童与社工互动">
+              </div>
+          </div>
+          <!-- <div class="order-1 md:order-2">
             <div class="relative">
               <div class="w-20 h-20 bg-primary/20 rounded-full absolute -top-4 -left-4 rotate-3"></div>
               <div class="w-16 h-16 bg-secondary/20 rounded-full absolute -bottom-4 -right-4 -rotate-3"></div>
@@ -178,36 +186,38 @@
                 </ul>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </section>
 
     <!-- 登录入口 -->
-    <section id="login" class="py-20 bg-white">
+    <section id="login" class="py-20 bg-white text-light bg-light text-center">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="responsive-subheading text-dark mb-4">登录入口</h2>
-          <p class="text-neutral max-w-2xl">选择您的身份进入平台</p>
+          <p class="text-neutral max-w-8xl text-center">选择您的身份进入平台</p>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div class="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl shadow-md p-8 card-hover">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
+          <div class="bg-primary rounded-xl shadow-md p-8 card-hover">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
               <i class="fa fa-child text-3xl text-primary"></i>
             </div>
             <h3 class="text-2xl font-semibold mb-4 text-dark">儿童端</h3>
             <p class="text-neutral mb-6">AI 智能陪伴，情感倾诉，紧急求助</p>
-            <a href="/child-login" class="btn btn-primary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom w-full">
+            <a href="http://localhost:5174/#/login" class="btn btn-primary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
               进入儿童端
             </a>
           </div>
-          <div class="bg-gradient-to-br from-secondary/5 to-accent/5 rounded-xl shadow-md p-8 card-hover">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
+
+          <div class="bg-secondary rounded-xl shadow-md p-8 card-hover">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
               <i class="fa fa-user-md text-3xl text-secondary"></i>
             </div>
             <h3 class="text-2xl font-semibold mb-4 text-dark">社工端登录</h3>
             <p class="text-neutral mb-6">儿童管理，服务方案，跟踪评估</p>
-            <router-link to="/login" class="btn btn-secondary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom w-full">
+            <router-link to="/login" class="btn btn-secondary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
               进入社工端
             </router-link>
           </div>
@@ -216,10 +226,10 @@
     </section>
 
     <!-- 关于我们 -->
-    <section id="about" class="py-20 gradient-indigo-blue">
+    <section id="about" class="py-8 bg-primary">
       <div class="container px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="responsive-subheading text-dark mb-4">关于我们</h2>
+        <div class="text-center mb-8">
+          <h2 class="responsive-subheading text-dark mb-2">关于我们</h2>
         </div>
         <div class="max-w-4xl mx-auto text-center">
           <p class="text-neutral text-lg leading-relaxed mb-8">
@@ -243,7 +253,7 @@
     </section>
 
     <!-- 页脚 -->
-    <footer class="bg-dark text-white py-8">
+    <footer class="bg-dark text-white py-3">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="text-center">
           <p class="text-neutral">&copy; 2024 CareSync AI. 保留所有权利。</p>
@@ -296,16 +306,11 @@ onUnmounted(() => {
 
 <style scoped>
 /* CSS 变量定义 */
-:root {
-  --primary: #4F46E5;
-  --secondary: #10B981;
-  --accent: #F97316;
-  --neutral: #6B7280;
-  --light: #F3F4F6;
-  --dark: #1F2937;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+#app {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 /* 基础样式 */
@@ -344,40 +349,44 @@ onUnmounted(() => {
 }
 
 .text-secondary {
-  color: var(--secondary);
+  color: #10B981;
 }
 
 .text-accent {
-  color: var(--accent);
+  color: #F97316;
 }
 
 .text-neutral {
-  color: var(--neutral);
+  color: #6B7280;
 }
 
 .text-dark {
-  color: var(--dark);
+  color: #1F2937;
 }
 
 .text-light {
-  color: var(--light);
+  color: #F3F4F6;
 }
 
 /* 背景颜色 */
 .bg-primary {
-  background-color: var(--primary);
+  background-color: var(--primary-bg);
 }
 
 .bg-secondary {
-  background-color: var(--secondary);
+  background-color: var(--secondary-bg);
 }
 
 .bg-accent {
   background-color: var(--accent);
 }
 
+.bg-neutral {
+  background-color: var(--neutral-bg);
+}
+
 .bg-light {
-  background-color: var(--light);
+  background-color: var(--light-bg);
 }
 
 .bg-dark {
@@ -449,6 +458,23 @@ onUnmounted(() => {
 }
 
 /* 响应式间距 */
+.p-2{
+  padding: 0.5rem;
+}
+
+.p-4{
+  padding: 1rem;
+}
+
+.p-8{
+  padding: 2rem;
+}
+/* 水平 */
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -498,8 +524,24 @@ onUnmounted(() => {
 
 .mr-2 { margin-right: 0.5rem; }
 .mr-4 { margin-right: 1rem; }
+.mr-6 { margin-right: 1.5rem; }
+.mr-8 { margin-right: 2rem; }
+
+.ml-2 { margin-left: 0.5rem; }
+.ml-4 { margin-left: 1rem; }
+.ml-6 { margin-left: 1.5rem; }
+.ml-8 { margin-left: 2rem; }
 
 .mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-16 { margin-top: 4rem; }
+/* 水平 */
+.mx-auto {
+   margin-left: auto; margin-right: auto; 
+}
 
 /* Flexbox */
 .flex { display: flex; }
@@ -533,6 +575,9 @@ onUnmounted(() => {
 .w-14 { width: 3.5rem; }
 .w-16 { width: 4rem; }
 .w-20 { width: 5rem; }
+.w-25 { width: 6.25rem; }
+.w-32 { width: 8rem; }
+.w-40 { width: 10rem; }
 
 .h-10 { height: 2.5rem; }
 .h-14 { height: 3.5rem; }
@@ -605,6 +650,7 @@ onUnmounted(() => {
 .max-w-2xl { max-width: 42rem; }
 .max-w-3xl { max-width: 48rem; }
 .max-w-4xl { max-width: 56rem; }
+.max-w-8xl { max-width: 80rem; }
 
 /* 字体大小 */
 .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
@@ -624,6 +670,12 @@ onUnmounted(() => {
 
 /* 文本对齐 */
 .text-center { text-align: center; }
+
+/* 左对齐 */
+.text-left { text-align: left; }
+
+/* 右对齐 */
+.text-right { text-align: right; }
 
 /* 溢出 */
 .overflow-hidden { overflow: hidden; }
@@ -656,6 +708,96 @@ onUnmounted(() => {
 /* 宽度 */
 .w-full { width: 100%; }
 
+/* 高度 */
+.h-full { height: 100%; }
+
 /* 边距自动 */
 .mx-auto { margin-left: auto; margin-right: auto; }
+
+/* 
+  1. 外层容器 (.image-container)
+  作用：在中等屏幕尺寸下，控制图片区域的显示顺序。
+  注意：这是一个布局相关的样式，通常会放在更宏观的布局 CSS 中。
+*/
+/* 在小屏幕上，这个 div 会是第一个显示 */
+
+/* 在中等屏幕及以上，这个 div 会被移动到第二个位置 */
+@media (min-width: 768px) { /* 'md' 断点通常是 768px */
+  /* 假设它的父容器是一个 flex 容器 */
+  /* .parent-container { display: flex; flex-wrap: wrap; } */
+  .image-container {
+    order: 2; 
+  }
+}
+
+/* 
+  2. 图片包装器 (.image-wrapper)
+  作用：作为绝对定位元素的参考点 (position: relative)。
+*/
+.image-wrapper {
+  position: relative; /* 关键：让内部的绝对定位元素以它为基准 */
+  /* 为了让旋转的背景不被裁剪，给它一点内边距 */
+  padding: 1rem; 
+}
+
+/* 
+  3. 浮动背景 (.floating-background)
+  作用：创建一个在图片下方、带有旋转和透明度的背景块，营造层次感。
+*/
+.floating-background {
+  /* 绝对定位，覆盖整个 .image-wrapper */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* 或者使用 inset-0 简写 */
+  /* inset: 0; */
+
+  background-color: rgba(79, 70, 229, 0.2); /* 半透明的紫色 */
+  border-radius: 1rem; /* rounded-2xl 大约是 1rem */
+  
+  /* 旋转效果 */
+  transform: rotate(3deg);
+  
+  /* 过渡效果，让旋转或其他变化更平滑 */
+  transition: all 0.3s ease;
+}
+
+/* 
+  4. 图片本身 (img)
+  作用：展示主要内容，并带有悬停效果。
+*/
+.image-wrapper img {
+  /* 相对定位，让它在 z 轴上位于 .floating-background 之上 */
+  position: relative;
+  z-index: 10; /* 确保图片在背景之上 */
+
+  width: 100%; /* 图片宽度充满父容器 */
+  height: auto; /* 高度自动，保持宽高比 */
+  object-fit: cover; /* 确保图片覆盖整个区域，可能会裁剪 */
+  
+  border-radius: 0.75rem; /* rounded-xl 大约是 0.75rem */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  
+  /* 过渡效果，让悬停时的缩放更平滑 */
+  transition: all 0.3s ease;
+}
+
+/* 
+  5. 图片悬停效果
+*/
+.image-wrapper img:hover {
+  transform: scale(1.05); /* hover:scale-105 */
+  /* 悬停时可以增加一点阴影，增强效果 */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 
+  额外：可以给 .image-wrapper 也加一个 hover 效果，让背景和图片有联动
+*/
+.image-wrapper:hover .floating-background {
+  transform: rotate(3deg) scale(1.02);
+}
+
 </style>

@@ -11,6 +11,27 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* 颜色 */
+  /* primary */
+  --primary: #4F46E5;
+  --primary-bg: #EEF5FF;
+
+  --secondary: #10B981;
+  --secondary-bg: #F0FDF8;
+  
+  --accent: #F97316;
+  --neutral: #6B7280;
+  --neutral-bg: #F3F4F6;
+
+  /* light */
+  --light: #F3F4F6;
+  --light-bg: #FFFFFF;
+
+  --dark: #1F2937;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
 }
 
 a {
@@ -59,10 +80,8 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  /* text-align: center; */
 }
 
 @media (prefers-color-scheme: light) {
