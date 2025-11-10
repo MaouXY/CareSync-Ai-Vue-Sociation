@@ -186,6 +186,11 @@ button:active,
   transform: translateY(-2px);
 }
 
+/* icon 样式 */
+.task-icon-primary {
+  background-color: var(--primary-bg);
+}
+
 /* 卡片悬停效果 */
 .card-hover {
   transition: all 0.3s ease;

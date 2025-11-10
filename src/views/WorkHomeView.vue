@@ -250,7 +250,7 @@ const statistics = computed(() => [
     theme: 'accent',
     change: '8%',
     changeType: 'up',
-    description: '包括紧急呼叫 2 件'
+    description: '相比上月增长'
   },
   {
     key: 'completedSchemeCount',
@@ -642,7 +642,7 @@ onMounted(() => {
 }
 
 .statistics-card-primary::before {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary);
 }
 
 .statistics-card-accent::before {
@@ -684,7 +684,7 @@ onMounted(() => {
 }
 
 .statistics-icon-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:var(--primary);
 }
 
 .statistics-icon-accent {
