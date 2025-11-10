@@ -8,6 +8,9 @@ import App from './App.vue'
 import ArcoVue from '@arco-design/web-vue'
 import '@arco-design/web-vue/dist/arco.css'
 
+// 引入认证store
+import { useAuthStore } from './stores'
+
 // 创建Vue应用实例
 const app = createApp(App)
 
@@ -22,3 +25,7 @@ app.use(ArcoVue)
 
 // 挂载应用
 app.mount('#app')
+
+// 初始化认证状态，从本地存储恢复用户信息
+const authStore = useAuthStore()
+authStore.initialize()

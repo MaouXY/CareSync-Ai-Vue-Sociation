@@ -8,7 +8,7 @@
       <div class="work-container">
         <!-- 欢迎信息 -->
         <div class="welcome-section">
-          <h1 class="welcome-title">欢迎回来，{{ userName }}</h1>
+          <h1 class="welcome-title">欢迎回来，{{ userName }}社工</h1>
           <p class="welcome-subtitle">
             今天是 {{ currentDate }}，已有 {{ currentChildCount }} 名儿童等待您的关注
           </p>
@@ -205,6 +205,9 @@ import type { SocialWorkerHomeVO } from '@/types/api';
 // 状态管理
 const authStore = useAuthStore();
 
+// 初始化认证状态，从本地存储恢复用户信息
+authStore.initialize();
+
 // 响应式数据
 const homeData = ref<SocialWorkerHomeVO | null>(null);
 const loading = ref(false);
@@ -219,11 +222,18 @@ let pieChart: echarts.ECharts | null = null;
 
 // 计算属性
 const userName = computed(() => {
-  return authStore.userName || '李社工';
+  return authStore.userName || '李';
 });
 
 const currentDate = computed(() => {
-  return '2023年7月15日 星期六';
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const weekday = weekdays[now.getDay()];
+  
+  return `${year}年${month}月${day}日 ${weekday}`;
 });
 
 const currentChildCount = computed(() => {
@@ -520,13 +530,39 @@ const formatRelativeTime = (dateStr: string) => {
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor(diff / (1000 * 60));
+  const years = now.getFullYear() - date.getFullYear();
 
-  if (days > 0) {
-    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  } else if (hours > 0) {
-    return `昨天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  const formatTime = (date: Date) => {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const formatMonthDay = (date: Date) => {
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  const formatYearMonth = (date: Date) => {
+    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+  };
+
+  // 超过一年：显示年份和月份
+  if (years >= 1) {
+    return formatYearMonth(date);
+  }
+  
+  // 超过三天：显示月日
+  if (days > 3) {
+    return formatMonthDay(date);
+  }
+  
+  // 三天内：显示相对时间
+  if (days === 0) {
+    return `今天 ${formatTime(date)}`;
+  } else if (days === 1) {
+    return `昨天 ${formatTime(date)}`;
+  } else if (days === 2) {
+    return `前天 ${formatTime(date)}`;
   } else {
-    return `${hours}小时前`;
+    return formatMonthDay(date);
   }
 };
 
