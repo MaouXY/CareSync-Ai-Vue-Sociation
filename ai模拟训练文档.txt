@@ -1,0 +1,407 @@
+
+
+## 获取模拟训练场景列表
+
+
+**接口地址**:`/api/social-worker/simulation/scenarios`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取所有可用的模拟训练场景列表</p>
+
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListSimulationScenarioVO|
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code||integer(int32)|integer(int32)|
+|msg||string||
+|data||array|SimulationScenarioVO|
+|&emsp;&emsp;id||integer(int64)||
+|&emsp;&emsp;scenarioName||string||
+|&emsp;&emsp;scenarioType||string||
+|&emsp;&emsp;description||string||
+|&emsp;&emsp;difficultyLevel||integer(int32)||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"msg": "",
+	"data": [
+		{
+			"id": 0,
+			"scenarioName": "",
+			"scenarioType": "",
+			"description": "",
+			"difficultyLevel": 0
+		}
+	]
+}
+```
+{
+  "code": 1,
+  "msg": null,
+  "data": [
+    {
+      "id": 1,
+      "scenarioName": "留守儿童表达孤独",
+      "scenarioType": "情感表达",
+      "description": "模拟一个性格内向、缺乏陪伴的留守儿童，需要建立信任关系。",
+      "difficultyLevel": 1
+    },
+    {
+      "id": 2,
+      "scenarioName": "学习困难儿童",
+      "scenarioType": "自主学习",
+      "description": "模拟一个学习成绩下滑、对学习失去信心的儿童，需要学习支持。",
+      "difficultyLevel": 2
+    }
+  ]
+}
+
+
+
+## 开始新的训练会话
+
+
+**接口地址**:`/api/social-worker/simulation/start`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>选择场景并开始一个新的训练会话</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "scenarioId": 0
+}
+```
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|startTrainingSessionDTO|StartTrainingSessionDTO|body|true|StartTrainingSessionDTO|StartTrainingSessionDTO|
+|&emsp;&emsp;scenarioId|||false|integer(int64)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultTrainingSessionVO|
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code||integer(int32)|integer(int32)|
+|msg||string||
+|data||TrainingSessionVO|TrainingSessionVO|
+|&emsp;&emsp;id||integer(int64)||
+|&emsp;&emsp;workerId||integer(int64)||
+|&emsp;&emsp;scenarioId||integer(int64)||
+|&emsp;&emsp;sessionStatus||string||
+|&emsp;&emsp;startTime||string(date-time)||
+|&emsp;&emsp;endTime||string(date-time)||
+|&emsp;&emsp;totalRounds||integer(int32)||
+|&emsp;&emsp;overallScore||number||
+|&emsp;&emsp;createTime||string(date-time)||
+|&emsp;&emsp;updateTime||string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"msg": "",
+	"data": {
+		"id": 0,
+		"workerId": 0,
+		"scenarioId": 0,
+		"sessionStatus": "",
+		"startTime": "",
+		"endTime": "",
+		"totalRounds": 0,
+		"overallScore": 0,
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+{
+  "code": 1,
+  "msg": null,
+  "data": {
+    "id": 3,
+    "workerId": 1,
+    "scenarioId": 1,
+    "sessionStatus": "IN_PROGRESS",
+    "startTime": "2025-11-11T04:44:59.0595423",
+    "endTime": null,
+    "totalRounds": 0,
+    "overallScore": null,
+    "createTime": "2025-11-11T04:44:59.0639254",
+    "updateTime": "2025-11-11T04:44:59.0649329"
+  }
+}
+
+
+
+## 发送训练消息
+
+
+**接口地址**:`/api/social-worker/simulation/send`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>社工向模拟儿童发送消息</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "sessionId": 0,
+  "prompt": "",
+  "history": [
+    {
+      "role": "",
+      "content": ""
+    }
+  ]
+}
+```
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sendTrainingMessageDTO|SendTrainingMessageDTO|body|true|SendTrainingMessageDTO|SendTrainingMessageDTO|
+|&emsp;&emsp;sessionId|||false|integer(int64)||
+|&emsp;&emsp;prompt|||false|string||
+|&emsp;&emsp;history|||false|array|ChatMessage|
+|&emsp;&emsp;&emsp;&emsp;role|||false|string||
+|&emsp;&emsp;&emsp;&emsp;content|||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultTrainingChatResponseVO|
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code||integer(int32)|integer(int32)|
+|msg||string||
+|data||TrainingChatResponseVO|TrainingChatResponseVO|
+|&emsp;&emsp;sessionId||integer(int64)||
+|&emsp;&emsp;childReply||string||
+|&emsp;&emsp;emotionAnalysis||string||
+|&emsp;&emsp;aiGuidance||string||
+|&emsp;&emsp;timestamp||string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"msg": "",
+	"data": {
+		"sessionId": 0,
+		"childReply": "",
+		"emotionAnalysis": "",
+		"aiGuidance": "",
+		"timestamp": ""
+	}
+}
+```
+{
+  "code": 1,
+  "msg": null,
+  "data": {
+    "sessionId": 2,
+    "childReply": "……嗯。姐姐，你的手好暖呀。",
+    "emotionAnalysis": "{\"detected_emotions\": [{\"emotion\": \"开心\", \"confidence\": 85}], \"emotion_intensity\": 60}",
+    "aiGuidance": "社工可回应：“姐姐的手暖，你的小脑袋也软软的呢～”（用具体细节强化温暖感受），同时保持轻柔抚摸动作，接着轻声问：“刚才是不是心里也暖暖的呀？”（引导孩子表达内在感受，巩固安全感与情感连接）。",
+    "timestamp": "2025-11-11T04:46:13.3704976"
+  }
+}
+
+
+
+## 结束训练会话
+
+
+**接口地址**:`/api/social-worker/simulation/end/{sessionId}`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>结束训练会话并获取总结评估</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "sessionId": 0
+}
+```
+
+
+**请求参数**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sessionId||path|true|string||
+|endTrainingSessionDTO|EndTrainingSessionDTO|body|true|EndTrainingSessionDTO|EndTrainingSessionDTO|
+|&emsp;&emsp;sessionId|||false|integer(int64)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultTrainingEvaluationVO|
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|code||integer(int32)|integer(int32)|
+|msg||string||
+|data||TrainingEvaluationVO|TrainingEvaluationVO|
+|&emsp;&emsp;id||integer(int64)||
+|&emsp;&emsp;sessionId||integer(int64)||
+|&emsp;&emsp;empathyScore||number||
+|&emsp;&emsp;communicationScore||number||
+|&emsp;&emsp;problemSolvingScore||number||
+|&emsp;&emsp;emotionalRecognitionScore||number||
+|&emsp;&emsp;strengths||string||
+|&emsp;&emsp;areasForImprovement||string||
+|&emsp;&emsp;aiComprehensiveComment||string||
+|&emsp;&emsp;createTime||string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"code": 0,
+	"msg": "",
+	"data": {
+		"id": 0,
+		"sessionId": 0,
+		"empathyScore": 0,
+		"communicationScore": 0,
+		"problemSolvingScore": 0,
+		"emotionalRecognitionScore": 0,
+		"strengths": "",
+		"areasForImprovement": "",
+		"aiComprehensiveComment": "",
+		"createTime": ""
+	}
+}
+```
+{
+  "code": 1,
+  "msg": null,
+  "data": {
+    "id": 4,
+    "sessionId": 2,
+    "empathyScore": 85,
+    "communicationScore": 90,
+    "problemSolvingScore": 65,
+    "emotionalRecognitionScore": 90,
+    "strengths": "优点：能记住过往互动细节（画画、小兔子）建立连接，通过肢体安抚传递温暖。不足：面对服务对象不安表现（低头抠衣角），缺乏对情绪的语言确认与回应。改进方向：增加情绪关注语言，如“看起来有点紧张，愿意说说吗？”，引导情绪表达。",
+    "areasForImprovement": null,
+    "aiComprehensiveComment": null,
+    "createTime": "2025-11-11T04:50:01.3807818"
+  }
+}

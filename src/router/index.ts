@@ -107,6 +107,14 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: '编辑服务方案 - CareSync AI'
     }
+  },
+  {
+    path: '/simulation',
+    name: 'simulation',
+    component: () => import('../views/simulation/SimulationTrainingView.vue'),
+    meta: {
+      title: 'AI模拟训练 - CareSync AI'
+    }
   }
 ]
 

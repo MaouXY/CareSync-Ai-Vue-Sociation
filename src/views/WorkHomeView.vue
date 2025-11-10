@@ -43,6 +43,21 @@
           </div>
         </div>
 
+        <!-- 功能快捷入口 -->
+        <div class="quick-actions-section">
+          <div class="quick-actions-grid">
+            <div class="quick-action-card" @click="navigateToSimulation">
+              <div class="quick-action-icon">
+                <i class="fa fa-graduation-cap"></i>
+              </div>
+              <div class="quick-action-content">
+                <h3 class="quick-action-title">AI 模拟训练</h3>
+                <p class="quick-action-description">通过AI场景模拟提升专业技能</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 图表区域 -->
         <div class="charts-section">
           <div class="charts-grid">
@@ -503,9 +518,9 @@ const getActivityType = (activity: any) => {
 const getActivityIcon = (activity: any) => {
   const type = getActivityType(activity);
   const iconMap = {
-    success: 'fa fa-check',
-    info: 'fa fa-user-plus',
-    accent: 'fa fa-file-text-o',
+    success: 'fa fa-check-circle',
+    info: 'fa fa-info-circle',
+    accent: 'fa fa-chart-line',
     default: 'fa fa-circle'
   };
   return iconMap[type] || 'fa fa-circle';
@@ -522,6 +537,18 @@ const formatDate = (dateStr: string) => {
     minute: '2-digit'
   });
 };
+
+
+
+
+
+// 快捷入口导航
+const navigateToSimulation = () => {
+  // 跳转到AI模拟训练页面
+  window.location.href = '/simulation';
+};
+
+// 通用方法
 
 const formatRelativeTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -887,6 +914,69 @@ onMounted(() => {
 
 .summary-value-danger {
   color: var(--danger);
+}
+
+/* 快捷入口区域 */
+.quick-actions-section {
+  margin-bottom: 2rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.quick-action-card:hover {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.02);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgba(79, 70, 229, 0.15);
+}
+
+.quick-action-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.quick-action-content {
+  flex: 1;
+}
+
+.quick-action-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark);
+  line-height: 1.3;
+}
+
+.quick-action-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--neutral);
+  line-height: 1.4;
 }
 
 /* 内容区域 */
