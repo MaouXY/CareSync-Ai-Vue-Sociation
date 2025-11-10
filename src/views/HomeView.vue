@@ -217,7 +217,7 @@
             </div>
             <h3 class="text-2xl font-semibold mb-4 text-dark">社工端登录</h3>
             <p class="text-neutral mb-6">儿童管理，服务方案，跟踪评估</p>
-            <router-link to="/login" class="btn btn-secondary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
+            <router-link to="/work-home" class="btn btn-secondary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
               进入社工端
             </router-link>
           </div>
