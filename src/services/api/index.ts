@@ -21,8 +21,9 @@ const createAxiosInstance = () => {
     (config) => {
       // 从localStorage获取token
       const token = localStorage.getItem('token');
+      console.log('请求头:', token);
       if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `${token}`;
       }
       
       // 添加时间戳防止缓存

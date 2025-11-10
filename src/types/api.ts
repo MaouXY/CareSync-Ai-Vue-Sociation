@@ -42,3 +42,55 @@ export interface ApiError {
   message: string;
   timestamp?: string;
 }
+
+// 社工首页相关类型定义
+export interface HomeStatisticsDTO {
+  childCount: number;
+  pendingTaskCount: number;
+  completedSchemeCount: number;
+  aiAnalysisCount: number;
+}
+
+export interface PendingTaskVO {
+  id: number;
+  childId: number;
+  childName: string;
+  target: string;
+  endTime: string;
+  remainingDays: number;
+}
+
+export interface RecentActivityVO {
+  id: number;
+  schemeId: number;
+  childId: number;
+  childName: string;
+  week: number;
+  recordContent: string;
+  createTime: string;
+}
+
+export interface EmotionChartDataVO {
+  data: number[];
+  name: string;
+  type: string;
+}
+
+export interface RadarChartDataVO {
+  [key: string]: number;
+}
+
+export interface SocialWorkerHomeVO {
+  statistics: HomeStatisticsDTO;
+  emotionChartData: EmotionChartDataVO[];
+  emotionChartTimeAxis: string[];
+  radarChartData: RadarChartDataVO;
+  pendingTasks: PendingTaskVO[];
+  recentActivities: RecentActivityVO[];
+}
+
+export interface ResultSocialWorkerHomeVO {
+  code: number;
+  msg: string | null;
+  data: SocialWorkerHomeVO;
+}

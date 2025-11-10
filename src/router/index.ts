@@ -45,6 +45,14 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
+    path: '/work-home',
+    name: 'workHome',
+    component: () => import('../views/WorkHomeView.vue'),
+    meta: {
+      title: '社工工作台 - CareSync AI'
+    }
+  },
+  {
     path: '/children/:id',
     name: 'childDetail',
     component: () => import('../views/children/ChildDetailView.vue'),

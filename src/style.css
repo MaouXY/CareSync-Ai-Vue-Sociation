@@ -1,3 +1,7 @@
+/* Font Awesome 图标库引入 */
+@import 'font-awesome/css/font-awesome.min.css';
+
+/* 根变量定义 */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -125,6 +129,20 @@ body {
 }
 
 /* 按钮样式 */
+
+/* 取消所有按钮的焦点边框 */
+button:focus,
+.btn:focus,
+[role="button"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button:active,
+.btn:active,
+[role="button"]:active {
+  transform: none !important;
+}
 .btn {
   display: inline-flex;
   align-items: center;

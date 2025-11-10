@@ -1,20 +1,28 @@
 <template>
+
+</template>
+<script> 
+</script>
+<style scoped>
+</style>
+<!-- <template>
   <AppLayout title="儿童管理 - CareSync AI">
     <div class="children-list-container">
       <!-- 页面标题和操作栏 -->
-      <div class="page-header">
-        <div class="header-left">
+      <!-- <div class="page-header"> -->
+        <!-- <div class="header-left">
           <h1 class="page-title">儿童管理</h1>
           <p class="page-description">管理和关注留守儿童的基本信息与状态</p>
-        </div>
-        <div class="header-right">
-          <Button type="primary" @click="handleAddChild">
-            <i class="icon-add">+</i> 添加儿童
-          </Button>
-        </div>
-      </div>
+        </div>  -->
+        <!-- <div class="header-right"> -->
+          <!-- <Button type="primary" @click="handleAddChild"> -->
+            <!-- <i class="icon-add">+</i> 添加儿童 -->
+          <!-- </Button> -->
+        <!-- </div> -->
+      <!-- </div> -->
       
       <!-- 统计卡片 -->
+      <!--
       <div class="stats-cards">
         <Card variant="primary" class="stat-card">
           <div class="stat-icon stat-icon-total">👥</div>
@@ -45,9 +53,10 @@
           </div>
         </Card>
       </div>
+      -->
       
       <!-- 搜索和筛选区域 -->
-      <Card class="search-filter-card">
+      <!-- <Card class="search-filter-card">
         <div class="search-filter-content">
           <div class="search-group">
             <Input
@@ -73,7 +82,8 @@
             <Button @click="resetFilters">重置</Button>
           </div>
         </div>
-      </Card>
+      </Card> -->
+      
       
       <!-- 儿童列表 --<Card class="children-list-card">
         <div class="card-header">
@@ -863,4 +873,4 @@ onMounted(() => {
     flex-wrap: wrap;
   }
 }
-</style>
+</style> -->
