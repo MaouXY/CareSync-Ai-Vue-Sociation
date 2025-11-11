@@ -10,7 +10,7 @@ type AxiosResponse = any;
 const createAxiosInstance = () => {
   const instance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-    timeout: 10000,
+    timeout: 10000, // 默认10秒超时
     headers: {
       'Content-Type': 'application/json',
     },
@@ -19,12 +19,12 @@ const createAxiosInstance = () => {
   // 请求拦截器
   instance.interceptors.request.use(
     (config) => {
-      // 从localStorage获取token
+      // 从localStorage获取token（使用统一的名称'token'）
       const token = localStorage.getItem('token');
       console.log('请求头:', token);
-      if (token && config.headers) {
+      //if (token && config.headers) {
         config.headers.Authorization = `${token}`;
-      }
+      //}
       
       // 添加时间戳防止缓存
       if (config.method === 'get' && config.params) {
@@ -94,5 +94,96 @@ const createAxiosInstance = () => {
   return instance;
 };
 
+// 创建AI专用的axios实例（更长超时时间）
+const createAIHttpInstance = () => {
+  const instance = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+    timeout: 120000, // AI请求专用2分钟超时
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // 请求拦截器
+  instance.interceptors.request.use(
+    (config) => {
+      // 从localStorage获取token（使用统一的名称'token'）
+      const token = localStorage.getItem('token');
+      if (token && config.headers) {
+        config.headers.Authorization = `${token}`;
+      }
+      
+      // 添加时间戳防止缓存
+      if (config.method === 'get' && config.params) {
+        config.params._t = Date.now();
+      }
+      
+      console.log('AI请求:', config.url, '超时时间:', config.timeout);
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // 响应拦截器
+  instance.interceptors.response.use(
+    (response) => {
+      console.log('AI响应:', response.data);
+      return response.data;
+    },
+    (error) => {
+      // 处理HTTP错误
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        switch (status) {
+          case 401:
+            // Token过期或无效，清除本地存储并跳转到登录页
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/login';
+            break;
+          case 403:
+            console.error('AI请求权限不足');
+            break;
+          case 500:
+            console.error('AI服务服务器内部错误');
+            break;
+          default:
+            console.error('AI请求错误:', data?.message || error.message);
+        }
+        
+        // 返回统一的错误格式
+        return Promise.reject({
+          code: status,
+          message: data?.message || error.message,
+          timestamp: new Date().toISOString(),
+        } as ApiError);
+      } else if (error.request) {
+        // 网络错误
+        return Promise.reject({
+          code: -1,
+          message: 'AI服务网络连接失败，请检查网络设置',
+          timestamp: new Date().toISOString(),
+        } as ApiError);
+      } else {
+        // 其他错误
+        return Promise.reject({
+          code: -2,
+          message: error.message,
+          timestamp: new Date().toISOString(),
+        } as ApiError);
+      }
+    }
+  );
+
+  console.log('创建AI专用axios实例，超时时间120秒');
+  return instance;
+};
+
 // 创建axios实例
 export const http = createAxiosInstance();
+
+// 创建AI专用axios实例（更长超时时间）
+export const aiHttp = createAIHttpInstance();

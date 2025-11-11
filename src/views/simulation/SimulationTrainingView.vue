@@ -13,14 +13,7 @@
             <p class="page-subtitle">通过与AI模拟的留守儿童对话，提升您的沟通和服务能力</p>
           </div>
           <div class="page-actions">
-            <a-button 
-              v-if="currentSession" 
-              type="outline" 
-              @click="showSessionHistory = true"
-            >
-              <template #icon><icon-history /></template>
-              训练历史
-            </a-button>
+            <!-- 训练历史功能已移除 -->
           </div>
         </div>
 
@@ -190,6 +183,35 @@
                       </div>
                       <div v-else class="message-text">
                         {{ message.content }}
+                        
+                        <!-- AI消息显示情感分析和AI指导 -->
+                        <div v-if="message.senderType === 'ai' && (message.emotionAnalysis || message.aiGuidance)" class="message-extra-info">
+                          <!-- 情感分析 -->
+                          <div v-if="message.emotionAnalysis" class="emotion-analysis">
+                            <div class="info-label">情感分析：</div>
+                            <div class="info-content" v-if="getMessageEmotionAnalysis(message)?.parsed">
+                              <div v-for="(emotion, index) in getMessageEmotionAnalysis(message).parsed.detected_emotions" 
+                                   :key="index" 
+                                   class="emotion-item">
+                                <span class="emotion-name">{{ emotion.emotion }}</span>
+                                <span class="emotion-confidence">{{ emotion.confidence }}%</span>
+                              </div>
+                              <div v-if="getMessageEmotionAnalysis(message).parsed.emotion_intensity" 
+                                   class="emotion-intensity">
+                                情感强度: {{ getMessageEmotionAnalysis(message).parsed.emotion_intensity }}
+                              </div>
+                            </div>
+                            <div v-else class="info-content">
+                              {{ getMessageEmotionAnalysis(message)?.text }}
+                            </div>
+                          </div>
+                          
+                          <!-- AI指导 -->
+                          <div v-if="message.aiGuidance" class="ai-guidance">
+                            <div class="info-label">AI指导：</div>
+                            <div class="info-content guidance-content">{{ message.aiGuidance }}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="message-time">
@@ -292,7 +314,7 @@
       v-model:visible="showEvaluation"
       title="训练评估结果"
       :width="800"
-      @cancel="showEvaluation = false"
+      footer=""
     >
       <div v-if="evaluationResult" class="evaluation-content">
         <div class="evaluation-header">
@@ -337,69 +359,14 @@
           </ul>
         </div>
       </div>
+      <template #footer>
+        <div class="modal-footer">
+          <a-button type="primary" @click="handleEvaluationConfirm">确定</a-button>
+        </div>
+      </template>
     </a-modal>
 
-    <!-- 训练历史模态框 -->
-    <a-modal
-      v-model:visible="showSessionHistory"
-      title="训练历史"
-      :width="1000"
-      @cancel="showSessionHistory = false"
-    >
-      <div class="session-history">
-        <div class="history-filters">
-          <a-input-search
-            v-model="historySearchKeyword"
-            placeholder="搜索训练记录..."
-            style="width: 300px"
-            @search="loadSessionHistory"
-          />
-          <a-select
-            v-model="historyFilterDifficulty"
-            placeholder="筛选难度"
-            style="width: 120px"
-            @change="loadSessionHistory"
-          >
-            <a-option value="">全部难度</a-option>
-            <a-option value="初级">初级</a-option>
-            <a-option value="中级">中级</a-option>
-            <a-option value="高级">高级</a-option>
-          </a-select>
-        </div>
-
-        <div class="history-list">
-          <div
-            v-for="session in sessionHistory"
-            :key="session.id"
-            class="history-item"
-            @click="viewSessionDetail(session)"
-          >
-            <div class="history-info">
-              <div class="history-title">{{ session.scenarioTitle }}</div>
-              <div class="history-meta">
-                <span class="meta-item">
-                  <icon-clock-circle />
-                  {{ formatDuration(session.duration) }}
-                </span>
-                <span class="meta-item">
-                  <icon-message />
-                  {{ session.messageCount }} 轮对话
-                </span>
-                <span class="meta-item">
-                  <icon-calendar />
-                  {{ formatDateTime(session.endTime) }}
-                </span>
-              </div>
-            </div>
-            <div class="history-score">
-              <span class="score-badge" :class="`score-badge-${getScoreGrade(session.score)}`">
-                {{ session.score }}分
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a-modal>
+    <!-- 训练历史功能已移除 -->
 
     <!-- 加载状态 -->
     <a-spin :loading="loading" class="page-loading">
@@ -422,6 +389,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { 
   IconUser,
   IconClockCircle, 
@@ -430,12 +398,9 @@ import {
   IconStop,
   IconSend,
   IconInfoCircle,
-  IconHistory,
   IconBarChart,
   IconRobot,
-  IconCheckCircle,
-  IconMessage,
-  IconCalendar
+  IconCheckCircle
 } from '@arco-design/web-vue/es/icon';
 //import { message } from '@arco-design/web-vue/es/message';
 import type { 
@@ -444,19 +409,15 @@ import type {
   ChatMessage, 
   TrainingEvaluation 
 } from './types';
-import { SimulationService } from './service';
+import { simulationService } from './service';
 
 import WorkHeader from '@/components/layout/WorkHeader.vue';
-
-// 服务实例
-const simulationService = new SimulationService();
 
 // 响应式数据
 const loading = ref(false);
 const error = ref('');
 const showCustomScenarioModal = ref(false);
 const showEvaluation = ref(false);
-const showSessionHistory = ref(false);
 const creatingScenario = ref(false);
 const endingSession = ref(false);
 const sendingMessage = ref(false);
@@ -484,16 +445,54 @@ const customScenarioForm = ref({
 // 评估结果
 const evaluationResult = ref<TrainingEvaluation | null>(null);
 
-// 训练历史
-const sessionHistory = ref<TrainingSession[]>([]);
-const historySearchKeyword = ref('');
-const historyFilterDifficulty = ref('');
+/* 训练历史功能已移除 */
+
+// 路由
+const router = useRouter();
 
 // 模板引用
 const chatMessagesRef = ref<HTMLElement>();
 
 // 计算属性
 const isAiresponding = computed(() => airesponding.value);
+
+// 为消息创建计算属性来缓存情感分析解析结果
+const getMessageEmotionAnalysis = (message: ChatMessage) => {
+  if (!message.emotionAnalysis) return null;
+  return getEmotionAnalysisDisplay(message.emotionAnalysis);
+};
+
+// 解析情感分析数据的方法
+const parseEmotionAnalysis = (emotionAnalysis: any) => {
+  if (typeof emotionAnalysis === 'string') {
+    try {
+      return JSON.parse(emotionAnalysis);
+    } catch (error) {
+      console.error('Failed to parse emotionAnalysis:', error);
+      return null;
+    }
+  }
+  return emotionAnalysis;
+};
+
+// 获取情感分析显示文本
+const getEmotionAnalysisDisplay = (emotionAnalysis: any) => {
+  const parsed = parseEmotionAnalysis(emotionAnalysis);
+  if (!parsed) return { text: emotionAnalysis, parsed: null };
+  
+  if (parsed.detected_emotions && Array.isArray(parsed.detected_emotions)) {
+    const emotionsText = parsed.detected_emotions
+      .map((e: any) => `${e.emotion}(${e.confidence}%)`)
+      .join('、');
+    const intensityText = parsed.emotion_intensity ? `情感强度:${parsed.emotion_intensity}` : '';
+    return { 
+      text: [emotionsText, intensityText].filter(Boolean).join(' | '), 
+      parsed: parsed 
+    };
+  }
+  
+  return { text: JSON.stringify(parsed), parsed: parsed };
+};
 
 // 方法
 const loadScenarios = async () => {
@@ -511,87 +510,76 @@ const loadScenarios = async () => {
 };
 
 const selectScenario = (scenario: SimulationScenario) => {
-  message.info(`已选择场景：${scenario.title}`);
+  //message.info(`已选择场景：${scenario.title}`);
 };
 
 const startTraining = async (scenario: SimulationScenario) => {
   loading.value = true;
   
   try {
-    currentSession.value = await simulationService.startSession(scenario.id);
+    currentSession.value = await simulationService.startTrainingSession(scenario.id);
     startTime.value = new Date();
     messageCount.value = 0;
     elapsedTime.value = 0;
     canEvaluate.value = false;
     
-    // 初始化聊天记录
+    // 初始化聊天记录 - 每次开始训练都清空历史记录
     chatMessages.value = [];
-    
-    // 发送欢迎消息
-    await sendWelcomeMessage();
     
     // 开始计时
     startTimer();
     
-    message.success('训练会话已开始');
+    //message.success('训练会话已开始');
   } catch (err) {
-    message.error('开始训练失败');
+    //message.error('开始训练失败');
     console.error('Failed to start training:', err);
   } finally {
     loading.value = false;
   }
 };
 
-const sendWelcomeMessage = async () => {
-  try {
-    const welcomeMessage = await simulationService.sendMessage(
-      currentSession.value!.id,
-      '你好，我是李社工。今天想和你聊聊天，了解一下你的近况。',
-      []
-    );
-    
-    chatMessages.value.push({
-      id: '1',
-      content: welcomeMessage.content,
-      senderType: 'user',
-      timestamp: new Date(),
-      isTyping: false
-    });
-    
-    messageCount.value++;
-    
-    // 等待AI回复
-    await simulateAIResponse();
-  } catch (err) {
-    console.error('Failed to send welcome message:', err);
-  }
-};
 
+
+//模拟AI回复
 const simulateAIResponse = async () => {
+  // 停止计时器
+  if (timer.value) {
+    clearInterval(timer.value);
+    timer.value = null;
+  }
+  
   airesponding.value = true;
   
   // 模拟AI思考时间
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   try {
-    const aiResponse = await simulationService.sendMessage(
-      currentSession.value!.id,
-      '', // AI不需要输入
-      chatMessages.value
+    const aiResponse = await simulationService.sendTrainingMessage(
+      {
+        sessionId: currentSession.value!.id,
+        prompt: '', // AI不需要输入
+        chatHistory: chatMessages.value
+      }
     );
     
     // 添加AI消息
     const messageId = `ai_${Date.now()}`;
     const aiMessage: ChatMessage = {
       id: messageId,
-      content: aiResponse.content,
+      content: aiResponse.childReply,
       senderType: 'ai',
+      role: 'ai',
       timestamp: new Date(),
-      isTyping: false
+      isTyping: false,
+      emotionAnalysis: aiResponse.emotionAnalysis,
+      aiGuidance: aiResponse.aiGuidance
     };
     
     chatMessages.value.push(aiMessage);
     messageCount.value++;
+    
+    // 保存聊天历史记录到localStorage
+    saveChatHistory();
     
     // 滚动到底部
     await nextTick();
@@ -601,9 +589,12 @@ const simulateAIResponse = async () => {
     console.error('Failed to get AI response:', err);
   } finally {
     airesponding.value = false;
+    // AI回复完成后重新开始计时
+    startTimer();
   }
 };
 
+//发送用户消息
 const sendMessage = async () => {
   if (!currentMessage.value.trim() || airesponding.value || sendingMessage.value) {
     return;
@@ -613,18 +604,28 @@ const sendMessage = async () => {
   currentMessage.value = '';
   sendingMessage.value = true;
   
+  // 在发送用户消息期间也停止计时器
+  if (timer.value) {
+    clearInterval(timer.value);
+    timer.value = null;
+  }
+  
   try {
     // 添加用户消息
     const userChatMessage: ChatMessage = {
       id: `user_${Date.now()}`,
       content: userMessage,
       senderType: 'user',
+      role: 'user',
       timestamp: new Date(),
       isTyping: false
     };
     
     chatMessages.value.push(userChatMessage);
     messageCount.value++;
+    
+    // 保存聊天历史记录到localStorage
+    saveChatHistory();
     
     // 滚动到底部
     await nextTick();
@@ -633,27 +634,30 @@ const sendMessage = async () => {
     // 检查是否达到评估条件
     if (messageCount.value >= 8 && !canEvaluate.value) {
       canEvaluate.value = true;
-      message.info('已达到评估条件，您可以在右上角查看评估结果');
+      //message.info('已达到评估条件，您可以在右上角查看评估结果');
     }
     
-    // 模拟AI回复
+    // 模拟AI回复（计时器在simulateAIResponse中重新开始）
     await simulateAIResponse();
     
   } catch (err) {
-    message.error('发送消息失败');
+    //message.error('发送消息失败');
     console.error('Failed to send message:', err);
+    // 发生错误时重新开始计时
+    startTimer();
   } finally {
     sendingMessage.value = false;
   }
 };
 
+//结束训练
 const endSession = async () => {
   if (!currentSession.value) return;
   
   endingSession.value = true;
   
   try {
-    const evaluation = await simulationService.endSession(currentSession.value.id);
+    const evaluation = await simulationService.endTrainingSession(currentSession.value.id);
     evaluationResult.value = evaluation;
     
     // 清理定时器
@@ -662,20 +666,21 @@ const endSession = async () => {
       timer.value = null;
     }
     
-    message.success('训练会话已结束');
+    //message.success('训练会话已结束');
     showEvaluation.value = true;
     
   } catch (err) {
-    message.error('结束训练失败');
+    //message.error('结束训练失败');
     console.error('Failed to end session:', err);
   } finally {
     endingSession.value = false;
   }
 };
 
+// 自定义场景
 const createCustomScenario = async () => {
   if (!customScenarioForm.value.title || !customScenarioForm.value.description) {
-    message.warning('请填写完整信息');
+   // message.warning('请填写完整信息');
     return;
   }
   
@@ -686,15 +691,16 @@ const createCustomScenario = async () => {
     scenarios.value.push(newScenario);
     showCustomScenarioModal.value = false;
     resetCustomScenarioForm();
-    message.success('自定义场景创建成功');
+    //message.success('自定义场景创建成功');
   } catch (err) {
-    message.error('创建场景失败');
+    //message.error('创建场景失败');
     console.error('Failed to create scenario:', err);
   } finally {
     creatingScenario.value = false;
   }
 };
 
+// 创建场景表单
 const resetCustomScenarioForm = () => {
   customScenarioForm.value = {
     title: '',
@@ -704,50 +710,48 @@ const resetCustomScenarioForm = () => {
   };
 };
 
-const loadSessionHistory = async () => {
+// 保存聊天记录到localStorage
+const saveChatHistory = () => {
   try {
-    sessionHistory.value = await simulationService.getSessionHistory({
-      keyword: historySearchKeyword.value,
-      difficulty: historyFilterDifficulty.value
-    });
-  } catch (err) {
-    console.error('Failed to load session history:', err);
+    localStorage.setItem('simulation_chat_history', JSON.stringify(chatMessages.value));
+  } catch (error) {
+    console.error('保存聊天历史记录失败:', error);
   }
 };
 
-const viewSessionDetail = (session: TrainingSession) => {
-  // 实现查看会话详情的逻辑
-  message.info('查看会话详情功能开发中...');
-};
+/* 训练历史功能已移除 */
 
 // 工具方法
-const getDifficultyLevel = (difficulty: string): string => {
+const getDifficultyLevel = (difficulty: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'): string => {
   const levelMap: Record<string, string> = {
-    '初级': 'beginner',
-    '中级': 'intermediate', 
-    '高级': 'advanced'
+    'BASIC': 'beginner',
+    'INTERMEDIATE': 'intermediate', 
+    'ADVANCED': 'advanced'
   };
   return levelMap[difficulty] || 'beginner';
 };
 
-const getDifficultyColor = (difficulty: string): string => {
+// 难度颜色映射
+const getDifficultyColor = (difficulty: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'): string => {
   const colorMap: Record<string, string> = {
-    '初级': 'green',
-    '中级': 'orange',
-    '高级': 'red'
+    'BASIC': 'green',
+    'INTERMEDIATE': 'orange',
+    'ADVANCED': 'red'
   };
   return colorMap[difficulty] || 'gray';
 };
 
-const getSuitableLevel = (difficulty: string): string => {
+// 难度等级映射
+const getSuitableLevel = (difficulty: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'): string => {
   const levelMap: Record<string, string> = {
-    '初级': '新手社工',
-    '中级': '有经验社工',
-    '高级': '资深社工'
+    'BASIC': '新手社工',
+    'INTERMEDIATE': '有经验社工',
+    'ADVANCED': '资深社工'
   };
   return levelMap[difficulty] || '所有级别';
 };
 
+// 得分等级映射
 const getScoreGrade = (score: number): string => {
   if (score >= 90) return 'excellent';
   if (score >= 80) return 'good';
@@ -755,6 +759,7 @@ const getScoreGrade = (score: number): string => {
   return 'poor';
 };
 
+// 得分等级文本映射
 const getScoreGradeText = (score: number): string => {
   if (score >= 90) return '优秀';
   if (score >= 80) return '良好';
@@ -762,6 +767,7 @@ const getScoreGradeText = (score: number): string => {
   return '需要改进';
 };
 
+// 得分等级颜色映射
 const getScoreColor = (score: number): string => {
   if (score >= 90) return '#22C55E';
   if (score >= 80) return '#10B981';
@@ -769,6 +775,7 @@ const getScoreColor = (score: number): string => {
   return '#EF4444';
 };
 
+// 会话时间格式化
 const formatSessionTime = (time: Date): string => {
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
@@ -779,6 +786,7 @@ const formatSessionTime = (time: Date): string => {
   }).format(new Date(time));
 };
 
+// 时间格式化
 const formatTime = (time: Date): string => {
   return new Intl.DateTimeFormat('zh-CN', {
     hour: '2-digit',
@@ -786,6 +794,7 @@ const formatTime = (time: Date): string => {
   }).format(new Date(time));
 };
 
+// 日期时间格式化
 const formatDateTime = (time: Date): string => {
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
@@ -806,6 +815,13 @@ const scrollToBottom = () => {
   if (chatMessagesRef.value) {
     chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight;
   }
+};
+
+// 处理评估结果确认
+const handleEvaluationConfirm = () => {
+  showEvaluation.value = false;
+  // 跳转到工作首页
+  router.push('/work-home');
 };
 
 const startTimer = () => {
@@ -831,7 +847,7 @@ watch(() => chatMessages.value.length, () => {
 // 生命周期
 onMounted(() => {
   loadScenarios();
-  loadSessionHistory();
+  /* 训练历史功能已移除 */
 });
 
 onUnmounted(() => {
@@ -1091,6 +1107,9 @@ onUnmounted(() => {
 
 /* 聊天界面 */
 .chat-interface {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* 继承父容器高度 */
   background: white;
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -1100,7 +1119,9 @@ onUnmounted(() => {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 600px;
+  height: 75vh;
+  max-height: 1200px;
+  min-height: 600px;
 }
 
 .chat-header {
@@ -1158,6 +1179,7 @@ onUnmounted(() => {
 
 /* 聊天消息区域 */
 .chat-messages {
+  height: calc(100% - 4.5rem);
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
@@ -1533,94 +1555,7 @@ onUnmounted(() => {
   line-height: 1.4;
 }
 
-/* 训练历史 */
-.session-history {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.history-filters {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.history-item:hover {
-  border-color: var(--primary);
-  background: rgba(79, 70, 229, 0.02);
-}
-
-.history-info {
-  flex: 1;
-}
-
-.history-title {
-  font-weight: 500;
-  color: var(--dark);
-  margin-bottom: 0.5rem;
-}
-
-.history-meta {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--neutral);
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.score-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.score-badge-excellent {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--success);
-}
-
-.score-badge-good {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--secondary);
-}
-
-.score-badge-average {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning);
-}
-
-.score-badge-poor {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-}
+/* 训练历史功能已移除 */
 
 /* 加载和错误状态 */
 .page-loading {
@@ -1680,6 +1615,88 @@ onUnmounted(() => {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* 消息额外信息样式 */
+.message-extra-info {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emotion-analysis,
+.ai-guidance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.info-label::before {
+  content: '•';
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.info-content {
+  font-size: 0.8125rem;
+  color: var(--neutral);
+  line-height: 1.4;
+  background: rgba(79, 70, 229, 0.05);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border-left: 3px solid var(--primary);
+}
+
+.emotion-analysis .info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.emotion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.emotion-name {
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 3rem;
+}
+
+.emotion-confidence {
+  font-size: 0.75rem;
+  color: var(--neutral);
+  background: rgba(79, 70, 229, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+.emotion-intensity {
+  font-size: 0.75rem;
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.guidance-content {
+  background: rgba(16, 185, 129, 0.05);
+  border-left-color: var(--secondary);
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 /* 响应式设计 */
@@ -1745,13 +1762,20 @@ onUnmounted(() => {
     flex-direction: column;
   }
   
-  .history-filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  /* 训练历史功能已移除 */
   
   .details-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .message-extra-info {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .info-content {
+    font-size: 0.75rem;
+    padding: 0.375rem;
   }
 }
 
@@ -1767,7 +1791,12 @@ onUnmounted(() => {
   }
   
   .chat-container {
-    height: 400px;
+    /* 原高度是固定值，改为基于视口的弹性高度 */
+    /* 例如：占满父容器剩余高度，适配不同屏幕 */
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    min-height: 400px; /* 保留最小高度，防止过小 */
   }
   
   .message-bubble {
@@ -1776,6 +1805,11 @@ onUnmounted(() => {
   
   .message-text {
     font-size: 0.8125rem;
+  }
+  
+  .info-content {
+    font-size: 0.75rem;
+    padding: 0.25rem;
   }
 }
 </style>

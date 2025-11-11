@@ -1,4 +1,5 @@
 // AI模拟训练对话服务
+import { http, aiHttp } from '@/services/api';
 import type {
   ApiResponse,
   SimulationScenario,
@@ -15,14 +16,7 @@ export class SimulationService {
   // 获取训练场景列表
   async getScenarios(): Promise<SimulationScenario[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/scenarios`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      const result: ApiResponse<SimulationScenario[]> = await response.json();
+      const result = await http.get(`${this.baseUrl}/scenarios`);
       
       if (result.code === 1) {
         return result.data;
@@ -39,15 +33,7 @@ export class SimulationService {
   // 开始新的训练会话
   async startTrainingSession(scenarioId: number): Promise<TrainingSession> {
     try {
-      const response = await fetch(`${this.baseUrl}/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ scenarioId }),
-      });
-      
-      const result: ApiResponse<TrainingSession> = await response.json();
+      const result = await http.post(`${this.baseUrl}/start`, { scenarioId });
       
       if (result.code === 1) {
         return result.data;
@@ -64,15 +50,18 @@ export class SimulationService {
   // 发送训练消息
   async sendTrainingMessage(request: TrainingMessageRequest): Promise<TrainingChatResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
+      // 转换chatHistory为后端期望的history格式
+      const history = request.chatHistory.map(msg => ({
+        role: msg.senderType === 'user' ? 'user' : 'ai',
+        content: msg.content
+      }));
       
-      const result: ApiResponse<TrainingChatResponse> = await response.json();
+      // 使用AI专用HTTP实例，设置更长的超时时间
+      const result = await aiHttp.post(`${this.baseUrl}/send`, {
+        sessionId: request.sessionId,
+        prompt: request.prompt,
+        history: history
+      });
       
       if (result.code === 1) {
         return result.data;
@@ -89,15 +78,7 @@ export class SimulationService {
   // 结束训练会话
   async endTrainingSession(sessionId: number): Promise<TrainingEvaluation> {
     try {
-      const response = await fetch(`${this.baseUrl}/end/${sessionId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId }),
-      });
-      
-      const result: ApiResponse<TrainingEvaluation> = await response.json();
+      const result = await http.post(`${this.baseUrl}/end/${sessionId}`, { sessionId });
       
       if (result.code === 1) {
         return result.data;
@@ -116,24 +97,42 @@ export class SimulationService {
     return [
       {
         id: 1,
-        scenarioName: '孤独的留守儿童',
-        scenarioType: '情感表达',
+        title: '孤独的留守儿童',
+        type: '情感表达',
         description: '模拟一个性格内向、缺乏陪伴的留守儿童，需要建立信任关系。',
-        difficultyLevel: 1
+        difficulty: 'BASIC' as const,
+        estimatedDuration: 15,
+        metadata: {
+          age: '8-12岁',
+          personality: '内向、缺乏自信',
+          situation: '父母长期在外打工'
+        }
       },
       {
         id: 2,
-        scenarioName: '学习困难的儿童',
-        scenarioType: '自主学习',
+        title: '学习困难的儿童',
+        type: '自主学习',
         description: '模拟一个学习成绩下滑、对学习失去信心的儿童，需要学习支持。',
-        difficultyLevel: 2
+        difficulty: 'INTERMEDIATE' as const,
+        estimatedDuration: 20,
+        metadata: {
+          age: '10-14岁',
+          personality: '沮丧、缺乏动力',
+          situation: '学习成绩持续下滑'
+        }
       },
       {
         id: 3,
-        scenarioName: '情绪波动的儿童',
-        scenarioType: '情绪管理',
+        title: '情绪波动的儿童',
+        type: '情绪管理',
         description: '模拟一个情绪不稳定、有行为问题的儿童，需要情绪管理指导。',
-        difficultyLevel: 3
+        difficulty: 'ADVANCED' as const,
+        estimatedDuration: 25,
+        metadata: {
+          age: '12-16岁',
+          personality: '情绪化、冲动',
+          situation: '行为问题突出'
+        }
       }
     ];
   }
@@ -193,20 +192,94 @@ export class SimulationService {
   }
 
   // 获取模拟训练评估数据
-  private getMockTrainingEvaluation(sessionId: number): TrainingEvaluation {
+  private getMockTrainingEvaluation(sessionId: number): any {
+    const overallScore = 85;
     return {
       id: Date.now(),
       sessionId,
+      overallScore,
       empathyScore: 85,
       communicationScore: 90,
       problemSolvingScore: 65,
       emotionalRecognitionScore: 90,
-      strengths: '优点：能记住过往互动细节（画画、小兔子）建立连接，通过肢体安抚传递温暖。不足：面对服务对象不安表现（低头抠衣角），缺乏对情绪的语言确认与回应。改进方向：增加情绪关注语言，如"看起来有点紧张，愿意说说吗？"，引导情绪表达。',
-      areasForImprovement: null,
-      aiComprehensiveComment: '您在本次训练中表现优秀，能够很好地识别儿童的情感需求并给予共情回应。特别是在儿童表达孤独感时，您的回应让儿童感受到了被理解和关怀。建议在未来的对话中，可以尝试使用更多开放性问题引导儿童表达内心想法，同时注意给予具体的积极反馈，而不仅仅是一般性的安慰。继续保持这样的沟通方式，您将能够与留守儿童建立更有效的信任关系，为后续的服务工作奠定良好基础。',
-      createTime: new Date().toISOString()
+      strengths: '优点：能记住过往互动细节（画画、小兔子）建立连接，通过肢体安抚传递温暖。',
+      areasForImprovement: '面对服务对象不安表现（低头抠衣角），缺乏对情绪的语言确认与回应。',
+      aiComprehensiveComment: '您在本次训练中表现优秀，能够很好地识别儿童的情感需求并给予共情回应。',
+      createTime: new Date().toISOString(),
+      // 模板需要的新字段
+      details: [
+        {
+          category: '共情能力',
+          score: 85,
+          feedback: '能够很好地理解和回应服务对象的情感需求'
+        },
+        {
+          category: '沟通技巧',
+          score: 90,
+          feedback: '沟通方式温和，善于建立信任关系'
+        },
+        {
+          category: '问题解决能力',
+          score: 65,
+          feedback: '遇到复杂情况时需要提升应对策略'
+        },
+        {
+          category: '情感识别能力',
+          score: 90,
+          feedback: '能够准确识别服务对象的情感状态'
+        }
+      ],
+      suggestions: [
+        '增加情绪关注语言，如"看起来有点紧张，愿意说说吗？"',
+        '尝试使用更多开放性问题引导儿童表达内心想法',
+        '在未来的对话中注意给予具体的积极反馈',
+        '加强对复杂情况的应对策略培训'
+      ]
     };
   }
+
+  // 创建自定义场景
+  async createScenario(scenarioData: {
+    title: string;
+    description: string;
+    difficulty: string;
+    estimatedDuration: number;
+  }): Promise<SimulationScenario> {
+    try {
+      const result = await http.post(`${this.baseUrl}/scenarios`, scenarioData);
+      
+      if (result.code === 1) {
+        return result.data;
+      } else {
+        throw new Error(result.msg || '创建场景失败');
+      }
+    } catch (error) {
+      console.error('创建自定义场景失败:', error);
+      // 返回模拟数据
+      return {
+        id: Date.now(),
+        title: scenarioData.title,
+        type: '自定义',
+        description: scenarioData.description,
+        difficulty: (scenarioData.difficulty === '初级' ? 'BASIC' : scenarioData.difficulty === '中级' ? 'INTERMEDIATE' : 'ADVANCED') as 'BASIC' | 'INTERMEDIATE' | 'ADVANCED',
+        estimatedDuration: scenarioData.estimatedDuration
+      };
+    }
+  }
+
+  /* 训练历史功能已移除 */
+
+  // 将难度字符串转换为数字
+  private getDifficultyLevelFromString(difficulty: string): number {
+    const difficultyMap: Record<string, number> = {
+      '初级': 1,
+      '中级': 2,
+      '高级': 3
+    };
+    return difficultyMap[difficulty] || 1;
+  }
+
+  /* 训练历史功能已移除 */
 }
 
 // 导出单例

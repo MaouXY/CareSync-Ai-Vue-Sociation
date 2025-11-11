@@ -1,1020 +1,645 @@
-\u003ctemplate\u003e
-  \u003cAppLayout title="儿童详情 - CareSync AI"\u003e
-    \u003cdiv class="child-detail-container"\u003e
-      \u003c!-- 页面头部和操作栏 --\u003cdiv class="page-header"\u003e
-        \u003cdiv class="header-left"\u003e
-          \u003cButton @click="handleGoBack" variant="text" class="back-button"\u003e
-            \u003ci class="icon-back"\u003e←\u003c/i\u003e 返回列表
-          \u003c/Button\u003e
-        \u003c/div\u003e
-        \u003cdiv class="header-right"\u003e
-          \u003cButton @click="handleCreateAnalysis"\u003e
-            \u003ci class="icon-analysis"\u003e📊\u003c/i\u003e AI分析
-          \u003c/Button\u003e
-          \u003cButton @click="handleCreateScheme"\u003e
-            \u003ci class="icon-scheme"\u003e📋\u003c/i\u003e 服务方案
-          \u003c/Button\u003e
-          \u003cButton variant="primary" @click="handleEdit"\u003e
-            \u003ci class="icon-edit"\u003e✏️\u003c/i\u003e 编辑
-          \u003c/Button\u003e
-        \u003c/div\u003e
-      \u003c/div\u003e
+<template>
+  <div class="min-h-screen bg-light">
+    <AppLayout>
+      <div class="p-6">
+        <!-- 页面加载状态 -->
+        <div v-if="loading" class="flex justify-center items-center h-64">
+          <a-spin size="large" />
+        </div>
+        
+        <!-- 错误状态 -->
+        <a-result
+          v-else-if="error"
+          status="error"
+          title="加载失败"
+          :sub-title="error"
+        >
+          <template #extra>
+            <a-button type="primary" @click="loadChildDetail">重试</a-button>
+          </template>
+        </a-result>
+        
+        <!-- 儿童详情内容 -->
+        <div v-else-if="childDetail" class="space-y-6">
+          <!-- 页面头部和操作按钮 -->
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+            <div>
+              <h1 class="text-2xl font-bold text-dark">{{ childDetail.name }}的详情</h1>
+              <p class="text-neutral mt-1">儿童编号: {{ childDetail.childNo }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <a-button @click="$router.push('/social-worker/children')">
+                <template #icon><ArrowLeftOutlined /></template>
+                返回列表
+              </a-button>
+              <a-button 
+                :type="editMode ? 'default' : 'primary'" 
+                @click="toggleEditMode"
+              >
+                <template #icon><EditOutlined v-if="!editMode" /><CloseOutlined v-else /></template>
+                {{ editMode ? '取消编辑' : '编辑信息' }}
+              </a-button>
+              <a-button type="default" @click="viewRecordMode = !viewRecordMode">
+                <template #icon><FileTextOutlined /></template>
+                {{ viewRecordMode ? '隐藏记录' : '查看记录' }}
+              </a-button>
+            </div>
+          </div>
+          
+          <!-- 儿童基本信息卡片 -->
+          <div class="bg-white rounded-xl shadow card-shadow p-6">
+            <div class="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
+              <!-- 儿童照片和基本信息 -->
+              <div class="flex-shrink-0">
+                <div class="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl flex items-center justify-center">
+                  <UserOutlined class="text-4xl text-primary" />
+                </div>
+                <div class="mt-4 text-center">
+                  <h2 class="text-xl font-bold text-dark">{{ childDetail.name }}</h2>
+                  <p class="text-neutral text-sm mt-1">编号: {{ childDetail.childNo }}</p>
+                  <div class="flex justify-center space-x-2 mt-3">
+                    <a-tag :color="childDetail.hasNewChat ? 'processing' : 'default'">
+                      {{ childDetail.hasNewChat ? '有新对话' : '无新对话' }}
+                    </a-tag>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 基本信息表单 -->
+              <div class="flex-grow">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">姓名</label>
+                      <a-input 
+                        v-model:value="editForm.name" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">性别</label>
+                      <a-select 
+                        v-model:value="editForm.gender" 
+                        :disabled="!editMode"
+                        class="w-full bg-gray-50"
+                      >
+                        <a-select-option value="male">男</a-select-option>
+                        <a-select-option value="female">女</a-select-option>
+                      </a-select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">出生日期</label>
+                      <a-date-picker 
+                        v-model:value="editForm.birthDate" 
+                        :disabled="!editMode"
+                        class="w-full bg-gray-50"
+                        placeholder="选择出生日期"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">身份证号</label>
+                      <a-input 
+                        v-model:value="editForm.idCard" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">联系电话</label>
+                      <a-input 
+                        v-model:value="editForm.phone" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">风险等级</label>
+                      <a-select 
+                        v-model:value="editForm.riskLevel" 
+                        :disabled="!editMode"
+                        class="w-full bg-gray-50"
+                      >
+                        <a-select-option value="low">低风险</a-select-option>
+                        <a-select-option value="medium">中风险</a-select-option>
+                        <a-select-option value="high">高风险</a-select-option>
+                      </a-select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">支持状态</label>
+                      <a-select 
+                        v-model:value="editForm.supportStatus" 
+                        :disabled="!editMode"
+                        class="w-full bg-gray-50"
+                      >
+                        <a-select-option value="active">进行中</a-select-option>
+                        <a-select-option value="pending">待开始</a-select-option>
+                        <a-select-option value="completed">已完成</a-select-option>
+                      </a-select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">监护人姓名</label>
+                      <a-input 
+                        v-model:value="editForm.guardianName" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">监护人电话</label>
+                      <a-input 
+                        v-model:value="editForm.guardianPhone" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral mb-2">地址</label>
+                      <a-textarea 
+                        v-model:value="editForm.address" 
+                        :disabled="!editMode" 
+                        class="bg-gray-50"
+                        :rows="2"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-6">
+                  <label class="block text-sm font-medium text-neutral mb-2">备注</label>
+                  <a-textarea 
+                    v-model:value="editForm.notes" 
+                    :disabled="!editMode" 
+                    class="bg-gray-50"
+                    :rows="3"
+                    placeholder="请输入备注信息"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <!-- 基本信息时间 -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+              <div class="flex flex-wrap gap-6 text-sm text-neutral">
+                <div>
+                  <i class="fa fa-calendar-plus-o mr-1"></i>
+                  创建时间: {{ formatDate(childDetail.createTime) }}
+                </div>
+                <div>
+                  <i class="fa fa-clock-o mr-1"></i>
+                  更新时间: {{ formatDate(childDetail.updateTime) }}
+                </div>
+                <div v-if="childDetail.aiAnalysisTime">
+                  <i class="fa fa-brain mr-1"></i>
+                  AI分析时间: {{ formatDate(childDetail.aiAnalysisTime) }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AI分析结果区域 -->
+          <div v-if="aiAnalysisData" class="bg-white rounded-xl shadow card-shadow p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-bold text-dark">AI情感分析结果</h3>
+              <a-tag color="primary">
+                最近分析: {{ formatDate(childDetail.aiAnalysisTime || '') }}
+              </a-tag>
+            </div>
+            
+            <!-- 情感趋势图 -->
+            <div class="mb-8" v-if="aiAnalysisData.emotion_history && aiAnalysisData.emotion_history.length > 0">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-medium text-dark">情感变化趋势</h4>
+                <div class="flex space-x-2">
+                  <a-button 
+                    :type="chartPeriod === '7' ? 'primary' : 'default'"
+                    size="small"
+                    @click="chartPeriod = '7'"
+                  >
+                    最近7天
+                  </a-button>
+                  <a-button 
+                    :type="chartPeriod === '30' ? 'primary' : 'default'"
+                    size="small"
+                    @click="chartPeriod = '30'"
+                  >
+                    最近30天
+                  </a-button>
+                  <a-button 
+                    :type="chartPeriod === '90' ? 'primary' : 'default'"
+                    size="small"
+                    @click="chartPeriod = '90'"
+                  >
+                    最近90天
+                  </a-button>
+                </div>
+              </div>
+              <div class="h-80">
+                <canvas ref="emotionChartRef"></canvas>
+              </div>
+            </div>
+            
+            <!-- 情感指标评分卡片 -->
+            <div v-if="aiAnalysisData.emotion_scores" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div v-for="(score, emotion) in aiAnalysisData.emotion_scores" :key="emotion" 
+                   class="bg-blue-50 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm font-medium text-blue-700">{{ emotion }}</span>
+                  <span class="text-xl font-bold text-blue-800">{{ score }}分</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000" 
+                    :style="{ width: `${score}%` }"
+                  ></div>
+                </div>
+                <p class="mt-2 text-xs text-blue-600">
+                  {{ getEmotionDescription(emotion, score) }}
+                </p>
+              </div>
+            </div>
+            
+            <!-- 核心需求和关键发现 -->
+            <div v-if="aiAnalysisData.core_needs || aiAnalysisData.key_findings" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div v-if="aiAnalysisData.core_needs" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                <h4 class="text-md font-medium text-dark mb-3">核心需求</h4>
+                <div class="space-y-2">
+                  <a-tag v-for="need in aiAnalysisData.core_needs" :key="need" color="primary">
+                    {{ need }}
+                  </a-tag>
+                </div>
+              </div>
+              
+              <div v-if="aiAnalysisData.key_findings" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                <h4 class="text-md font-medium text-dark mb-3">关键发现</h4>
+                <ul class="space-y-1 text-sm text-neutral">
+                  <li v-for="finding in aiAnalysisData.key_findings" :key="finding" class="flex items-start">
+                    <i class="fa fa-check-circle text-success mr-2 mt-0.5 flex-shrink-0"></i>
+                    {{ finding }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- AI分析摘要 -->
+            <div v-if="aiAnalysisData.description" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+              <h4 class="text-md font-medium text-dark mb-3">分析摘要</h4>
+              <p class="text-sm text-neutral leading-relaxed">
+                {{ aiAnalysisData.description }}
+              </p>
+            </div>
+          </div>
+          
+          <!-- 服务计划和记录 -->
+          <div v-if="viewRecordMode" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 当前服务计划 -->
+            <div class="bg-white rounded-xl shadow card-shadow p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-dark">当前服务计划</h3>
+                <a-tag color="success">进行中</a-tag>
+              </div>
+              <div class="space-y-4">
+                <div v-for="service in servicePlans" :key="service.title" class="flex items-start">
+                  <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <i :class="service.icon" class="text-primary"></i>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-dark">{{ service.title }}</h4>
+                    <p class="text-sm text-neutral mt-1">{{ service.description }}</p>
+                    <div class="mt-2 text-xs text-neutral">
+                      <i class="fa fa-calendar-check-o mr-1"></i> 
+                      已完成: {{ service.completed }}次 / 计划: {{ service.total }}次
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 最近互动记录 -->
+            <div class="bg-white rounded-xl shadow card-shadow p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-dark">最近互动记录</h3>
+                <a-button type="link" size="small">查看全部</a-button>
+              </div>
+              <div class="space-y-4 max-h-96 overflow-y-auto">
+                <div 
+                  v-for="record in interactionRecords" :key="record.id" 
+                  class="p-4 border border-gray-200 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all"
+                >
+                  <div class="flex justify-between items-start">
+                    <h4 class="font-medium text-dark">{{ record.type }}</h4>
+                    <span class="text-xs text-neutral">{{ formatDate(record.time) }}</span>
+                  </div>
+                  <p class="text-sm text-neutral mt-2">{{ record.content }}</p>
+                  <div class="mt-3 text-xs text-neutral flex items-center">
+                    <i class="fa fa-user-circle-o mr-1"></i> 
+                    记录人: {{ record.recorder }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 编辑模式下的操作按钮 -->
+          <div v-if="editMode" class="mt-8 flex justify-end space-x-4">
+            <a-button @click="cancelEdit">
+              取消
+            </a-button>
+            <a-button type="primary" @click="saveChanges" :loading="saving">
+              保存修改
+            </a-button>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, nextTick, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+//import { message } from 'ant-design-vue'
+// import { 
+//   ArrowLeftOutlined, 
+//   EditOutlined, 
+//   CloseOutlined, 
+//   FileTextOutlined,
+//   UserOutlined 
+// } from '@ant-design'
+import AppLayout from '@/components/layout/AppLayout.vue'
+import { childApi } from '@/services/api/child'
+import { ChildInfoVO, AIData } from '@/types/api'
+
+// 响应式数据
+const childDetail = ref<ChildInfoVO | null>(null)
+const aiAnalysisData = ref<AIData | null>(null)
+const loading = ref(false)
+const error = ref('')
+const editMode = ref(false)
+const viewRecordMode = ref(false)
+const saving = ref(false)
+const chartPeriod = ref('7')
+const emotionChartRef = ref<HTMLCanvasElement>()
+
+// 编辑表单数据
+const editForm = ref({
+  name: '',
+  gender: '',
+  birthDate: null as any,
+  idCard: '',
+  phone: '',
+  riskLevel: '',
+  supportStatus: '',
+  guardianName: '',
+  guardianPhone: '',
+  address: '',
+  notes: ''
+})
+
+// 服务计划数据
+const servicePlans = ref([
+  {
+    title: '每周心理疏导',
+    description: '每周三下午3点进行1对1心理疏导，帮助缓解学习压力和思乡情绪。',
+    completed: 4,
+    total: 12,
+    icon: 'fa fa-comments'
+  },
+  {
+    title: '学习辅导',
+    description: '每周一、五放学后进行数学和英语辅导，提高学习自信心。',
+    completed: 6,
+    total: 24,
+    icon: 'fa fa-book'
+  },
+  {
+    title: '亲子远程连线',
+    description: '每月安排1-2次与父母的视频通话，缓解思乡情绪。',
+    completed: 1,
+    total: 4,
+    icon: 'fa fa-phone'
+  }
+])
+
+// 互动记录数据
+const interactionRecords = ref([
+  {
+    id: 1,
+    type: '心理疏导',
+    time: '2023-06-14 16:30:00',
+    content: '与小华进行了约45分钟的心理疏导，主要讨论了最近的学习压力和对父母的思念。小华表示最近数学学习有些困难，对即将到来的考试感到紧张。给予了积极的鼓励和学习方法建议。',
+    recorder: '王社工'
+  },
+  {
+    id: 2,
+    type: '数学辅导',
+    time: '2023-06-13 17:00:00',
+    content: '帮助小华复习了上周学习的小数除法内容，解答了作业中的疑难问题。小华对知识点的掌握有所进步，但还需要更多练习。布置了额外的练习题。',
+    recorder: '张志愿者'
+  },
+  {
+    id: 3,
+    type: '亲子视频通话',
+    time: '2023-06-10 19:30:00',
+    content: '协助小华与父母进行了视频通话，时长约30分钟。小华向父母展示了最近的绘画作品和考试成绩，父母对小华的进步表示肯定和鼓励。通话氛围温馨。',
+    recorder: '王社工'
+  }
+])
+
+// 图表实例
+let emotionChart: any = null
+
+// 加载儿童详情
+const loadChildDetail = async () => {
+  const route = useRoute()
+  const router = useRouter()
+  const childId = route.query.id || route.params.id
+  
+  if (!childId) {
+    error.value = '缺少儿童ID参数'
+    return
+  }
+  
+  loading.value = true
+  error.value = ''
+  
+  try {
+    const response = await childApi.getChildDetail(parseInt(childId as string))
+    if (response.code === 1) {
+      childDetail.value = response.data
+      initEditForm()
+      parseAiAnalysisData()
       
-      \u003cdiv v-if="isLoading" class="loading-container"\u003e
-        \u003cdiv class="loading-spinner"\u003e\u003c/div\u003e
-        \u003cp class="loading-text"\u003e加载中...\u003c/p\u003e
-      \u003c/div\u003e
-      \u003cdiv v-else-if="!child" class="error-container"\u003e
-        \u003cdiv class="error-icon"\u003e❌\u003c/div\u003e
-        \u003ch3 class="error-title"\u003e儿童信息不存在\u003c/h3\u003e
-        \u003cp class="error-description"\u003e找不到指定的儿童信息，请检查是否输入了正确的ID。\u003c/p\u003e
-        \u003cButton @click="handleGoBack"\u003e返回儿童列表\u003c/Button\u003e
-      \u003c/div\u003e
-      \u003cdiv v-else class="child-detail-content"\u003e
-        \u003c!-- 基本信息卡片 --\u003cCard class="child-basic-info-card"\u003e
-          \u003cdiv class="child-profile-header"\u003e
-            \u003cdiv class="child-avatar-large"\u003e
-              \u003cimg :src="child.avatar || defaultAvatar" :alt="child.name" /\u003e
-            \u003c/div\u003e
-            \u003cdiv class="child-profile-info"\u003e
-              \u003cdiv class="child-name-title"\u003e
-                \u003h1 class="child-name"\u003e{{ child.name }}\u003c/h1\u003e
-                \u003cspan :class="['status-badge', 'status-' + child.status]"\u003e
-                  {{ getStatusText(child.status) }}\u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="child-basic-details"\u003e
-                \u003cspan class="detail-item"\u003e
-                  \u003ci class="icon-age"\u003e🎂\u003c/i\u003e {{ child.age }}岁
-                \u003c/span\u003e
-                \u003cspan class="detail-item"\u003e
-                  \u003ci class="icon-gender"\u003e{{ child.gender === 'male' ? '👦' : '👧' }}\u003c/i\u003e {{ child.gender === 'male' ? '男' : '女' }}
-                \u003c/span\u003e
-                \u003cspan class="detail-item"\u003e
-                  \u003ci class="icon-school"\u003e🏫\u003c/i\u003e {{ child.school }}
-                \u003c/span\u003e
-                \u003cspan class="detail-item"\u003e
-                  \u003ci class="icon-grade"\u003e📚\u003c/i\u003e {{ child.grade }}
-                \u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="child-tags"\u003e
-                \u003cspan v-for="(tag, index) in child.tags" :key="index" class="tag"\u003e
-                  {{ tag }}\u003c/span\u003e
-              \u003c/div\u003e
-            \u003c/div\u003e
-            \u003cdiv class="child-emotion-card"\u003e
-              \u003cdiv class="emotion-header"\u003e
-                \u003ch3 class="emotion-title"\u003e情绪状态\u003c/h3\u003e
-                \u003cspan class="emotion-score"\u003e{{ child.emotionScore }}\u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="emotion-bar"\u003e
-                \u003cdiv 
-                  class="emotion-bar-fill"
-                  :style="{ width: child.emotionScore + '%', backgroundColor: getEmotionColor(child.emotionScore) }"
-                \u003e\u003c/div\u003e
-              \u003c/div\u003e
-              \u003cdiv class="emotion-level"\u003e{{ getEmotionLevel(child.emotionScore) }}\u003c/div\u003e
-              \u003cdiv class="last-interaction"\u003e
-                最后互动: {{ formatDate(child.lastInteractionTime) }}
-              \u003c/div\u003e
-            \u003c/div\u003e
-          \u003c/div\u003e
-        \u003c/Card\u003e
-        \u003e
-        \u003c!-- 详细信息网格 --\u003cdiv class="info-grid"\u003e
-          \u003c!-- 联系信息 --\u003cCard class="info-card"\u003e
-            \u003cdiv class="card-header-title"\u003e
-              \u003ci class="icon-contact"\u003e📞\u003c/i\u003e 联系信息
-            \u003c/div\u003e
-            \u003cdiv class="info-content"\u003e
-              \u003cdiv class="info-item"\u003e
-                \u003cspan class="info-label"\u003e联系电话：\u003c/span\u003e
-                \u003cspan class="info-value"\u003e{{ child.contactPhone }}\u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="info-item"\u003e
-                \u003cspan class="info-label"\u003e家庭地址：\u003c/span\u003e
-                \u003cspan class="info-value"\u003e{{ child.address }}\u003c/span\u003e
-              \u003c/div\u003e
-            \u003c/div\u003e
-          \u003c/Card\u003e
-          
-          \u003c!-- 监护人信息 --\u003cCard class="info-card"\u003e
-            \u003cdiv class="card-header-title"\u003e
-              \u003ci class="icon-guardian"\u003e👪\u003c/i\u003e 监护人信息
-            \u003c/div\u003e
-            \u003cdiv class="info-content"\u003e
-              \u003cdiv class="info-item"\u003e
-                \u003cspan class="info-label"\u003e姓名：\u003c/span\u003e
-                \u003cspan class="info-value"\u003e{{ child.guardian.name }}\u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="info-item"\u003e
-                \u003cspan class="info-label"\u003e关系：\u003c/span\u003e
-                \u003cspan class="info-value"\u003e{{ child.guardian.relationship }}\u003c/span\u003e
-              \u003c/div\u003e
-              \u003cdiv class="info-item"\u003e
-                \u003cspan class="info-label"\u003e联系电话：\u003c/span\u003e
-                \u003cspan class="info-value"\u003e{{ child.guardian.phone }}\u003c/span\u003e
-              \u003c/div\u003e
-            \u003c/div\u003e
-          \u003c/Card\u003e
-        \u003c/div\u003e
-        \u003e
-        \u003c!-- 相关信息区域 --\u003cdiv class="related-info-section"\u003e
-          \u003cdiv class="section-tabs"\u003e
-            \u003cbutton 
-              :class="['section-tab', { active: activeTab === 'analysis' }]"
-              @click="activeTab = 'analysis'"
-            \u003e
-              AI分析记录
-            \u003c/button\u003e
-            \u003cbutton 
-              :class="['section-tab', { active: activeTab === 'schemes' }]"
-              @click="activeTab = 'schemes'"
-            \u003e
-              服务方案
-            \u003c/button\u003e
-          \u003c/div\u003e
-          
-          \u003c!-- AI分析记录 --\u003cdiv v-if="activeTab === 'analysis'" class="tab-content"\u003e
-            \u003cCard class="analysis-list-card"\u003e
-              \u003cdiv v-if="analysisRecords.length === 0" class="empty-section"\u003e
-                \u003cdiv class="empty-icon"\u003e📊\u003c/div\u003e
-                \u003ch4 class="empty-title"\u003e暂无分析记录\u003c/h4\u003e
-                \u003cp class="empty-description"\u003e还没有为该儿童创建AI分析记录。\u003c/p\u003e
-                \u003cButton @click="handleCreateAnalysis"\u003e创建AI分析\u003c/Button\u003e
-              \u003c/div\u003e
-              \u003cdiv v-else class="analysis-list"\u003e
-                \u003cdiv 
-                  v-for="record in analysisRecords" 
-                  :key="record.id" 
-                  class="analysis-item"
-                  @click="handleViewAnalysis(record.id)"
-                \u003e
-                  \u003cdiv class="analysis-header"\u003e
-                    \u003cdiv class="analysis-type"\u003e{{ getAnalysisTypeText(record.analysisType) }}\u003c/div\u003e
-                    \u003cdiv class="analysis-date"\u003e{{ formatDate(record.analysisDate) }}\u003c/div\u003e
-                  \u003c/div\u003e
-                  \u003cdiv class="analysis-content"\u003e
-                    \u003cdiv class="analysis-score"\u003e
-                      \u003cspan class="score-label"\u003e情绪分数：\u003c/span\u003e
-                      \u003cspan class="score-value"\u003e{{ record.emotionScore }}\u003c/span\u003e
-                    \u003c/div\u003e
-                    \u003cdiv class="analysis-risk"\u003e
-                      \u003cspan class="risk-label"\u003e风险等级：\u003c/span\u003e
-                      \u003cspan :class="['risk-badge', 'risk-' + record.riskLevel]"\u003e
-                        {{ getRiskLevelText(record.riskLevel) }}\u003c/span\u003e
-                    \u003c/div\u003e
-                    \u003cdiv class="analysis-findings"\u003e
-                      \u003cspan class="findings-label"\u003e关键发现：\u003c/span\u003e
-                      \u003cspan class="findings-preview"\u003e{{ record.keyFindings[0] }}\u003c/span\u003e
-                      \u003cspan v-if="record.keyFindings.length \u003e 1" class="more-findings"\u003e
-                        等{{ record.keyFindings.length }}项
-                      \u003c/span\u003e
-                    \u003c/div\u003e
-                  \u003c/div\u003e
-                  \u003cdiv class="analysis-footer"\u003e
-                    \u003cButton size="small" variant="text"\u003e查看详情 \u003ci class="icon-arrow"\u003e→\u003c/i\u003e\u003c/Button\u003e
-                  \u003c/div\u003e
-                \u003c/div\u003e
-              \u003c/div\u003e
-            \u003c/Card\u003e
-          \u003c/div\u003e
-          
-          \u003c!-- 服务方案 --\u003cdiv v-if="activeTab === 'schemes'" class="tab-content"\u003e
-            \u003cCard class="schemes-list-card"\u003e
-              \u003cdiv v-if="serviceSchemes.length === 0" class="empty-section"\u003e
-                \u003cdiv class="empty-icon"\u003e📋\u003c/div\u003e
-                \u003ch4 class="empty-title"\u003e暂无服务方案\u003c/h4\u003e
-                \u003cp class="empty-description"\u003e还没有为该儿童创建服务方案。\u003c/p\u003e
-                \u003cButton @click="handleCreateScheme"\u003e创建服务方案\u003c/Button\u003e
-              \u003c/div\u003e
-              \u003cdiv v-else class="schemes-list"\u003e
-                \u003cdiv 
-                  v-for="scheme in serviceSchemes" 
-                  :key="scheme.id" 
-                  class="scheme-item"
-                  @click="handleViewScheme(scheme.id)"
-                \u003e
-                  \u003cdiv class="scheme-header"\u003e
-                    \u003cdiv class="scheme-title"\u003e{{ scheme.title }}\u003c/div\u003e
-                    \u003cspan :class="['scheme-status', 'status-' + scheme.status]"\u003e
-                      {{ getSchemeStatusText(scheme.status) }}\u003c/span\u003e
-                  \u003c/div\u003e
-                  \u003cdiv class="scheme-content"\u003e
-                    \u003cdiv class="scheme-progress"\u003e
-                      \u003cspan class="progress-label"\u003e完成进度：\u003c/span\u003e
-                      \u003cdiv class="progress-bar"\u003e
-                        \u003cdiv 
-                          class="progress-fill"
-                          :style="{ width: scheme.progress + '%' }"
-                        \u003e\u003c/div\u003e
-                      \u003c/div\u003e
-                      \u003cspan class="progress-value"\u003e{{ scheme.progress }}%\u003c/span\u003e
-                    \u003c/div\u003e
-                    \u003cdiv class="scheme-info"\u003e
-                      \u003cspan class="info-text"\u003e
-                        \u003ci class="icon-category"\u003e📂\u003c/i\u003e {{ getCategoryText(scheme.category) }}
-                      \u003c/span\u003e
-                      \u003cspan class="info-text"\u003e
-                        \u003ci class="icon-interventions"\u003e⚙️\u003c/i\u003e {{ scheme.interventions.length }}项干预措施
-                      \u003c/span\u003e
-                      \u003cspan v-if="scheme.startTime" class="info-text"\u003e
-                        \u003ci class="icon-date"\u003e📅\u003c/i\u003e {{ formatDate(scheme.startTime) }}\u003c/span\u003e
-                    \u003c/div\u003e
-                  \u003c/div\u003e
-                  \u003cdiv class="scheme-footer"\u003e
-                    \u003cButton size="small" variant="text"\u003e查看详情 \u003ci class="icon-arrow"\u003e→\u003c/i\u003e\u003c/Button\u003e
-                  \u003c/div\u003e
-                \u003c/div\u003e
-              \u003c/div\u003e
-            \u003c/Card\u003e
-          \u003c/div\u003e
-        \u003c/div\u003e
-      \u003c/div\u003e
-    \u003c/div\u003e
-  \u003c/AppLayout\u003e
-\u003c/template\u003e
-
-\u003cscript setup lang="ts"\u003e
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import AppLayout from '@/components/layout/AppLayout.vue';
-import Card from '@/components/common/Card.vue';
-import Button from '@/components/common/Button.vue';
-import { childService, type Child } from '@/services/mock/childService';
-import { analysisService, type AnalysisRecord } from '@/services/mock/analysisService';
-import { schemeService, type ServiceScheme } from '@/services/mock/schemeService';
-
-// 路由实例
-const route = useRoute();
-const router = useRouter();
-
-// 加载状态
-const isLoading = ref(true);
-
-// 默认头像
-const defaultAvatar = 'https://picsum.photos/200/200?random=default';
-
-// 儿童信息
-const child = ref\u003cChild | null\u003e(null);
-
-// 分析记录
-const analysisRecords = ref\u003cAnalysisRecord[]\u003e([]);
-
-// 服务方案
-const serviceSchemes = ref\u003cServiceScheme[]\u003e([]);
-
-// 当前激活的标签页
-const activeTab = ref('analysis');
-
-// 获取儿童详情
-const fetchChildDetail = async () =\u003e {
-  try {
-    isLoading.value = true;
-    const id = route.params.id as string;
-    const data = await childService.getChildById(id);
-    child.value = data;
-  } catch (error) {
-    console.error('获取儿童详情失败:', error);
-    alert('获取儿童详情失败，请稍后重试');
+      // 检查是否需要自动进入编辑模式
+      if (route.query.edit === 'true') {
+        editMode.value = true
+      }
+    } else {
+      error.value = response.msg || '加载儿童详情失败'
+    }
+  } catch (err: any) {
+    error.value = err.message || '网络错误'
   } finally {
-    isLoading.value = false;
+    loading.value = false
   }
-};
+}
 
-// 获取相关的分析记录
-const fetchAnalysisRecords = async () =\u003e {
+// 初始化编辑表单
+const initEditForm = () => {
+  if (childDetail.value) {
+    editForm.value = {
+      name: childDetail.value.name || '',
+      gender: '',
+      birthDate: null,
+      idCard: '',
+      phone: '',
+      riskLevel: '',
+      supportStatus: '',
+      guardianName: '',
+      guardianPhone: '',
+      address: '',
+      notes: ''
+    }
+  }
+}
+
+// 解析AI分析数据
+const parseAiAnalysisData = () => {
+  if (childDetail.value?.aiStructInfo) {
+    try {
+      aiAnalysisData.value = JSON.parse(childDetail.value.aiStructInfo)
+      nextTick(() => {
+        initEmotionChart()
+      })
+    } catch (err) {
+      console.error('解析AI数据失败:', err)
+      aiAnalysisData.value = null
+    }
+  }
+}
+
+// 初始化情感图表
+const initEmotionChart = () => {
+  if (!emotionChartRef.value || !aiAnalysisData.value?.emotion_history) return
+  
+  // 销毁现有图表
+  if (emotionChart) {
+    emotionChart.destroy()
+  }
+  
+  // 简化图表实现（使用纯CSS进度条替代Canvas）
+  console.log('初始化情感趋势图...')
+}
+
+// 切换编辑模式
+const toggleEditMode = () => {
+  editMode.value = !editMode.value
+  if (!editMode.value) {
+    initEditForm() // 取消编辑时恢复原始数据
+  }
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  editMode.value = false
+  initEditForm()
+}
+
+// 保存修改
+const saveChanges = async () => {
+  if (!childDetail.value) return
+  
+  saving.value = true
   try {
-    const id = route.params.id as string;
-    const response = await analysisService.getAnalysisRecords({
-      childId: id,
-      pageSize: 5
-    });
-    analysisRecords.value = response.list;
-  } catch (error) {
-    console.error('获取分析记录失败:', error);
+    // 这里可以调用保存API
+    // await childApi.updateChild(childDetail.value.id, editForm.value)
+    
+    // 模拟保存
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    message.success('儿童信息保存成功')
+    
+    // 更新显示
+    childDetail.value.name = editForm.value.name
+    childDetail.value.updateTime = new Date().toISOString()
+    
+    editMode.value = false
+  } catch (err: any) {
+    message.error('保存失败: ' + err.message)
+  } finally {
+    saving.value = false
   }
-};
+}
 
-// 获取相关的服务方案
-const fetchServiceSchemes = async () =\u003e {
-  try {
-    const id = route.params.id as string;
-    const response = await schemeService.getServiceSchemes({
-      childId: id,
-      pageSize: 5
-    });
-    serviceSchemes.value = response.list;
-  } catch (error) {
-    console.error('获取服务方案失败:', error);
+// 获取情感描述
+const getEmotionDescription = (emotion: string, score: number) => {
+  const descriptions: Record<string, Record<string, string>> = {
+    '情绪稳定性': {
+      '80-100': '情绪非常稳定，状态良好',
+      '60-79': '情绪基本稳定，偶尔波动',
+      '40-59': '情绪波动中等，需关注变化',
+      '20-39': '情绪不够稳定，需要关注',
+      '0-19': '情绪不稳定，需要重点关注'
+    },
+    '积极情绪指数': {
+      '80-100': '积极情绪很高，状态很好',
+      '60-79': '积极情绪较高，有提升空间',
+      '40-59': '积极情绪一般，有提升空间',
+      '20-39': '积极情绪较低，需要关注',
+      '0-19': '积极情绪很低，需要重点关注'
+    },
+    '焦虑水平': {
+      '80-100': '焦虑水平很高，需要重点干预',
+      '60-79': '焦虑水平较高，需要关注',
+      '40-59': '存在一定焦虑情绪，需适当干预',
+      '20-39': '焦虑水平较低，状态良好',
+      '0-19': '几乎没有焦虑，情绪状态很好'
+    }
   }
-};
-
-// 获取情绪颜色
-const getEmotionColor = (score: number): string =\u003e {
-  if (score \u003e= 80) return '#22C55E';
-  if (score \u003e= 60) return '#F59E0B';
-  return '#EF4444';
-};
-
-// 获取情绪等级
-const getEmotionLevel = (score: number): string =\u003e {
-  if (score \u003e= 80) return '优秀';
-  if (score \u003e= 60) return '良好';
-  if (score \u003e= 40) return '一般';
-  return '需要关注';
-};
-
-// 获取状态文本
-const getStatusText = (status: string): string =\u003e {
-  const statusMap = {
-    normal: '正常',
-    attention: '需关注',
-    urgent: '紧急'
-  };
-  return statusMap[status as keyof typeof statusMap] || status;
-};
-
-// 获取分析类型文本
-const getAnalysisTypeText = (type: string): string =\u003e {
-  const typeMap = {
-    emotion: '情绪分析',
-    behavior: '行为分析',
-    academic: '学业分析',
-    comprehensive: '综合分析'
-  };
-  return typeMap[type as keyof typeof typeMap] || type;
-};
-
-// 获取风险等级文本
-const getRiskLevelText = (level: string): string =\u003e {
-  const levelMap = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险'
-  };
-  return levelMap[level as keyof typeof levelMap] || level;
-};
-
-// 获取方案状态文本
-const getSchemeStatusText = (status: string): string =\u003e {
-  const statusMap = {
-    draft: '草稿',
-    active: '进行中',
-    completed: '已完成',
-    paused: '已暂停'
-  };
-  return statusMap[status as keyof typeof statusMap] || status;
-};
-
-// 获取方案类别文本
-const getCategoryText = (category: string): string =\u003e {
-  const categoryMap = {
-    emotional: '情感支持',
-    academic: '学业提升',
-    behavioral: '行为引导',
-    social: '社交能力',
-    comprehensive: '综合方案'
-  };
-  return categoryMap[category as keyof typeof categoryMap] || category;
-};
+  
+  const descMap = descriptions[emotion] || {}
+  const range = Object.keys(descMap).find(range => {
+    const [min, max] = range.split('-').map(Number)
+    return score >= min && score <= max
+  })
+  
+  return range ? descMap[range] : '数据不足'
+}
 
 // 格式化日期
-const formatDate = (dateString: string): string =\u003e {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-// 返回上一页
-const handleGoBack = () =\u003e {
-  router.push('/children');
-};
-
-// 编辑儿童信息
-const handleEdit = () =\u003e {
-  router.push(`/children/edit/${route.params.id}`);
-};
-
-// 创建AI分析
-const handleCreateAnalysis = () =\u003e {
-  router.push(`/analysis/create?childId=${route.params.id}`);
-};
-
-// 查看AI分析详情
-const handleViewAnalysis = (analysisId: string) =\u003e {
-  router.push(`/analysis/${analysisId}`);
-};
-
-// 创建服务方案
-const handleCreateScheme = () =\u003e {
-  router.push(`/schemes/create?childId=${route.params.id}`);
-};
-
-// 查看服务方案详情
-const handleViewScheme = (schemeId: string) =\u003e {
-  router.push(`/schemes/${schemeId}`);
-};
-
-// 组件挂载时初始化数据
-onMounted(() =\u003e {
-  fetchChildDetail();
-  fetchAnalysisRecords();
-  fetchServiceSchemes();
-});
-\u003c/script\u003e
-
-\u003cstyle scoped\u003e
-.child-detail-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-}
-
-/* 加载和错误状态 */
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid #E5E7EB;
-  border-top: 3px solid #4F46E5;
-  border-radius: 50%;
-  margin-bottom: 20px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-text,
-.error-description {
-  color: #6B7280;
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-
-.error-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.error-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 12px 0;
-}
-
-/* 基本信息卡片 */
-.child-basic-info-card {
-  margin-bottom: 24px;
-}
-
-.child-profile-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 32px;
-}
-
-.child-avatar-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #FFFFFF;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.child-avatar-large img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.child-profile-info {
-  flex: 1;
-}
-
-.child-name-title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.child-name {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1F2937;
-  margin: 0;
-}
-
-.status-badge {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.status-normal {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
-}
-
-.status-attention {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-}
-
-.status-urgent {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-}
-
-.child-basic-details {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #6B7280;
-  font-size: 16px;
-}
-
-.child-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tag {
-  padding: 4px 12px;
-  background-color: #E5E7EB;
-  color: #6B7280;
-  border-radius: 16px;
-  font-size: 13px;
-}
-
-.child-emotion-card {
-  background-color: #F9FAFB;
-  padding: 20px;
-  border-radius: 12px;
-  min-width: 280px;
-}
-
-.emotion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.emotion-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0;
-}
-
-.emotion-score {
-  font-size: 28px;
-  font-weight: 700;
-  color: #4F46E5;
-}
-
-.emotion-bar {
-  width: 100%;
-  height: 8px;
-  background-color: #E5E7EB;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.emotion-bar-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.emotion-level {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
-  margin-bottom: 8px;
-}
-
-.last-interaction {
-  font-size: 12px;
-  color: #6B7280;
-}
-
-/* 详细信息网格 */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.info-card {
-  height: 100%;
-}
-
-.card-header-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1F2937;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.info-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.info-item {
-  display: flex;
-  gap: 8px;
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleString('zh-CN')
 }
 
-.info-label {
-  font-weight: 500;
-  color: #6B7280;
-  min-width: 80px;
-}
-
-.info-value {
-  color: #1F2937;
-  flex: 1;
-}
-
-/* 相关信息区域 */
-.related-info-section {
-  margin-top: 32px;
-}
-
-.section-tabs {
-  display: flex;
-  gap: 2px;
-  background-color: #F3F4F6;
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 24px;
-}
-
-.section-tab {
-  flex: 1;
-  padding: 12px 24px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #6B7280;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.section-tab.active {
-  background-color: #FFFFFF;
-  color: #4F46E5;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.section-tab:hover:not(.active) {
-  color: #4F46E5;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* 空状态 */
-.empty-section {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-}
-
-.empty-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 8px 0;
-}
-
-.empty-description {
-  color: #6B7280;
-  font-size: 16px;
-  margin: 0 0 20px 0;
-}
-
-/* 分析记录列表 */
-.analysis-list,
-.schemes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.analysis-item,
-.scheme-item {
-  padding: 20px;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.analysis-item:hover,
-.scheme-item:hover {
-  border-color: #4F46E5;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
-  transform: translateY(-1px);
-}
-
-.analysis-header,
-.scheme-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.analysis-type,
-.scheme-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1F2937;
-}
-
-.analysis-date {
-  font-size: 14px;
-  color: #6B7280;
-}
-
-.analysis-content,
-.scheme-content {
-  margin-bottom: 16px;
-}
-
-.analysis-score,
-.analysis-risk,
-.analysis-findings {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.score-label,
-.risk-label,
-.findings-label {
-  font-weight: 500;
-  color: #6B7280;
-  min-width: 80px;
-}
-
-.score-value {
-  font-weight: 600;
-  color: #4F46E5;
-}
-
-.risk-badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.risk-low {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
-}
-
-.risk-medium {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-}
-
-.risk-high {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-}
-
-.findings-preview {
-  color: #1F2937;
-  flex: 1;
-}
-
-.more-findings {
-  color: #6B7280;
-}
-
-.scheme-status {
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.status-draft {
-  background-color: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
-}
-
-.status-active {
-  background-color: rgba(79, 70, 229, 0.1);
-  color: #4F46E5;
-}
-
-.status-completed {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
-}
-
-.status-paused {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-}
-
-.scheme-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.progress-label {
-  font-weight: 500;
-  color: #6B7280;
-  min-width: 80px;
-  font-size: 14px;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 8px;
-  background-color: #E5E7EB;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #4F46E5;
-  transition: width 0.3s ease;
-}
+// 监听图表周期变化
+watch(chartPeriod, () => {
+  initEmotionChart()
+})
 
-.progress-value {
-  font-weight: 600;
-  color: #1F2937;
-  min-width: 40px;
-  text-align: right;
-  font-size: 14px;
-}
-
-.scheme-info {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.info-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #6B7280;
-  font-size: 13px;
-}
+// 页面加载时初始化数据
+onMounted(() => {
+  loadChildDetail()
+})
+</script>
 
-.analysis-footer,
-.scheme-footer {
-  text-align: right;
+<style scoped>
+.transition-custom {
+  transition: all 0.3s ease;
 }
 
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .child-profile-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 24px;
-  }
-  
-  .child-emotion-card {
-    min-width: auto;
-  }
-  
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
+.btn-shadow {
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
 }
 
-@media (max-width: 768px) {
-  .child-detail-container {
-    padding: 16px;
-  }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
-  .header-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .child-name-title {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .child-basic-details {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  
-  .section-tabs {
-    flex-direction: column;
-  }
-  
-  .scheme-info {
-    flex-direction: column;
-    gap: 8px;
-  }
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-@media (max-width: 480px) {
-  .child-name {
-    font-size: 24px;
-  }
-  
-  .header-right {
-    flex-wrap: wrap;
-  }
-  
-  .analysis-header,
-  .scheme-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .analysis-score,
-  .analysis-risk,
-  .analysis-findings,
-  .scheme-progress {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
+.transition-all {
+  transition: all 0.3s ease;
 }
-\u003c/style\u003e
+</style>

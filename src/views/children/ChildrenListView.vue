@@ -1,9 +1,790 @@
 <template>
-
+  <AppLayout title="儿童管理 - CareSync AI">
+    <div class="children-list-container">
+      <!-- 页面标题和操作栏 -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">儿童管理</h1>
+          <p class="page-description">管理您负责服务的所有儿童信息和状态</p>
+        </div>
+        <div class="header-right">
+          <button @click="handleRefresh" class="btn btn-outline">
+            <i class="fa fa-refresh mr-2"></i>
+            刷新
+          </button>
+          <button @click="handleAddChild" class="btn btn-primary">
+            <i class="fa fa-plus mr-2"></i>
+            添加儿童
+          </button>
+        </div>
+      </div>
+      
+      <!-- 搜索和筛选 -->
+      <div class="search-filter-card">
+        <div class="search-filter-content">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="relative">
+              <input 
+                v-model="searchParams.name" 
+                type="text" 
+                placeholder="搜索儿童姓名/身份证号" 
+                class="input input-with-icon"
+                @keyup.enter="handleSearch"
+              />
+              <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral"></i>
+            </div>
+            <select v-model="searchParams.minAge" class="select" @change="handleSearch">
+              <option value="">所有年龄段</option>
+              <option value="6">6岁</option>
+              <option value="7">7岁</option>
+              <option value="8">8岁</option>
+              <option value="9">9岁</option>
+              <option value="10">10岁</option>
+              <option value="11">11岁</option>
+              <option value="12">12岁</option>
+              <option value="13">13岁</option>
+              <option value="14">14岁</option>
+              <option value="15">15岁</option>
+              <option value="16">16岁</option>
+              <option value="17">17岁</option>
+              <option value="18">18岁</option>
+            </select>
+            <select v-model="searchParams.hasNewChat" class="select" @change="handleSearch">
+              <option value="">所有状态</option>
+              <option :value="true">有新消息</option>
+              <option :value="false">无新消息</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="flex space-x-2">
+              <button @click="handleSearch" class="btn btn-primary flex-1">
+                筛选
+              </button>
+              <button @click="resetFilters" class="btn btn-outline flex-1">
+                重置
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 儿童列表 -->
+      <div class="children-list-card">
+        <div class="card-header">
+          <h3 class="card-title">儿童列表</h3>
+          <div class="list-info">
+            共 {{ pagination.total }} 名儿童
+          </div>
+        </div>
+        
+        <div v-if="isLoading" class="loading-container">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">加载中...</p>
+        </div>
+        <div v-else-if="children.length === 0" class="empty-container">
+          <div class="empty-icon">👧</div>
+          <h3 class="empty-title">暂无数据</h3>
+          <p class="empty-description">
+            {{ searchParams.name || searchParams.hasNewChat !== '' ? '没有找到符合条件的儿童' : '还没有添加任何儿童信息' }}
+          </p>
+          <button v-if="!searchParams.name && searchParams.hasNewChat === ''" @click="handleAddChild" class="btn btn-primary">
+            添加第一个儿童
+          </button>
+        </div>
+        <div v-else class="children-list">
+          <table class="children-table">
+            <thead>
+              <tr>
+                <th class="col-avatar">头像</th>
+                <th class="col-name">姓名</th>
+                <th class="col-info">基本信息</th>
+                <th class="col-contact">联系信息</th>
+                <th class="col-status">状态</th>
+                <th class="col-ai">AI分析</th>
+                <th class="col-time">创建时间</th>
+                <th class="col-actions">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="child in children" :key="child.id" class="child-row" @click="handleViewChild(child.id)">
+                <td class="col-avatar">
+                  <div class="child-avatar">
+                    <div class="avatar-placeholder">
+                      <i class="fa fa-child text-primary"></i>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-name">
+                  <div class="child-name">{{ child.name }}</div>
+                  <div class="child-no text-sm text-neutral">{{ child.childNo }}</div>
+                </td>
+                <td class="col-info">
+                  <div class="info-item">
+                    <span class="age-info">{{ child.age }}岁</span>
+                    <span v-if="child.hasNewChat" class="new-chat-badge">新消息</span>
+                  </div>
+                </td>
+                <td class="col-contact">
+                  <div class="contact-time text-sm text-neutral">
+                    {{ formatDate(child.updateTime) }}
+                  </div>
+                </td>
+                <td class="col-status">
+                  <span :class="['status-badge', 'status-normal']">
+                    正常
+                  </span>
+                </td>
+                <td class="col-ai">
+                  <span v-if="child.aiAnalysisTime" class="ai-badge">已分析</span>
+                  <span v-else class="text-neutral text-sm">未分析</span>
+                </td>
+                <td class="col-time">
+                  <div class="time-info text-sm text-neutral">
+                    {{ formatDate(child.createTime) }}
+                  </div>
+                </td>
+                <td class="col-actions">
+                  <div class="action-buttons" @click.stop>
+                    <button @click.stop="handleViewChild(child.id)" class="btn-icon btn-icon-primary" title="查看">
+                      <i class="fa fa-eye"></i>
+                    </button>
+                    <button @click.stop="handleEditChild(child.id)" class="btn-icon btn-icon-secondary" title="编辑">
+                      <i class="fa fa-pencil"></i>
+                    </button>
+                    <button @click.stop="handleDeleteChild(child.id, child.name)" class="btn-icon btn-icon-danger" title="删除">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 分页 -->
+        <div v-if="children.length > 0" class="pagination-container">
+          <div class="pagination-info">
+            显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }} 到 
+            {{ Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{ pagination.total }} 条
+          </div>
+          <div class="pagination-controls">
+            <button 
+              class="btn btn-sm" 
+              :disabled="pagination.page === 1"
+              @click="changePage(pagination.page - 1)"
+            >
+              上一页
+            </button>
+            <span class="page-info">
+              {{ pagination.page }} / {{ Math.ceil(pagination.total / pagination.pageSize) }}
+            </span>
+            <button 
+              class="btn btn-sm" 
+              :disabled="pagination.page >= Math.ceil(pagination.total / pagination.pageSize)"
+              @click="changePage(pagination.page + 1)"
+            >
+              下一页
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </AppLayout>
 </template>
-<script> 
+
+<script setup lang="ts">
+import { ref, onMounted, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import AppLayout from '@/components/layout/AppLayout.vue';
+import { childApi } from '@/services/api/child';
+import type { ChildQueueVO, ChildQueryDTO } from '@/types/api';
+
+// 路由
+const router = useRouter();
+
+// 响应式数据
+const isLoading = ref(false);
+const children = ref<ChildQueueVO[]>([]);
+const pagination = ref({
+  page: 1,
+  pageSize: 10,
+  total: 0
+});
+
+const searchParams = reactive<ChildQueryDTO>({
+  name: '',
+  minAge: undefined,
+  hasNewChat: undefined,
+  page: 1,
+  pageSize: 10
+});
+
+// 方法
+const loadChildrenList = async () => {
+  try {
+    isLoading.value = true;
+    const response = await childApi.getChildrenList(searchParams);
+    
+    if (response.code === 1 && response.data) {
+      children.value = response.data.records;
+      pagination.value = {
+        page: searchParams.page || 1,
+        pageSize: searchParams.pageSize || 10,
+        total: response.data.total
+      };
+    } else {
+      console.error('获取儿童列表失败:', response.msg);
+      children.value = [];
+      pagination.value.total = 0;
+    }
+  } catch (error) {
+    console.error('获取儿童列表异常:', error);
+    children.value = [];
+    pagination.value.total = 0;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const handleSearch = () => {
+  searchParams.page = 1;
+  loadChildrenList();
+};
+
+const resetFilters = () => {
+  searchParams.name = '';
+  searchParams.minAge = undefined;
+  searchParams.hasNewChat = undefined;
+  searchParams.page = 1;
+  loadChildrenList();
+};
+
+const changePage = (page: number) => {
+  searchParams.page = page;
+  loadChildrenList();
+};
+
+const handleRefresh = () => {
+  loadChildrenList();
+};
+
+const handleAddChild = () => {
+  // TODO: 实现添加儿童功能
+  console.log('添加儿童');
+};
+
+const handleViewChild = (id: number) => {
+  router.push(`/children/${id}`);
+};
+
+const handleEditChild = (id: number) => {
+  // TODO: 实现编辑儿童功能
+  console.log('编辑儿童', id);
+};
+
+const handleDeleteChild = (id: number, name: string) => {
+  if (confirm(`确定要删除儿童"${name}"吗？`)) {
+    // TODO: 实现删除儿童功能
+    console.log('删除儿童', id);
+  }
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// 生命周期
+onMounted(() => {
+  loadChildrenList();
+});
 </script>
+
 <style scoped>
+.children-list-container {
+  min-height: 100vh;
+  background-color: var(--light);
+}
+
+/* 页面头部 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem 0;
+}
+
+.header-left .page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin: 0 0 0.25rem 0;
+}
+
+.header-left .page-description {
+  color: var(--neutral);
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--neutral);
+  border-color: var(--gray-300);
+}
+
+.btn-outline:hover {
+  background-color: var(--gray-50);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn-icon {
+  padding: 0.375rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: var(--gray-100);
+}
+
+.btn-icon-primary:hover {
+  color: var(--primary);
+}
+
+.btn-icon-secondary:hover {
+  color: var(--secondary);
+}
+
+.btn-icon-danger:hover {
+  color: var(--danger);
+}
+
+/* 搜索筛选卡片 */
+.search-filter-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-filter-content {
+  max-width: none;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.input-with-icon {
+  padding-left: 2.5rem;
+}
+
+.select {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background-color: white;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 儿童列表卡片 */
+.children-list-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0;
+}
+
+.list-info {
+  color: var(--neutral);
+  font-size: 0.875rem;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--gray-200);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-text {
+  color: var(--neutral);
+  margin: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-description {
+  color: var(--neutral);
+  margin: 0 0 1.5rem 0;
+}
+
+/* 表格 */
+.children-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.children-table th,
+.children-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.children-table th {
+  background-color: var(--gray-50);
+  font-weight: 600;
+  color: var(--neutral);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.children-table tr:hover {
+  background-color: var(--gray-50);
+  cursor: pointer;
+}
+
+/* 表格列宽 */
+.col-avatar { width: 5rem; }
+.col-name { width: 10rem; }
+.col-info { width: 8rem; }
+.col-contact { width: 8rem; }
+.col-status { width: 6rem; }
+.col-ai { width: 6rem; }
+.col-time { width: 10rem; }
+.col-actions { width: 8rem; }
+
+/* 儿童头像 */
+.child-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+/* 儿童信息 */
+.child-name {
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 0.25rem;
+}
+
+.child-no {
+  font-size: 0.75rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.age-info {
+  color: var(--dark);
+}
+
+.new-chat-badge {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.contact-time,
+.time-info {
+  font-size: 0.75rem;
+}
+
+/* 状态徽章 */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-normal {
+  background-color: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.ai-badge {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* 分页 */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+}
+
+.pagination-info {
+  color: var(--neutral);
+  font-size: 0.875rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-info {
+  color: var(--neutral);
+  font-size: 0.875rem;
+}
+
+/* 网格布局 */
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.space-x-2 > * + * {
+  margin-left: 0.5rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-right {
+    align-self: stretch;
+  }
+  
+  .children-table {
+    font-size: 0.875rem;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-filter-card {
+    padding: 1rem;
+  }
+  
+  .grid-cols-1,
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .children-table th,
+  .children-table td {
+    padding: 0.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .col-ai,
+  .col-time {
+    display: none;
+  }
+}
 </style>
 <!-- <template>
   <AppLayout title="儿童管理 - CareSync AI">

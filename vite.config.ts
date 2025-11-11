@@ -17,7 +17,7 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         // 路径重写（如果需要）
-        // rewrite: (path) => path.replace(/^\/ark/, '')
+        // rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   },

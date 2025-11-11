@@ -2,29 +2,39 @@
 
 export interface SimulationScenario {
   id: number;
-  scenarioName: string;
-  scenarioType: string;
+  title: string; // 场景标题
+  type: string; // 场景类型
   description: string;
-  difficultyLevel: 1 | 2 | 3; // 1-基础，2-进阶，3-挑战
+  difficulty: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'; // 难度等级
+  estimatedDuration: number; // 预计时长（分钟）
+  metadata?: any; // 元数据
 }
 
 export interface TrainingSession {
   id: number;
   workerId: number;
   scenarioId: number;
+  scenarioTitle?: string; // 场景标题
   sessionStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   startTime: string;
   endTime?: string;
   totalRounds: number;
   overallScore?: number;
+  duration?: number; // 训练时长（秒）
+  messageCount?: number; // 消息数量
   createTime: string;
   updateTime: string;
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
+  id: string; // 消息唯一标识
+  content: string; // 消息内容
+  senderType: 'user' | 'ai'; // 发送者类型
+  role: 'user' | 'ai'; // 角色
+  timestamp: Date; // 时间戳
+  isTyping?: boolean; // 是否正在输入
+  emotionAnalysis?: string; // 情感分析（JSON字符串）
+  aiGuidance?: string; // AI指导
 }
 
 export interface TrainingMessageRequest {
