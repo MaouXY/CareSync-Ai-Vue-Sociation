@@ -21,10 +21,9 @@ const createAxiosInstance = () => {
     (config) => {
       // 从localStorage获取token（使用统一的名称'token'）
       const token = localStorage.getItem('token');
-      console.log('请求头:', token);
-      //if (token && config.headers) {
+      if (token && config.headers) {
         config.headers.Authorization = `${token}`;
-      //}
+      }
       
       // 添加时间戳防止缓存
       if (config.method === 'get' && config.params) {
@@ -42,7 +41,27 @@ const createAxiosInstance = () => {
   instance.interceptors.response.use(
     (response) => {
       console.log('响应拦截器:', response.data);
-      return response.data;
+      
+      // 统一处理后端响应格式
+      const result = response.data;
+      
+      // 如果后端返回统一格式 {code, msg, data}，则根据code判断成功/失败
+      if (result && typeof result === 'object' && 'code' in result) {
+        if (result.code === 1) {
+          // 成功，返回数据部分
+          return result.data;
+        } else {
+          // 失败，抛出统一错误格式
+          return Promise.reject({
+            code: result.code,
+            message: result.msg || '请求失败',
+            timestamp: new Date().toISOString(),
+          } as ApiError);
+        }
+      }
+      
+      // 如果不是统一格式（如文件流等），直接返回原始数据
+      return result;
     },
     (error) => {
       // 处理HTTP错误
@@ -130,7 +149,27 @@ const createAIHttpInstance = () => {
   instance.interceptors.response.use(
     (response) => {
       console.log('AI响应:', response.data);
-      return response.data;
+      
+      // 统一处理后端响应格式
+      const result = response.data;
+      
+      // 如果后端返回统一格式 {code, msg, data}，则根据code判断成功/失败
+      if (result && typeof result === 'object' && 'code' in result) {
+        if (result.code === 1) {
+          // 成功，返回数据部分
+          return result.data;
+        } else {
+          // 失败，抛出统一错误格式
+          return Promise.reject({
+            code: result.code,
+            message: result.msg || 'AI请求失败',
+            timestamp: new Date().toISOString(),
+          } as ApiError);
+        }
+      }
+      
+      // 如果不是统一格式（如文件流等），直接返回原始数据
+      return result;
     },
     (error) => {
       // 处理HTTP错误

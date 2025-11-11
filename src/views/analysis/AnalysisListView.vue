@@ -375,10 +375,10 @@ const loadAnalysisList = async () => {
     }
     const response = await aiAnalysisService.getAnalysisList(params)
     
-    if (response.data) {
-      const data = response.data
-      analysisList.value = data.records || []
-      total.value = data.total || 0
+    // 由于HTTP响应拦截器已经处理了后端统一格式，现在response就是分页数据
+    if (response) {
+      analysisList.value = response.records || []
+      total.value = response.total || 0
     }
   } catch (error) {
     console.error('加载分析列表失败:', error)

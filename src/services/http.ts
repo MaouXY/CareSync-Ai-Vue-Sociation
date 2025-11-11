@@ -13,7 +13,7 @@ const http: AxiosInstance = axios.create({
 // 请求拦截器
 http.interceptors.request.use(
   (config) => {
-    // 添加认证 token（如果需要）
+    // 添加认证 token（使用Bearer格式）
     const token = localStorage.getItem('token')
     if (token && config.headers) {
       config.headers.Authorization = `${token}`
@@ -29,15 +29,23 @@ http.interceptors.request.use(
 // 响应拦截器
 http.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 统一处理响应数据
-    const { code, message, data } = response.data
+    // 统一处理后端响应格式
+    const result = response.data
     
-    // 如果是业务错误，显示提示
-    if (code !== 200 && code !== 0) {
-      showMessage(message || '请求失败', 'error')
-      return Promise.reject(new Error(message || '请求失败'))
+    // 如果后端返回统一格式 {code, msg, data}，则根据code判断成功/失败
+    if (result && typeof result === 'object' && 'code' in result) {
+      if (result.code === 1) {
+        // 成功，返回数据部分
+        return result.data
+      } else {
+        // 失败，显示错误信息
+        const errorMessage = result.msg || '请求失败'
+        showMessage(errorMessage, 'error')
+        return Promise.reject(new Error(errorMessage))
+      }
     }
     
+    // 如果不是统一格式，直接返回响应
     return response
   },
   (error) => {
@@ -106,3 +114,4 @@ export const del = <T = any>(url: string, config?: AxiosRequestConfig) => {
 export const patch = <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => {
   return http.patch<T>(url, data, config)
 }
+
