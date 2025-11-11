@@ -19,6 +19,7 @@
   /* 颜色 */
   /* primary */
   --primary: #4F46E5;
+  --primary-light: #c8c4fb;
   --primary-bg: #EEF5FF;
 
   --secondary: #10B981;
@@ -102,6 +103,10 @@ body {
 /* 背景颜色 */
 .bg-primary {
   background-color: var(--primary-bg);
+}
+
+.bg-primary-light {
+  background-color: var(--primary-light);
 }
 
 .bg-primary-6 {
@@ -237,6 +242,9 @@ button:active,
 .pb-2 { padding-bottom: 0.5rem; }
 .pb-4 { padding-bottom: 1rem; }
 .pb-20 { padding-bottom: 5rem; }
+.pt-4 { padding-top: 1rem; }
+.pt-8 { padding-top: 2rem; }
+.pt-16 { padding-top: 4rem; }
 .pt-32 { padding-top: 8rem; }
 
 
@@ -502,3 +510,42 @@ button:focus-visible {
 /* 高度 */
 .h-full { height: 100%; }
 
+/* 保留日期选择器功能但自定义外观 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+/* 自定义日历图标样式 */
+input[type="date"] {
+  position: relative;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+  padding-right: 32px;
+}
+
+/* 确保Firefox浏览器也能正常工作 */
+input[type="date"]::-moz-calendar-picker-indicator {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+/* 确保IE浏览器兼容性 */
+input[type="date"]::-ms-clear, 
+input[type="date"]::-ms-reveal {
+  display: none;
+}

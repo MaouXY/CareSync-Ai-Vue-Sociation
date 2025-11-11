@@ -2,7 +2,7 @@
   <div class="analysis-list-container">
     <WorkHeader />
     <main class="analysis-main-content" style="padding-top: 80px;">
-      <div class="page-header">
+      <div class="page-header pt-4">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h1 class="page-title">AI分析结果</h1>
@@ -12,7 +12,7 @@
           <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
             <button 
               id="refreshBtn" 
-              class="btn btn-outline"
+              class="btn btn-outline  mr-4"
               @click="refreshData"
               :disabled="loading"
             >
@@ -33,54 +33,60 @@
       </div>
       
       <div class="search-filters-card">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="relative">
-            <input 
-              v-model="searchParams.name"
-              type="text" 
-              placeholder="搜索儿童姓名/潜在问题/情感趋势" 
-              class="search-input"
-              @keyup.enter="handleSearch"
-            />
-            <i class="fa fa-search search-icon"></i>
+        <div class="responsive-filters-container">
+          <!-- 第一行：搜索框和下拉菜单 -->
+          <div class="filter-row">
+            <div class="filter-item search-container">
+              <input 
+                v-model="searchParams.name"
+                type="text" 
+                placeholder="搜索儿童姓名/潜在问题/情感趋势" 
+                class="search-input"
+                @keyup.enter="handleSearch"
+              />
+            </div>
+            <select v-model="searchParams.potentialProblems" class="filter-select">
+              <option value="">所有潜在问题</option>
+              <option value="confidence">社交互动自信心不足</option>
+              <option value="attention">注意力分散问题</option>
+              <option value="communication">沟通主动性不足</option>
+              <option value="family">家庭情感支持不足</option>
+            </select>
+            <select v-model="searchParams.emotionTrend" class="filter-select">
+              <option value="">所有情感趋势</option>
+              <option value="孤独">孤独</option>
+              <option value="平静">平静</option>
+              <option value="开心">开心</option>
+              <option value="专注">专注</option>
+              <option value="急躁">急躁</option>
+              <option value="封闭">封闭</option>
+            </select>
           </div>
-          <select v-model="searchParams.potentialProblems" class="filter-select">
-            <option value="">所有潜在问题</option>
-            <option value="confidence">社交互动自信心不足</option>
-            <option value="attention">注意力分散问题</option>
-            <option value="communication">沟通主动性不足</option>
-            <option value="family">家庭情感支持不足</option>
-          </select>
-          <select v-model="searchParams.emotionTrend" class="filter-select">
-            <option value="">所有情感趋势</option>
-            <option value="孤独">孤独</option>
-            <option value="平静">平静</option>
-            <option value="开心">开心</option>
-            <option value="专注">专注</option>
-            <option value="急躁">急躁</option>
-            <option value="封闭">封闭</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div class="flex items-center space-x-2">
-            <label class="text-sm text-neutral">分析日期:</label>
-            <input 
-              v-model="searchParams.startDate"
-              type="date" 
-              class="date-input"
-            />
-          </div>
-          <div class="flex items-center space-x-2">
-            <label class="text-sm text-neutral">至:</label>
-            <input 
-              v-model="searchParams.endDate"
-              type="date" 
-              class="date-input"
-            />
-          </div>
-          <div class="flex space-x-2">
-            <button class="btn btn-primary flex-1" @click="handleSearch">筛选</button>
-            <button class="btn btn-outline flex-1" @click="resetFilters">重置</button>
+          
+          <!-- 第二行：日期选择器和按钮 -->
+          <div class="filter-row">
+            <div class="date-filters">
+              <div class="date-item">
+                <label class="date-label">分析日期:</label>
+                <input 
+                  v-model="searchParams.startDate"
+                  type="date" 
+                  class="date-input"
+                />
+              </div>
+              <div class="date-item">
+                <span class="date-separator">至</span>
+                <input 
+                  v-model="searchParams.endDate"
+                  type="date" 
+                  class="date-input"
+                />
+              </div>
+            </div>
+            <div class="action-buttons">
+              <button class="btn btn-primary filter-btn" @click="handleSearch">筛选</button>
+              <button class="btn btn-outline filter-btn" @click="resetFilters">重置</button>
+            </div>
           </div>
         </div>
       </div>
@@ -95,6 +101,7 @@
                     <input 
                       type="checkbox" 
                       id="selectAll"
+                      class="bg-light"
                       v-model="selectAll"
                       @change="handleSelectAll"
                     />
@@ -104,14 +111,14 @@
                 <th>情绪分数</th>
                 <th>情感标签</th>
                 <th>潜在问题</th>
-                <th>关键发现</th>
                 <th>分析时间</th>
                 <th>操作</th>
               </tr>
             </thead>
+            
             <tbody>
               <tr v-if="loading" v-for="n in 5" :key="n" class="loading-row">
-                <td colspan="8" class="table-loading">
+                <td colspan="7" class="table-loading">
                   <div class="loading-content">
                     <div class="spinner"></div>
                     <span>正在加载分析数据...</span>
@@ -119,7 +126,7 @@
                 </td>
               </tr>
               <tr v-else-if="analysisList.length === 0">
-                <td colspan="8" class="table-empty">
+                <td colspan="7" class="table-empty">
                   <div class="empty-content">
                     <i class="data-icon">📊</i>
                     <p>暂无AI分析数据</p>
@@ -139,7 +146,7 @@
                 </td>
                 <td>
                   <div class="child-info-cell">
-                    <div class="child-avatar">{{ analysis.childName?.charAt(0) || '?' }}</div>
+                    <div class="child-avatar bg-primary-light">{{ analysis.childName?.charAt(0) || '?' }}</div>
                     <div class="child-details">
                       <div class="child-name">{{ analysis.childName || '未知' }}</div>
                       <div class="child-id">ID: {{ analysis.childId }}</div>
@@ -156,34 +163,22 @@
                 <td>
                   <div class="emotion-tags">
                     <span 
-                      v-for="tag in (analysis.emotionTrendTags || []).slice(0, 2)" 
+                      v-for="tag in (analysis.emotionTrendTags || [])" 
                       :key="tag"
                       class="emotion-tag"
+                      :class="tag"
                     >
                       {{ tag }}
                     </span>
-                    <span v-if="(analysis.emotionTrendTags || []).length > 2" class="more-tags">
-                      +{{ (analysis.emotionTrendTags || []).length - 2 }}
-                    </span>
                   </div>
                 </td>
                 <td>
-                  <span class="problem-text">
+                  <span 
+                    class="problem-tag"
+                    :class="analysis.potentialProblems"
+                  >
                     {{ analysis.potentialProblems || '暂无' }}
                   </span>
-                </td>
-                <td>
-                  <div class="key-findings">
-                    <p class="findings-text">
-                      {{ (analysis.keyFindings && analysis.keyFindings[0]) || analysis.latestAnalysis || '暂无关键发现' }}
-                    </p>
-                    <button 
-                      class="view-more-btn" 
-                      @click="viewMoreFindings(analysis)"
-                    >
-                      查看更多
-                    </button>
-                  </div>
                 </td>
                 <td>
                   <div class="analysis-time">
@@ -213,41 +208,55 @@
         
         <div class="pagination-container" v-if="!loading && analysisList.length > 0">
           <div class="pagination-info">
-            显示第 {{ (currentPage - 1) * pageSize + 1 }} 到 
-            {{ Math.min(currentPage * pageSize, total) }} 条，
-            共 {{ total }} 条记录
+            共 {{ total }} 条记录 · 第 {{ currentPage }} / {{ totalPages }} 页
           </div>
           <div class="pagination">
             <button 
-              class="btn btn-sm"
+              class="pagination-btn"
               :disabled="currentPage === 1" 
               @click="handlePageChange(1)"
+              title="首页"
             >
-              首页
+              <i class="fa fa-angle-double-left"></i>
             </button>
             <button 
-              class="btn btn-sm"
+              class="pagination-btn"
               :disabled="currentPage === 1" 
               @click="handlePageChange(currentPage - 1)"
+              title="上一页"
             >
-              上一页
+              <i class="fa fa-angle-left"></i>
             </button>
-            <span class="pagination-current">
-              {{ currentPage }} / {{ totalPages }}
-            </span>
+            
+            <!-- 页码按钮 -->
+            <div class="page-numbers">
+              <button 
+                v-for="page in getVisiblePages()" 
+                :key="page"
+                class="page-btn"
+                :class="{ active: page === currentPage, 'page-ellipsis': page === '...' }"
+                :disabled="page === '...'"
+                @click="typeof page === 'number' ? handlePageChange(page) : null"
+              >
+                {{ page }}
+              </button>
+            </div>
+            
             <button 
-              class="btn btn-sm"
+              class="pagination-btn"
               :disabled="currentPage === totalPages" 
               @click="handlePageChange(currentPage + 1)"
+              title="下一页"
             >
-              下一页
+              <i class="fa fa-angle-right"></i>
             </button>
             <button 
-              class="btn btn-sm"
+              class="pagination-btn"
               :disabled="currentPage === totalPages" 
               @click="handlePageChange(totalPages)"
+              title="尾页"
             >
-              尾页
+              <i class="fa fa-angle-double-right"></i>
             </button>
           </div>
         </div>
@@ -408,6 +417,56 @@ const handlePageChange = (page: number) => {
   loadAnalysisList()
 }
 
+// 获取显示的页码数组
+const getVisiblePages = () => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const delta = 2 // 当前页前后显示的页数
+  
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  
+  const range = []
+  const rangeWithDots = []
+  
+  // 计算显示范围
+  let start = Math.max(2, current - delta)
+  let end = Math.min(total - 1, current + delta)
+  
+  if (current <= delta + 2) {
+    end = Math.min(total - 1, 2 * delta + 3)
+  }
+  
+  if (current >= total - (delta + 1)) {
+    start = Math.max(2, total - (2 * delta + 2))
+  }
+  
+  // 添加首页
+  range.push(1)
+  
+  // 添加省略号
+  if (start > 2) {
+    rangeWithDots.push(1, '...')
+  } else {
+    rangeWithDots.push(1)
+  }
+  
+  // 添加中间页码
+  for (let i = start; i <= end; i++) {
+    rangeWithDots.push(i)
+  }
+  
+  // 添加省略号
+  if (end < total - 1) {
+    rangeWithDots.push('...', total)
+  } else {
+    rangeWithDots.push(total)
+  }
+  
+  return rangeWithDots
+}
+
 const handleSelectAll = () => {
   if (selectAll.value) {
     selectedIds.value = analysisList.value.map(analysis => analysis.id)
@@ -497,20 +556,49 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
+/* 响应式筛选布局 */
+.responsive-filters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
 .search-input {
-  width: 25%;
-  padding: 8px 40px 8px 12px;
-  border: 1px solid #d1d5db;
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 1px solid #e5e7eb;
   background: #ffffff;
-  border-radius: 6px;
+  border-radius: 12px;
   font-size: 14px;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #1F2937;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box; /* 关键：让width包含padding和border */
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .search-icon {
@@ -523,38 +611,167 @@ onMounted(() => {
 }
 
 .filter-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  background: white;
-  transition: all 0.2s ease;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
+  background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234F46E5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") no-repeat right 12px center;
   background-size: 16px;
-  padding-right: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 40px 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2937;
+  background-color: white;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 200px;
+  flex: 1;
+}
+
+/* 第二行布局样式 */
+.date-filters {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  align-items: center;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.date-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.date-separator {
+  font-size: 14px;
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+.date-input {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2937;
+  background-color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.filter-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 12px;
+  min-width: 80px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.filter-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 移动端响应式设计 */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-container {
+    max-width: none;
+  }
+  
+  .filter-select {
+    min-width: auto;
+  }
+  
+  .date-filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .date-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .date-label {
+    font-size: 13px;
+  }
+  
+  .date-input {
+    min-width: auto;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .filter-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-filters-container {
+    gap: 12px;
+  }
+  
+  .filter-row {
+    gap: 12px;
+  }
+  
+  .filter-select,
+  .search-input,
+  .date-input,
+  .filter-btn {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
 }
 
 .filter-select:hover {
-  border-color: #9ca3af;
-  background-color: #f9fafb;
+  border-color: #4F46E5;
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   background-color: white;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
 }
 
 /* 下拉框选项悬停效果 */
@@ -579,13 +796,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.date-input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 14px;
-}
+/* 旧的.date-input样式已被新的响应式样式替代 */
 
 .btn {
   display: inline-flex;
@@ -686,7 +897,43 @@ onMounted(() => {
 .checkbox-container input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #4f46e5;
+  appearance: none;
+  background-color: white;
+  border: 2px solid #d1d5db;
+  border-radius: 3px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 勾选框选中状态 */
+.checkbox-container input[type="checkbox"]:checked {
+  background-color: white;
+  border-color: #4f46e5;
+}
+
+/* 勾选框选中后的勾选标记 */
+.checkbox-container input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* 悬停效果 */
+.checkbox-container input[type="checkbox"]:hover {
+  border-color: #4f46e5;
+}
+
+/* 聚焦效果 */
+.checkbox-container input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
 .child-info-cell {
@@ -699,7 +946,6 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -771,52 +1017,179 @@ onMounted(() => {
 .emotion-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  align-items: center;
 }
 
+/* 情感标签胶囊样式 */
 .emotion-tag {
-  display: inline-block;
-  padding: 2px 6px;
-  background-color: #f3f4f6;
-  color: #374151;
-  border-radius: 4px;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* 情感标签颜色主题 */
+.emotion-tag.积极情绪 {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.emotion-tag.消极情绪 {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.emotion-tag.焦虑 {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+
+.emotion-tag.愤怒 {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.emotion-tag.悲伤 {
+  background-color: #ddd6fe;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+}
+
+.emotion-tag.快乐 {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.emotion-tag.兴奋 {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+
+.emotion-tag.平静 {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.emotion-tag.孤独 {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.emotion-tag.害怕 {
+  background-color: #f3e8ff;
+  color: #7c2d12;
+  border-color: #e9d5ff;
+}
+
+.emotion-tag.困惑 {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+
+/* 默认样式 - 当没有匹配到具体类型时使用 */
+.emotion-tag:not([class*="积极情绪"]):not([class*="消极情绪"]):not([class*="焦虑"]):not([class*="愤怒"]):not([class*="悲伤"]):not([class*="快乐"]):not([class*="兴奋"]):not([class*="平静"]):not([class*="孤独"]):not([class*="害怕"]):not([class*="困惑"]) {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
 }
 
 .more-tags {
   color: #6b7280;
-  font-size: 11px;
-}
-
-.problem-text {
-  color: #dc2626;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
-.key-findings {
-  max-width: 200px;
-}
-
-.findings-text {
-  margin: 0 0 4px 0;
-  font-size: 13px;
-  color: #374151;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.view-more-btn {
-  background: none;
-  border: none;
-  color: #4f46e5;
+/* 潜在问题胶囊样式 */
+.problem-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* 潜在问题颜色主题 */
+.problem-tag.社交互动自信心不足 {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+
+.problem-tag.注意力分散问题 {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+  border-color: #c7d2fe;
+}
+
+.problem-tag.沟通主动性不足 {
+  background-color: #fce7f3;
+  color: #be185d;
+  border-color: #fbcfe8;
+}
+
+.problem-tag.家庭情感支持不足 {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.problem-tag.学习动机不足 {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+
+.problem-tag.情绪调节困难 {
+  background-color: #f3e8ff;
+  color: #7c2d12;
+  border-color: #e9d5ff;
+}
+
+.problem-tag.人际冲突 {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.problem-tag.适应问题 {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.problem-tag.无明显问题 {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+/* 默认样式 - 当没有匹配到具体类型时使用 */
+.problem-tag:not([class*="社交互动"]):not([class*="注意力"]):not([class*="沟通"]):not([class*="家庭"]):not([class*="学习"]):not([class*="情绪调节"]):not([class*="人际冲突"]):not([class*="适应"]):not([class*="无明显"]) {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.problem-text {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .analysis-time {
@@ -836,29 +1209,141 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background-color: #f8fafc;
+  padding: 16px 24px;
+  background-color: #ffffff;
   border-top: 1px solid #e2e8f0;
+  margin-top: 20px;
 }
 
 .pagination-info {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
+  font-weight: 500;
 }
 
 .pagination {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 4px;
 }
 
-.pagination-current {
-  padding: 6px 12px;
-  background-color: #e2e8f0;
+/* 分页按钮基础样式 */
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
   color: #374151;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.pagination-btn:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.pagination-btn i {
+  font-size: 12px;
+}
+
+/* 页码按钮容器 */
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 8px;
+}
+
+/* 页码按钮 */
+.page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover {
+  background-color: #f9fafb;
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.page-btn.active {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.page-btn.active:hover {
+  background-color: #4338ca;
+  border-color: #4338ca;
+}
+
+.page-btn:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+/* 省略号样式 */
+.page-ellipsis {
+  background-color: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: default;
+  padding: 0 8px;
+}
+
+.page-ellipsis:hover {
+  background-color: transparent;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+  
+  .page-numbers {
+    margin: 0 4px;
+  }
+  
+  .pagination-btn,
+  .page-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 12px;
+  }
 }
 
 .table-loading {
