@@ -208,55 +208,41 @@
         
         <div class="pagination-container" v-if="!loading && analysisList.length > 0">
           <div class="pagination-info">
-            共 {{ total }} 条记录 · 第 {{ currentPage }} / {{ totalPages }} 页
+            显示第 {{ (currentPage - 1) * pageSize + 1 }} 到 
+            {{ Math.min(currentPage * pageSize, total) }} 条，
+            共 {{ total }} 条记录
           </div>
           <div class="pagination">
             <button 
-              class="pagination-btn"
+              class="btn btn-sm"
               :disabled="currentPage === 1" 
               @click="handlePageChange(1)"
-              title="首页"
             >
-              <i class="fa fa-angle-double-left"></i>
+              首页
             </button>
             <button 
-              class="pagination-btn"
+              class="btn btn-sm"
               :disabled="currentPage === 1" 
               @click="handlePageChange(currentPage - 1)"
-              title="上一页"
             >
-              <i class="fa fa-angle-left"></i>
+              上一页
             </button>
-            
-            <!-- 页码按钮 -->
-            <div class="page-numbers">
-              <button 
-                v-for="page in getVisiblePages()" 
-                :key="page"
-                class="page-btn"
-                :class="{ active: page === currentPage, 'page-ellipsis': page === '...' }"
-                :disabled="page === '...'"
-                @click="typeof page === 'number' ? handlePageChange(page) : null"
-              >
-                {{ page }}
-              </button>
-            </div>
-            
+            <span class="pagination-current">
+              {{ currentPage }} / {{ totalPages }}
+            </span>
             <button 
-              class="pagination-btn"
+              class="btn btn-sm"
               :disabled="currentPage === totalPages" 
               @click="handlePageChange(currentPage + 1)"
-              title="下一页"
             >
-              <i class="fa fa-angle-right"></i>
+              下一页
             </button>
             <button 
-              class="pagination-btn"
+              class="btn btn-sm"
               :disabled="currentPage === totalPages" 
               @click="handlePageChange(totalPages)"
-              title="尾页"
             >
-              <i class="fa fa-angle-double-right"></i>
+              尾页
             </button>
           </div>
         </div>
@@ -415,56 +401,6 @@ const resetFilters = () => {
 const handlePageChange = (page: number) => {
   currentPage.value = page
   loadAnalysisList()
-}
-
-// 获取显示的页码数组
-const getVisiblePages = () => {
-  const total = totalPages.value
-  const current = currentPage.value
-  const delta = 2 // 当前页前后显示的页数
-  
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1)
-  }
-  
-  const range = []
-  const rangeWithDots = []
-  
-  // 计算显示范围
-  let start = Math.max(2, current - delta)
-  let end = Math.min(total - 1, current + delta)
-  
-  if (current <= delta + 2) {
-    end = Math.min(total - 1, 2 * delta + 3)
-  }
-  
-  if (current >= total - (delta + 1)) {
-    start = Math.max(2, total - (2 * delta + 2))
-  }
-  
-  // 添加首页
-  range.push(1)
-  
-  // 添加省略号
-  if (start > 2) {
-    rangeWithDots.push(1, '...')
-  } else {
-    rangeWithDots.push(1)
-  }
-  
-  // 添加中间页码
-  for (let i = start; i <= end; i++) {
-    rangeWithDots.push(i)
-  }
-  
-  // 添加省略号
-  if (end < total - 1) {
-    rangeWithDots.push('...', total)
-  } else {
-    rangeWithDots.push(total)
-  }
-  
-  return rangeWithDots
 }
 
 const handleSelectAll = () => {
@@ -1209,141 +1145,28 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 20px;
   background-color: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  margin-top: 20px;
 }
 
 .pagination-info {
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7280;
-  font-weight: 500;
 }
 
 .pagination {
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 4px;
 }
 
-/* 分页按钮基础样式 */
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
+.pagination-current {
+  padding: 6px 12px;
+  background-color: #e2e8f0;
   color: #374151;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pagination-btn:hover:not(:disabled) {
-  background-color: #f9fafb;
-  border-color: #4f46e5;
-  color: #4f46e5;
-}
-
-.pagination-btn:disabled {
-  background-color: #f9fafb;
-  color: #9ca3af;
-  cursor: not-allowed;
-  border-color: #e5e7eb;
-}
-
-.pagination-btn i {
-  font-size: 12px;
-}
-
-/* 页码按钮容器 */
-.page-numbers {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin: 0 8px;
-}
-
-/* 页码按钮 */
-.page-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
-  color: #374151;
-  border-radius: 6px;
-  font-size: 13px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-btn:hover {
-  background-color: #f9fafb;
-  border-color: #4f46e5;
-  color: #4f46e5;
-}
-
-.page-btn.active {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.page-btn.active:hover {
-  background-color: #4338ca;
-  border-color: #4338ca;
-}
-
-.page-btn:disabled {
-  background-color: #f9fafb;
-  color: #9ca3af;
-  cursor: not-allowed;
-  border-color: #e5e7eb;
-}
-
-/* 省略号样式 */
-.page-ellipsis {
-  background-color: transparent;
-  border: none;
-  color: #6b7280;
-  cursor: default;
-  padding: 0 8px;
-}
-
-.page-ellipsis:hover {
-  background-color: transparent;
-  border-color: #d1d5db;
-  color: #6b7280;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .pagination-container {
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-  }
-  
-  .page-numbers {
-    margin: 0 4px;
-  }
-  
-  .pagination-btn,
-  .page-btn {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    font-size: 12px;
-  }
 }
 
 .table-loading {

@@ -49,7 +49,7 @@ const createAxiosInstance = () => {
       if (result && typeof result === 'object' && 'code' in result) {
         if (result.code === 1) {
           // 成功，返回数据部分
-          return result.data;
+          return result;
         } else {
           // 失败，抛出统一错误格式
           return Promise.reject({
@@ -157,7 +157,7 @@ const createAIHttpInstance = () => {
       if (result && typeof result === 'object' && 'code' in result) {
         if (result.code === 1) {
           // 成功，返回数据部分
-          return result.data;
+          return result;
         } else {
           // 失败，抛出统一错误格式
           return Promise.reject({
