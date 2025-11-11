@@ -29,7 +29,8 @@
         <Button @click="handleGoBack">返回分析列表</Button>
       </div>
       <div v-else class="analysis-detail-content">
-        <!-- 分析概览卡片 --<Card class="analysis-overview-card">
+        <!-- 分析概览卡片 -->
+        <Card class="analysis-overview-card">
           <div class="overview-header">
             <div class="analysis-basic-info">
               <div class="analysis-type-section">
@@ -73,7 +74,8 @@
           </div>
         </Card>
 
-        <!-- 情绪趋势图表 --<Card class="emotion-trend-card">
+        <!-- 情绪趋势图表 -->
+        <Card class="emotion-trend-card">
           <div class="card-header-title">
             <i class="icon-trend">📈</i> 情绪趋势分析
           </div>
@@ -95,6 +97,7 @@
                   <div class="bar-label">{{ item.date }}</div>
                 </div>
               </div>
+            </div>
             <div class="trend-summary">
               <div class="trend-item">
                 <span class="trend-label">平均情绪分数：</span>
@@ -118,7 +121,8 @@
           </div>
         </Card>
 
-        <!-- 关键发现和关键词云 --<div class="findings-section">
+        <!-- 关键发现和关键词云 -->
+        <div class="findings-section">
           <Card class="key-findings-card">
             <div class="card-header-title">
               <i class="icon-findings">🔍</i> 关键发现
@@ -152,7 +156,8 @@
           </Card>
         </div>
 
-        <!-- 风险评估和建议 --<div class="risk-recommendations-section">
+        <!-- 风险评估和建议 -->
+        <div class="risk-recommendations-section">
           <Card class="risk-assessment-card">
             <div class="card-header-title">
               <i class="icon-risk">⚠️</i> 风险评估
@@ -214,7 +219,8 @@
           </Card>
         </div>
 
-        <!-- 详细分析报告 --<Card class="analysis-report-card">
+        <!-- 详细分析报告 -->
+        <Card class="analysis-report-card">
           <div class="card-header-title">
             <i class="icon-report">📄</i> 详细分析报告
           </div>

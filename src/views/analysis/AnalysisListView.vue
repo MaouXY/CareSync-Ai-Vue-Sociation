@@ -1,14 +1,15 @@
 <template>
   <div class="analysis-list-container">
     <WorkHeader />
-    <main class="analysis-main-content">
+    <main class="analysis-main-content" style="padding-top: 80px;">
       <div class="page-header">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h1 class="page-title">AI分析结果</h1>
             <p class="page-subtitle">查看AI对儿童心理状态和需求的分析结果</p>
           </div>
-          <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+
+          <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
             <button 
               id="refreshBtn" 
               class="btn btn-outline"
@@ -27,6 +28,7 @@
               <span>重新分析</span>
             </button>
           </div>
+
         </div>
       </div>
       
@@ -99,7 +101,6 @@
                   </div>
                 </th>
                 <th>儿童信息</th>
-                <th>分析类型</th>
                 <th>情绪分数</th>
                 <th>情感标签</th>
                 <th>潜在问题</th>
@@ -110,7 +111,7 @@
             </thead>
             <tbody>
               <tr v-if="loading" v-for="n in 5" :key="n" class="loading-row">
-                <td colspan="9" class="table-loading">
+                <td colspan="8" class="table-loading">
                   <div class="loading-content">
                     <div class="spinner"></div>
                     <span>正在加载分析数据...</span>
@@ -118,7 +119,7 @@
                 </td>
               </tr>
               <tr v-else-if="analysisList.length === 0">
-                <td colspan="9" class="table-empty">
+                <td colspan="8" class="table-empty">
                   <div class="empty-content">
                     <i class="data-icon">📊</i>
                     <p>暂无AI分析数据</p>
@@ -144,11 +145,6 @@
                       <div class="child-id">ID: {{ analysis.childId }}</div>
                     </div>
                   </div>
-                </td>
-                <td>
-                  <span class="analysis-type-badge">
-                    {{ getAnalysisTypeText(analysis.triggerType) }}
-                  </span>
                 </td>
                 <td>
                   <div class="emotion-score">
@@ -471,7 +467,7 @@ onMounted(() => {
 .analysis-main-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 4em;
 }
 
 .page-header {
@@ -502,9 +498,10 @@ onMounted(() => {
 }
 
 .search-input {
-  width: 100%;
+  width: 25%;
   padding: 8px 40px 8px 12px;
   border: 1px solid #d1d5db;
+  background: #ffffff;
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -533,12 +530,53 @@ onMounted(() => {
   font-size: 14px;
   background: white;
   transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.filter-select:hover {
+  border-color: #9ca3af;
+  background-color: #f9fafb;
 }
 
 .filter-select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: white;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 下拉框选项悬停效果 */
+.filter-select option {
+  color: #374151;
+  background-color: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.filter-select option:hover,
+.filter-select option:focus {
+  background-color: #4f46e5;
+  color: white;
+  font-weight: 500;
+}
+
+.filter-select option:checked {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 500;
 }
 
 .date-input {
