@@ -1,0 +1,131 @@
+CareSync AI 项目结构说明
+============================
+
+项目概述：
+CareSync AI 是一个专注于留守儿童情感陪伴与服务的平台，采用 "AI 智能陪伴 + 社工精准介入" 的模式，为留守儿童提供有温度的情感支持，同时为社工提供数据驱动的精准服务工具。
+
+技术栈：
+- 前端框架：Vue 3 + TypeScript
+- 构建工具：Vite
+- 状态管理：Pinia
+- UI组件库：Arco Design Vue
+- 路由管理：Vue Router
+- HTTP客户端：Axios
+
+项目目录结构：
+================
+
+根目录文件：
+├── .gitignore                     # Git忽略文件
+├── .trae\rules\project_rules.md   # 项目规则文件
+├── .vscode\extensions.json        # VS Code扩展配置
+├── LICENSE                        # 许可证文件
+├── README.md                      # 项目说明文档
+├── ai模拟训练文档.txt             # AI模拟训练文档
+├── index.html                     # 主页面HTML
+├── package-lock.json              # npm依赖锁文件
+├── package.json                   # npm依赖配置
+├── 开发文档.md                    # 开发文档
+├── tsconfig.app.json              # TypeScript应用配置
+├── tsconfig.json                  # TypeScript主配置
+├── tsconfig.node.json             # TypeScript Node配置
+├── vite.config.ts                 # Vite构建配置
+└── public\vite.svg                # 公共资源文件
+
+主要源代码目录 src/：
+├── main.ts                        # 应用入口文件
+├── App.vue                        # 根组件
+├── vite-env.d.ts                  # Vite类型定义
+├── assets\                        # 静态资源
+│   └── vue.svg                    # Vue图标
+├── components\                    # 公共组件
+│   ├── EChartsDemo.vue            # ECharts演示组件
+│   └── common\                    # 通用组件
+│   └── layout\                    # 布局组件
+├── router\                        # 路由配置
+│   └── index.ts                   # 路由定义
+├── services\                      # 服务层
+│   ├── api\                       # API接口
+│   ├── http.ts                    # HTTP客户端配置
+│   └── mock\                      # 模拟数据
+├── stores\                        # 状态管理
+│   └── index.ts                   # Pinia状态存储
+├── style.css                      # 全局样式
+├── styles\                        # 样式文件
+│   └── main.css                   # 主样式文件
+├── types\                         # 类型定义
+│   └── api.ts                     # API类型定义
+├── utils\                         # 工具函数
+│   └── message.ts                 # 消息工具
+└── views\                         # 页面组件
+    ├── AboutView.vue              # 关于页面
+    ├── DashboardView.vue          # 仪表盘页面
+    ├── HomeView.vue               # 首页
+    ├── WorkHomeView.vue           # 工作首页
+    ├── auth\                      # 认证相关页面
+    ├── child\                     # 儿童详情页面
+    ├── children\                  # 儿童列表页面
+    ├── schemes\                   # 方案相关页面
+    ├── simulation\                # 模拟相关页面
+    └── analysis\                  # 分析相关页面
+
+子项目 livetalking-vue/：
+├── .gitignore
+├── .vscode\extensions.json
+├── LICENSE
+├── README.md
+├── index.html
+├── package-lock.json
+├── package.json
+├── public\vite.svg
+├── src\                           # 源代码
+│   ├── App.vue
+│   ├── assets\                    # 资产文件
+│   ├── components\                # 组件
+│   ├── main.ts                    # 入口文件
+│   ├── services\                  # 服务
+│   ├── style.css                  # 样式
+│   └── vite-env.d.ts              # 类型定义
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+原型设计目录 prototype/：
+├── index.html                              # 主页原型
+├── social-worker-analysis-detail.html      # 社工分析详情原型
+├── social-worker-analysis.html             # 社工分析原型
+├── social-worker-child-detail.html         # 社工儿童详情原型
+├── social-worker-children.html             # 社工儿童列表原型
+├── social-worker-home.html                 # 社工首页原型
+├── social-worker-login.html                # 社工登录原型
+├── social-worker-scheme-detail.html        # 社工方案详情原型
+├── social-worker-schemes.html              # 社工方案原型
+├── social-worker-simulation.html           # 社工模拟原型
+└── social-worker-tracking.html             # 社工跟踪原型
+
+颜色系统：
+- 主色调：#4F46E5 (紫色)
+- 次要色：#10B981 (绿色)
+- 强调色：#F97316 (橙色)
+- 中性色：#6B7280
+- 浅色背景：#F3F4F6
+- 深色文字：#1F2937
+- 状态色：成功(#22C55E)、警告(#F59E0B)、危险(#EF4444)
+
+开发工具：
+- 包管理器：npm
+- 代码规范：ESLint + Prettier
+- 版本控制：Git
+- IDE推荐：VS Code
+
+项目特点：
+1. 采用Vue 3 Composition API
+2. TypeScript类型安全
+3. 组件化开发
+4. 模块化架构
+5. 响应式设计
+6. 完善的路由管理
+7. 状态集中管理
+8. API接口封装
+9. 样式规范统一

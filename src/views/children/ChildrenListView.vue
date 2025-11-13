@@ -136,7 +136,7 @@
                   </div>
                 </td>
                 <td>{{ child.age || '-' }}</td>
-                <td>{{ child.gender === 'male' ? '男' : child.gender === 'female' ? '女' : '-' }}</td>
+                <td>{{ child.gender}}</td>
                 <td>
                   <span 
                     class="risk-level-tag"
@@ -154,12 +154,6 @@
                       @click="handleViewChild(child.id)"
                     >
                       <i class="fa fa-eye"></i>
-                    </button>
-                    <button 
-                      class="btn btn-sm btn-outline"
-                      @click="handleEditChild(child.id)"
-                    >
-                      <i class="fa fa-pencil"></i>
                     </button>
                     <button 
                       class="btn btn-sm btn-outline text-danger"

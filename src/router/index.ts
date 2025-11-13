@@ -37,19 +37,19 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
-    path: '/children',
-    name: 'children',
-    component: () => import('../views/children/ChildrenListView.vue'),
-    meta: {
-      title: '儿童管理 - CareSync AI'
-    }
-  },
-  {
     path: '/work-home',
     name: 'workHome',
     component: () => import('../views/WorkHomeView.vue'),
     meta: {
       title: '社工工作台 - CareSync AI'
+    }
+  },
+  {
+    path: '/children',
+    name: 'children',
+    component: () => import('../views/children/ChildrenListView.vue'),
+    meta: {
+      title: '儿童管理 - CareSync AI'
     }
   },
   {

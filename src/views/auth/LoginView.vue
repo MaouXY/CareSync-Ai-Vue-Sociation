@@ -7,13 +7,12 @@
         <div class="text-center py-6 mb-2">
           <div class="h-6"></div>
           <div class="w-16 h-16 rounded-full flex items-center justify-center ml-6" style="background-color: #726BEA;">
-            <i class="fa fa-file-text text-2xl text-primary"></i>
+            <i class="fa fa-user-md text-3xl text-light"></i>
           </div>
-          <h2 class="mt-2">社工登录</h2>
-          <p class="pb-4">欢迎回到 CareSync AI</p>
+          <h2 class="mt-2 mb-2 text-light text-3xl">社工登录</h2>
+          <p class="pb-4 mb-4">欢迎回到 CareSync AI</p>
         </div>
       </div>
-
       <!-- 登录表单 -->
       <div class="p-8">
         <a-form id="loginForm" :model="form" @submit="handleLogin" layout="vertical">
@@ -206,7 +205,7 @@ const handleLogin = async (e?: Event) => {
       
       // 根据登录类型跳转到不同页面
       if (loginType.value === 'socialWorker') {
-        router.push('/children');
+        router.push('/work-home');
       } else {
         router.push('/child/dashboard');
       }

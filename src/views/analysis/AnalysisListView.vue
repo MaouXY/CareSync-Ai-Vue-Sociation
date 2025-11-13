@@ -45,47 +45,53 @@
                 @keyup.enter="handleSearch"
               />
             </div>
-            <select v-model="searchParams.potentialProblems" class="filter-select">
-              <option value="">所有潜在问题</option>
-              <option value="confidence">社交互动自信心不足</option>
-              <option value="attention">注意力分散问题</option>
-              <option value="communication">沟通主动性不足</option>
-              <option value="family">家庭情感支持不足</option>
-            </select>
-            <select v-model="searchParams.emotionTrend" class="filter-select">
-              <option value="">所有情感趋势</option>
-              <option value="孤独">孤独</option>
-              <option value="平静">平静</option>
-              <option value="开心">开心</option>
-              <option value="专注">专注</option>
-              <option value="急躁">急躁</option>
-              <option value="封闭">封闭</option>
-            </select>
+            <a-select
+              v-model="searchParams.potentialProblems"
+              placeholder="所有潜在问题"
+              allow-clear
+              size="large"
+              class="filter-select"
+            >
+              <a-option value="">所有潜在问题</a-option>
+              <a-option value="confidence">社交互动信心不足</a-option>
+              <a-option value="attention">注意力分散问题</a-option>
+              <a-option value="communication">沟通主动性不足</a-option>
+              <a-option value="family">家庭情感支持不足</a-option>
+            </a-select>
+            <a-select
+              v-model="searchParams.emotionTrend"
+              placeholder="所有情感趋势"
+              allow-clear
+              size="large"
+              class="filter-select"
+            >
+              <a-option value="">所有情感趋势</a-option>
+              <a-option value="孤独">孤独</a-option>
+              <a-option value="平静">平静</a-option>
+              <a-option value="开心">开心</a-option>
+              <a-option value="专注">专注</a-option>
+              <a-option value="急躁">急躁</a-option>
+              <a-option value="封闭">封闭</a-option>
+            </a-select>
           </div>
           
-          <!-- 第二行：日期选择器和按钮 -->
+          <!-- 第二行：日期选择和操作按钮 -->
           <div class="filter-row">
-            <div class="date-filters">
-              <div class="date-item">
-                <label class="date-label">分析日期:</label>
-                <input 
-                  v-model="searchParams.startDate"
-                  type="date" 
-                  class="date-input"
-                />
-              </div>
-              <div class="date-item">
-                <span class="date-separator">至</span>
-                <input 
-                  v-model="searchParams.endDate"
-                  type="date" 
-                  class="date-input"
-                />
-              </div>
-            </div>
-            <div class="action-buttons">
-              <button class="btn btn-primary filter-btn" @click="handleSearch">筛选</button>
-              <button class="btn btn-outline filter-btn" @click="resetFilters">重置</button>
+            <div class="date-range-container">
+              <span class="date-label">分析日期：</span>
+              <a-date-picker
+                v-model="searchParams.startDate"
+                placeholder="开始日期"
+                size="large"
+                class="date-picker"
+              />
+              <span class="date-separator">至</span>
+              <a-date-picker
+                v-model="searchParams.endDate"
+                placeholder="结束日期"
+                size="large"
+                class="date-picker"
+              />
             </div>
           </div>
         </div>
@@ -206,45 +212,19 @@
           </table>
         </div>
         
-        <div class="pagination-container" v-if="!loading && analysisList.length > 0">
-          <div class="pagination-info">
-            显示第 {{ (currentPage - 1) * pageSize + 1 }} 到 
-            {{ Math.min(currentPage * pageSize, total) }} 条，
-            共 {{ total }} 条记录
-          </div>
-          <div class="pagination">
-            <button 
-              class="btn btn-sm"
-              :disabled="currentPage === 1" 
-              @click="handlePageChange(1)"
-            >
-              首页
-            </button>
-            <button 
-              class="btn btn-sm"
-              :disabled="currentPage === 1" 
-              @click="handlePageChange(currentPage - 1)"
-            >
-              上一页
-            </button>
-            <span class="pagination-current">
-              {{ currentPage }} / {{ totalPages }}
-            </span>
-            <button 
-              class="btn btn-sm"
-              :disabled="currentPage === totalPages" 
-              @click="handlePageChange(currentPage + 1)"
-            >
-              下一页
-            </button>
-            <button 
-              class="btn btn-sm"
-              :disabled="currentPage === totalPages" 
-              @click="handlePageChange(totalPages)"
-            >
-              尾页
-            </button>
-          </div>
+        <!-- 增强版分页组件 -->
+        <div v-if="!loading && analysisList.length > 0">
+          <EnhancedPagination
+            v-model:currentPage="currentPage"
+            v-model:pageSize="pageSize"
+            :total="total"
+            :pageSizeOptions="[5,10, 20, 30, 50]"
+            showTotal
+            showJumper
+            showSizeChanger
+            @change="handlePageChange"
+            @page-size-change="handlePageSizeChange"
+          />
         </div>
       </div>
       
@@ -279,6 +259,7 @@
           </div>
         </div>
       </div>
+
     </main>
   </div>
 </template>
@@ -290,6 +271,7 @@ import { aiAnalysisService } from '@/services/api/aiAnalysis'
 import type { AiAnalysisResultVO, PageResultAiAnalysisResultVO, AiAnalysisQueryDTO } from '@/types/api'
 import { useRouter } from 'vue-router'
 import { showMessage } from '@/utils/message'
+import EnhancedPagination from '@/components/common/EnhancedPagination.vue'
 
 const router = useRouter()
 
@@ -400,6 +382,12 @@ const resetFilters = () => {
 
 const handlePageChange = (page: number) => {
   currentPage.value = page
+  loadAnalysisList()
+}
+
+const handlePageSizeChange = (pageSizeValue: number) => {
+  pageSize.value = pageSizeValue
+  currentPage.value = 1
   loadAnalysisList()
 }
 
@@ -732,7 +720,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* 旧的.date-input样式已被新的响应式样式替代 */
+/* 已移除所有旧的Arco Design分页组件样式 */
 
 .btn {
   display: inline-flex;
@@ -1062,7 +1050,7 @@ onMounted(() => {
 }
 
 /* 潜在问题颜色主题 */
-.problem-tag.社交互动自信心不足 {
+.problem-tag.社交互动信心不足 {
   background-color: #fef3c7;
   color: #d97706;
   border-color: #fed7aa;
@@ -1141,33 +1129,7 @@ onMounted(() => {
   gap: 6px;
 }
 
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background-color: #ffffff;
-}
-
-.pagination-info {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.pagination {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.pagination-current {
-  padding: 6px 12px;
-  background-color: #e2e8f0;
-  color: #374151;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
+/* 已清理所有旧的分页相关样式 */
 
 .table-loading {
   text-align: center;
@@ -1350,16 +1312,6 @@ onMounted(() => {
 @media (max-width: 480px) {
   .analysis-main-content {
     padding: 12px;
-  }
-  
-  .pagination-container {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .pagination {
-    justify-content: center;
   }
 }
 </style>

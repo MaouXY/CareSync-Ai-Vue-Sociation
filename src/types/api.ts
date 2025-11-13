@@ -111,6 +111,8 @@ export interface ChildQueueVO {
   childNo: string;
   name: string;
   age: number;
+  gender: string;
+  riskLevel: string;
   hasNewChat: boolean;
   createTime: string;
   updateTime: string;

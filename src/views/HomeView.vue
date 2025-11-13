@@ -59,7 +59,7 @@
           <!-- 功能卡片1 -->
           <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
             <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(79, 70, 229, 0.1);">
-              <i class="fa fa-comments text-2xl text-primary"></i>
+              <i class="fa fa-heart text-2xl text-primary"></i>
             </div>
             <h3 class="text-xl font-semibold mb-3 text-dark">AI 情感陪伴</h3>
             <p class="text-neutral">安全合规的 AI 交互填补日常情感空白，提供即时回应和情感支持</p>
@@ -77,10 +77,10 @@
           <!-- 功能卡片3 -->
           <div class="bg-neutral rounded-xl shadow-md p-6 card-hover p-4">
             <div class="w-14 h-14 rounded-full flex items-center justify-center mb-6 mt-2 ml-4" style="background-color: rgba(249, 115, 22, 0.1);">
-              <i class="fa fa-bell text-2xl text-accent"></i>
+              <i class="fa fa-graduation-cap text-2xl text-accent"></i>
             </div>
-            <h3 class="text-xl font-semibold mb-3 text-dark">紧急呼叫</h3>
-            <p class="text-neutral">提供安全快捷的紧急求助通道，确保儿童在需要时能及时获得帮助</p>
+            <h3 class="text-xl font-semibold mb-3 text-dark">模拟训练</h3>
+            <p class="text-neutral">通过模拟场景，帮助社工训练和提升服务水平</p>
           </div>
           
           <!-- 功能卡片4 -->
@@ -160,33 +160,9 @@
           <div class="image-container">
               <div class="image-wrapper">
                   <div class="floating-background"></div>
-                  <img src="https://picsum.photos/id/1005/800/600" alt="留守儿童与社工互动">
+                  <img src="https://hcoj.oss-cn-hangzhou.aliyuncs.com/CareSyncAI/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20251112011028_142_367.jpg" alt="留守儿童与社工互动">
               </div>
           </div>
-          <!-- <div class="order-1 md:order-2">
-            <div class="relative">
-              <div class="w-20 h-20 bg-primary/20 rounded-full absolute -top-4 -left-4 rotate-3"></div>
-              <div class="w-16 h-16 bg-secondary/20 rounded-full absolute -bottom-4 -right-4 -rotate-3"></div>
-              <div class="bg-white rounded-xl shadow-lg p-8 relative z-10">
-                <h3 class="text-2xl font-bold mb-4 text-dark">技术优势</h3>
-                <p class="text-neutral mb-4">基于前沿的 AI 技术和数据分析能力，为留守儿童提供专业、可靠的情感陪伴服务</p>
-                <ul class="space-y-2">
-                  <li class="flex items-center">
-                    <i class="fa fa-check text-primary mr-2"></i>
-                    <span class="text-neutral">自然语言处理技术</span>
-                  </li>
-                  <li class="flex items-center">
-                    <i class="fa fa-check text-primary mr-2"></i>
-                    <span class="text-neutral">情感分析算法</span>
-                  </li>
-                  <li class="flex items-center">
-                    <i class="fa fa-check text-primary mr-2"></i>
-                    <span class="text-neutral">个性化推荐系统</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div> -->
         </div>
       </div>
     </section>
@@ -215,7 +191,7 @@
             <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
               <i class="fa fa-user-md text-3xl text-secondary"></i>
             </div>
-            <h3 class="text-2xl font-semibold mb-4 text-dark">社工端登录</h3>
+            <h3 class="text-2xl font-semibold mb-4 text-dark">社工端</h3>
             <p class="text-neutral mb-6">儿童管理，服务方案，跟踪评估</p>
             <router-link to="/work-home" class="btn btn-secondary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom">
               进入社工端
