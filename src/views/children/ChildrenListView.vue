@@ -10,21 +10,22 @@
             <p class="page-subtitle">管理您负责服务的所有儿童信息和状态</p>
           </div>
           <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
-            <a-button 
+            <!-- <a-button 
               id="refreshBtn" 
               type="default" 
               :loading="isLoading"
-              @click="handleRefresh"
+              @click="handleRefresh"p
               :disabled="isLoading"
             >
               <template #icon>
                 <icon-refresh />
               </template>
               <span class="hidden sm:inline-block">刷新</span>
-            </a-button>
+            </a-button> -->
             <a-button 
               id="addChildBtn" 
               type="primary"
+              style="padding-left: 0.5rem; padding-right: 0.5rem; "
               @click="handleAddChild"
             >
               <template #icon>
