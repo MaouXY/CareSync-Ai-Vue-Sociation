@@ -61,6 +61,14 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
+    path: '/childrentest',
+    name: 'childrenTest',
+    component: () => import('../views/children/ChildTestView.vue'),
+    meta: {
+      title: '儿童测试 - CareSync AI'
+    }
+  },
+  {
     path: '/analysis',
     name: 'analysis',
     component: () => import('../views/analysis/AnalysisListView.vue'),

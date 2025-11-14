@@ -10,23 +10,28 @@
             <p class="page-subtitle">管理您负责服务的所有儿童信息和状态</p>
           </div>
           <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
-            <button 
+            <a-button 
               id="refreshBtn" 
-              class="btn btn-outline  mr-4"
+              type="default" 
+              :loading="isLoading"
               @click="handleRefresh"
               :disabled="isLoading"
             >
-              <i class="fa fa-refresh" :class="{ 'fa-spin': isLoading }"></i>
+              <template #icon>
+                <icon-refresh />
+              </template>
               <span class="hidden sm:inline-block">刷新</span>
-            </button>
-            <button 
+            </a-button>
+            <a-button 
               id="addChildBtn" 
-              class="btn btn-primary"
+              type="primary"
               @click="handleAddChild"
             >
-              <i class="fa fa-plus"></i>
+              <template #icon>
+                <icon-plus />
+              </template>
               <span>添加儿童</span>
-            </button>
+            </a-button>
           </div>
         </div>
       </div>
@@ -37,193 +42,117 @@
           <!-- 第一行：搜索框和下拉菜单 -->
           <div class="filter-row">
             <div class="filter-item search-container">
-              <input 
+              <a-input 
                 v-model="searchParams.name"
-                type="text" 
                 placeholder="搜索儿童姓名/编号" 
                 class="search-input"
                 @keyup.enter="handleSearch"
-              />
+              >
+                <template #prefix>
+                  <icon-search />
+                </template>
+              </a-input>
             </div>
-            <select v-model="searchParams.gender" class="filter-select" @change="handleSearch">
-              <option value="">所有性别</option>
-              <option value="male">男</option>
-              <option value="female">女</option>
-            </select>
-            <select v-model="searchParams.riskLevel" class="filter-select" @change="handleSearch">
-              <option value="">所有风险等级</option>
-              <option value="low">低风险</option>
-              <option value="medium">中风险</option>
-              <option value="high">高风险</option>
-              <option value="urgent">紧急</option>
-            </select>
+            <a-select
+              v-model="searchParams.gender"
+              placeholder="所有性别"
+              allow-clear
+              class="filter-select"
+              @change="handleSearch"
+            >
+              <a-option value="">所有性别</a-option>
+              <a-option value="male">男</a-option>
+              <a-option value="female">女</a-option>
+            </a-select>
+            <a-select
+              v-model="searchParams.riskLevel"
+              placeholder="所有风险等级"
+              allow-clear
+              class="filter-select"
+              @change="handleSearch"
+            >
+              <a-option value="">所有风险等级</a-option>
+              <a-option value="low">低风险</a-option>
+              <a-option value="medium">中风险</a-option>
+              <a-option value="high">高风险</a-option>
+              <a-option value="urgent">紧急</a-option>
+            </a-select>
           </div>
           
           <!-- 第二行：按钮 -->
           <div class="filter-row">
             <div class="action-buttons">
-              <button class="btn btn-primary filter-btn" @click="handleSearch">筛选</button>
-              <button class="btn btn-outline filter-btn" @click="resetFilters">重置</button>
+              <a-button type="primary" class="filter-btn" @click="handleSearch">筛选</a-button>
+              <a-button type="default" class="filter-btn" @click="resetFilters">重置</a-button>
             </div>
           </div>
         </div>
       </div>
       
       <!-- 儿童列表 -->
-        <div class="table-wrapper">
-          <table class="data-table children-table">
-            <thead>
-              <tr>
-                <th>
-                  <div class="checkbox-container">
-                    <input 
-                      type="checkbox" 
-                      id="selectAll"
-                      v-model="selectAll"
-                      @change="handleSelectAll"
-                    />
-                  </div>
-                </th>
-                <th>ID</th>
-                <th>姓名</th>
-                <th>年龄</th>
-                <th>性别</th>
-                <th>风险等级</th>
-                <th>地址</th>
-                <th>创建时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            
-            <tbody>
-              <template v-if="isLoading">
-                <tr v-for="n in 5" :key="'loading-' + n" class="loading-row">
-                  <td colspan="9" class="table-loading">
-                    <div class="loading-content">
-                      <div class="spinner"></div>
-                      <span>正在加载儿童数据...</span>
-                    </div>
-                  </td>
-                </tr>
-              </template>
-              <tr v-else-if="children.length === 0">
-                <td colspan="9" class="table-empty">
-                  <div class="empty-content">
-                    <i class="data-icon">👧</i>
-                    <p>暂无儿童数据</p>
-                    <button class="btn btn-primary" @click="handleAddChild">添加儿童</button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-for="child in children" :key="child.id" class="table-row">
-                <td>
-                  <div class="checkbox-container">
-                    <input 
-                      type="checkbox" 
-                      :value="child.id"
-                      v-model="selectedIds"
-                    />
-                  </div>
-                </td>
-                <td>{{ child.id }}</td>
-                <td>
-                  <div class="child-info-cell">
-                    <div class="child-avatar bg-primary-light">{{ child.name?.charAt(0) || '?' }}</div>
-                    <div class="child-details">
-                      <div class="child-name">{{ child.name || '未知' }}</div>
-                      <div class="child-id">编号: {{ child.childNo || '-' }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>{{ child.age || '-' }}</td>
-                <td>{{ child.gender}}</td>
-                <td>
-                  <span 
-                    class="risk-level-tag"
-                    :class="getRiskLevelClass(child.riskLevel)"
-                  >
-                    {{ getRiskLevelText(child.riskLevel) }}
-                  </span>
-                </td>
-                <td>{{ child.address || '-' }}</td>
-                <td>{{ formatDate(child.createTime) }}</td>
-                <td>
-                  <div class="action-buttons">
-                    <button 
-                      class="btn btn-sm btn-outline"
-                      @click="handleViewChild(child.id)"
-                    >
-                      <i class="fa fa-eye"></i>
-                    </button>
-                    <button 
-                      class="btn btn-sm btn-outline text-danger"
-                      @click="handleDeleteChild(child.id, child.name)"
-                    >
-                      <i class="fa fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <!-- 分页信息行 - 放在表格最后一行 -->
-              <tr v-if="!isLoading && children.length > 0" class="pagination-row">
-                <td colspan="9" class="pagination-cell">
-                  <div class="pagination-container table-internal">
-                    <div class="pagination-info table-internal">
-                      显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }} 到 
-                      {{ Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，
-                      共 {{ pagination.total }} 条记录
-                    </div>
-                    <div class="pagination table-internal">
-                      <button 
-                        class="btn btn-sm"
-                        :disabled="pagination.page === 1" 
-                        @click="handlePageChange(1)"
-                      >
-                        首页
-                      </button>
-                      <button 
-                        class="btn btn-sm"
-                        :disabled="pagination.page === 1" 
-                        @click="handlePageChange(pagination.page - 1)"
-                      >
-                        上一页
-                      </button>
-                      <span class="pagination-current table-internal">
-                        {{ pagination.page }} / {{ totalPages }}
-                      </span>
-                      <button 
-                        class="btn btn-sm"
-                        :disabled="pagination.page === totalPages" 
-                        @click="handlePageChange(pagination.page + 1)"
-                      >
-                        下一页
-                      </button>
-                      <button 
-                        class="btn btn-sm"
-                        :disabled="pagination.page === totalPages" 
-                        @click="handlePageChange(totalPages)"
-                      >
-                        尾页
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
+      <div class="table-wrapper">
+        <a-space direction="vertical" size="large" fill>
+          <!-- <div>
+            <span>OnlyCurrent: </span>
+            <a-switch v-model="rowSelection.onlyCurrent" />
+          </div> -->
+          <a-table
+            row-key="id"
+            :columns="columns"
+            :data="children"
+            :loading="isLoading"
+            :pagination="false"
+            :row-selection="rowSelection"
+            v-model:selectedKeys="selectedIds"
+          />
+        </a-space>
+        
+        <!-- 增强版分页组件 -->
+        <div v-if="!isLoading && children.length > 0">
+          <EnhancedPagination
+            v-model:currentPage="currentPage"
+            v-model:pageSize="pageSize"
+            :total="total"
+            :pageSizeOptions="[5, 10, 20, 30, 50]"
+            showTotal
+            showJumper
+            showSizeChanger
+            @change="handlePageChange"
+            @page-size-change="handlePageSizeChange"
+          />
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { showMessage } from '@/utils/message'
 import WorkHeader from '@/components/layout/WorkHeader.vue'
 import { childApi } from '@/services/api/child'
 import type { ChildQueueVO, ChildQueryDTO } from '@/types/api'
+import EnhancedPagination from '@/components/common/EnhancedPagination.vue'
+// Arco Design 组件
+import { 
+  TableColumn as ATableColumn,
+  Button as AButton,
+  Input as AInput,
+  Select as ASelect,
+  Option as AOption,
+  Table as ATable,
+  Tag as ATag,
+  Space as ASpace,
+  Switch as ASwitch
+} from '@arco-design/web-vue'
+import { 
+  IconRefresh,
+  IconPlus,
+  IconSearch,
+  IconEye,
+  IconDelete
+} from '@arco-design/web-vue/es/icon'
 
 const router = useRouter()
 
@@ -233,46 +162,123 @@ const children = ref<ChildQueueVO[]>([])
 const selectedIds = ref<number[]>([])
 const selectAll = ref(false)
 
-// 分页信息
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0
-})
+// 分页信息 - 与EnhancedPagination组件API保持一致
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 // 计算总页数
 const totalPages = computed(() => {
-  return Math.ceil(pagination.total / pagination.pageSize)
+  return Math.ceil(total.value / pageSize.value)
 })
 
 // 搜索参数
 const searchParams = reactive<ChildQueryDTO>({
   name: '',
-  gender: undefined,
-  riskLevel: undefined
+  gender: '',
+  riskLevel: ''
 })
 
-// 获取风险等级样式类
-const getRiskLevelClass = (riskLevel: string) => {
-  const classMap: Record<string, string> = {
-    low: 'risk-low',
-    medium: 'risk-medium',
-    high: 'risk-high',
-    urgent: 'risk-urgent'
-  }
-  return classMap[riskLevel] || 'risk-default'
-}
+// 行选择器配置
+const rowSelection = reactive({
+  type: 'checkbox',
+  showCheckedAll: true,
+  onlyCurrent: false,
+})
 
-// 获取风险等级文本
-const getRiskLevelText = (riskLevel: string) => {
-  const textMap: Record<string, string> = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险',
-    urgent: '紧急'
+// 表格列定义 - 简化版本
+const columns: ATableColumn<ChildQueueVO>[] = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 80
+  },
+  {
+    title: '姓名',
+    dataIndex: 'name',
+    key: 'name',
+    width: 150
+  },
+  {
+    title: '年龄',
+    dataIndex: 'age',
+    key: 'age',
+    width: 80
+  },
+  {
+    title: '性别',
+    dataIndex: 'gender',
+    key: 'gender',
+    width: 80,
+    render: ({ record }: { record: ChildQueueVO }) => {
+      return record.gender === "男"? record.gender :  record.gender === "女"? record.gender : '-';
+    }
+  },
+  {
+    title: '风险等级',
+    dataIndex: 'riskLevel',
+    key: 'riskLevel',
+    width: 100,
+    render: ({ record }: any) => {
+      const colorMap: Record<string, string> = {
+        低风险: 'arcoblue',
+        中风险: 'orangered',
+        高风险: 'red', 
+        紧急: 'red'
+      }
+      const text = record.riskLevel || '未知'
+      const color = colorMap[record.riskLevel] || 'gray'
+      
+      return h(ATag, {
+        color: color,
+        size: 'small',
+        bordered: true
+      }, () => text)
+    }
+  },
+  {
+    title: '地址',
+    dataIndex: 'address',
+    key: 'address',
+    ellipsis: true
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime', 
+    key: 'createTime',
+    width: 180,
+    customRender: ({ record }: any) => {
+      if (!record.createTime) return '-'
+      const date = new Date(record.createTime)
+      return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+  },
+  {
+    title: '操作',
+    key: 'action',
+    width: 120,
+    fixed: 'right',
+    customRender: ({ record }: any) => {
+      return h('div', { class: 'action-buttons' }, [
+        h('button', {
+          class: 'btn btn-sm btn-outline',
+          onClick: () => handleViewChild(record.id)
+        }, '查看'),
+        h('button', {
+          class: 'btn btn-sm btn-primary',
+          onClick: () => handleEditChild(record.id)  
+        }, '编辑')
+      ])
+    }
   }
-  return textMap[riskLevel] || '未知'
-}
+]
 
 // 加载儿童列表
 const loadChildrenList = async () => {
@@ -280,13 +286,13 @@ const loadChildrenList = async () => {
     isLoading.value = true
     const response = await childApi.getChildrenList({
       ...searchParams,
-      page: pagination.page,
-      pageSize: pagination.pageSize
+      page: currentPage.value,
+      pageSize: pageSize.value
     })
     
     if (response.code === 1 && response.data) {
       children.value = response.data.records || []
-      pagination.total = response.data.total || 0
+      total.value = response.data.total || 0
       // 重置选择状态
       selectedIds.value = []
       selectAll.value = false
@@ -304,7 +310,7 @@ const loadChildrenList = async () => {
 
 // 搜索
 const handleSearch = () => {
-  pagination.page = 1
+  currentPage.value = 1
   loadChildrenList()
 }
 
@@ -312,13 +318,10 @@ const handleSearch = () => {
 const resetFilters = () => {
   Object.assign(searchParams, {
     name: '',
-    minAge: undefined,
-    maxAge: undefined,
-    hasNewChat: undefined,
-    gender: undefined,
-    riskLevel: undefined
+    gender: '',
+    riskLevel: ''
   })
-  pagination.page = 1
+  currentPage.value = 1
   loadChildrenList()
 }
 
@@ -342,75 +345,17 @@ const handleEditChild = (id: number) => {
   router.push(`/children/edit/${id}`)
 }
 
-// 删除儿童
-const handleDeleteChild = (id: number, name: string) => {
-  showMessage.warning('删除功能待实现')
-}
-
-// 批量选择
-const handleSelectionChange = (rowKeys: (string | number)[]) => {
-  selectedIds.value = rowKeys as number[]
-  selectAll.value = selectedIds.value.length === children.value.length && children.value.length > 0
-}
-
-// 全选/取消全选
-const handleSelectAll = (checked: boolean) => {
-  if (checked) {
-    selectedIds.value = children.value.map(child => child.id)
-  } else {
-    selectedIds.value = []
-  }
-}
-
-// 批量删除
-const batchDelete = () => {
-  showMessage.warning('批量删除功能待实现')
-}
-
-// 生成AI分析
-const generateAnalysis = (id: number) => {
-  showMessage.warning('AI分析功能待实现')
-}
-
 // 换页
 const handlePageChange = (page: number) => {
-  pagination.page = page
+  currentPage.value = page
   loadChildrenList()
 }
 
-// 获取状态颜色
-const getStatusColor = (riskLevel: string) => {
-  const colorMap: Record<string, string> = {
-    low: 'green',
-    medium: 'orange',
-    high: 'red',
-    urgent: 'red'
-  }
-  return colorMap[riskLevel] || 'gray'
-}
-
-// 获取状态文本
-const getStatusText = (riskLevel: string) => {
-  const textMap: Record<string, string> = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险',
-    urgent: '紧急'
-  }
-  return textMap[riskLevel] || '未知'
-}
-
-// 格式化时间
-const formatDate = (dateString: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+// 每页条数变更
+const handlePageSizeChange = (pageSizeValue: number) => {
+  pageSize.value = pageSizeValue
+  currentPage.value = 1
+  loadChildrenList()
 }
 
 // 初始化
@@ -505,10 +450,6 @@ onMounted(() => {
     margin-top: 0;
   }
 
-  .mr-4 {
-    margin-right: 1rem;
-  }
-
   .pt-4 {
     padding-top: 1rem;
   }
@@ -561,15 +502,6 @@ onMounted(() => {
     padding: 4px 8px;
     font-size: 12px;
     border-radius: 4px;
-  }
-
-  .text-danger {
-    color: #ef4444 !important;
-    border-color: #ef4444 !important;
-  }
-
-  .text-danger:hover:not(:disabled) {
-    background-color: #fef2f2;
   }
 
   .hidden {
@@ -674,317 +606,9 @@ onMounted(() => {
   }
 
   .table-wrapper {
-    overflow-x: auto;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  }
-
-  /* 表格基础样式 */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-
-  .data-table thead {
-    background-color: #f9fafb;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .data-table th {
-    padding: 12px 16px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 14px;
-    color: #374151;
-    border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap;
-  }
-
-  .data-table td {
-    padding: 12px 16px;
-    font-size: 14px;
-    color: #374151;
-    border-bottom: 1px solid #f3f4f6;
-    vertical-align: middle;
-  }
-
-  .table-row:hover {
-    background-color: #f9fafb;
-  }
-
-  .table-row:last-child td {
-    border-bottom: none;
-  }
-
-  /* 复选框样式 - 强制白色背景 */
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* 强制白色背景的最强选择器 */
-  .data-table thead input[type="checkbox"],
-  .data-table tbody input[type="checkbox"],
-  input[type="checkbox"] {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    background: #ffffff !important;
-    border: 2px solid #d1d5db !important;
-    width: 16px !important;
-    height: 16px !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    position: relative !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: inline-block !important;
-  }
-
-  .data-table thead input[type="checkbox"]:checked,
-  .data-table tbody input[type="checkbox"]:checked,
-  input[type="checkbox"]:checked {
-    background: #4f46e5 !important;
-    border-color: #4f46e5 !important;
-  }
-
-  .data-table thead input[type="checkbox"]:checked::after,
-  .data-table tbody input[type="checkbox"]:checked::after,
-  input[type="checkbox"]:checked::after {
-    content: "" !important;
-    position: absolute !important;
-    left: 2px !important;
-    top: 2px !important;
-    width: 8px !important;
-    height: 8px !important;
-    background: white !important;
-    border-radius: 1px !important;
-  }
-
-  .data-table thead input[type="checkbox"]:hover,
-  .data-table tbody input[type="checkbox"]:hover,
-  input[type="checkbox"]:hover {
-    border-color: #9ca3af !important;
-    background: #ffffff !important;
-  }
-
-  .data-table thead input[type="checkbox"]:checked:hover,
-  .data-table tbody input[type="checkbox"]:checked:hover,
-  input[type="checkbox"]:checked:hover {
-    background: #4338ca !important;
-    border-color: #4338ca !important;
-  }
-
-  .data-table thead input[type="checkbox"]:focus,
-  .data-table tbody input[type="checkbox"]:focus,
-  input[type="checkbox"]:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
-    border-color: #4f46e5 !important;
-  }
-
-  /* 最高优先级覆盖所有可能的全局样式 */
-  [data-v-1adc4e54] input[type="checkbox"] {
-    background-color: #ffffff !important;
-  }
-
-  /* 儿童信息单元格 */
-  .child-info-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .child-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: #4f46e5;
-    background-color: #e0e7ff;
-    font-size: 14px;
-  }
-
-  .bg-primary-light {
-    background-color: #e0e7ff;
-  }
-
-  .child-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .child-name {
-    font-weight: 600;
-    color: #111827;
-  }
-
-  .child-id {
-    font-size: 12px;
-    color: #6b7280;
-  }
-
-  /* 风险等级标签 */
-  .risk-level-tag {
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .risk-low {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .risk-medium {
-    background-color: #fef3c7;
-    color: #92400e;
-  }
-
-  .risk-high {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
-
-  .risk-urgent {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
-  }
-
-  .risk-default {
-    background-color: #f3f4f6;
-    color: #6b7280;
-  }
-
-  /* 加载状态 */
-  .table-loading {
-    text-align: center;
-    padding: 40px;
-  }
-
-  .loading-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid #f3f4f6;
-    border-top: 3px solid #4f46e5;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  /* 空数据状态 */
-  .table-empty {
-    text-align: center;
-    padding: 60px 20px;
-  }
-
-  .empty-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .data-icon {
-    font-size: 48px;
-  }
-
-  /* 分页 */
-  .pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .pagination-info {
-    font-size: 14px;
-    color: #6b7280;
-  }
-
-  .pagination {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pagination-current {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4f46e5;
-    padding: 0 12px;
-  }
-
-  /* 表格分页行样式 - 表格最后一行 */
-  .pagination-row {
-    background-color: #f9fafb;
-  }
-
-  .pagination-cell {
-    padding: 12px 16px;
-    border: none;
-    background-color: #f9fafb;
-  }
-
-  .pagination-container.table-internal {
-    margin: 0;
-    padding: 0;
-    border-top: none;
-    background-color: transparent;
-  }
-
-  .pagination-info.table-internal {
-    font-size: 13px;
-    color: #6b7280;
-  }
-
-  .pagination.table-internal {
-    gap: 6px;
-  }
-
-  .pagination.table-internal .btn {
-    padding: 6px 10px;
-    font-size: 12px;
-    min-width: auto;
-  }
-
-  .pagination-current.table-internal {
-    font-size: 13px;
-    padding: 0 8px;
-  }
-
-  /* Font Awesome 动画 */
-  .fa-spin {
-    animation: fa-spin 1s linear infinite;
-  }
-
-  @keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
   }
 
   /* 响应式设计 */
@@ -993,8 +617,7 @@ onMounted(() => {
       padding: 20px;
     }
 
-    .search-filters-card,
-    .children-table-container {
+    .search-filters-card {
       padding: 20px;
     }
   }
@@ -1004,8 +627,7 @@ onMounted(() => {
       padding: 16px;
     }
 
-    .search-filters-card,
-    .children-table-container {
+    .search-filters-card {
       padding: 16px;
     }
 
@@ -1025,22 +647,6 @@ onMounted(() => {
     .action-buttons {
       justify-content: flex-end;
     }
-
-    .pagination-container {
-      flex-direction: column;
-      gap: 16px;
-      align-items: stretch;
-    }
-
-    .pagination {
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* 确保表格在小屏幕上可以水平滚动 */
-    .table-wrapper {
-      -webkit-overflow-scrolling: touch;
-    }
   }
 
   @media (max-width: 480px) {
@@ -1053,8 +659,7 @@ onMounted(() => {
       font-size: 13px;
     }
 
-    .search-filters-card,
-    .children-table-container {
+    .search-filters-card {
       padding: 12px;
       border-radius: 8px;
     }
@@ -1085,5 +690,21 @@ onMounted(() => {
   select:focus-visible {
     outline: 2px solid #4f46e5;
     outline-offset: 2px;
+  }
+
+  /* 风险等级标签胶囊样式 */
+  :deep(.risk-tag) {
+    border-radius: 12px !important;
+    padding: 2px 8px !important;
+    font-size: 12px !important;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 确保ATag组件使用正确的胶囊样式 */
+  :deep(.arco-tag) {
+    border-radius: 12px !important;
   }
 </style>

@@ -99,6 +99,8 @@ export interface ResultSocialWorkerHomeVO {
 export interface ChildQueryDTO {
   childNo?: string;
   name?: string;
+  gender?: string;
+  riskLevel?: string;
   minAge?: number;
   maxAge?: number;
   hasNewChat?: boolean;
@@ -113,6 +115,11 @@ export interface ChildQueueVO {
   age: number;
   gender: string;
   riskLevel: string;
+  serviceStatus: string;
+  guardianName: string;
+  guardianPhone: string;
+  phone: string;
+  address: string;
   hasNewChat: boolean;
   createTime: string;
   updateTime: string;

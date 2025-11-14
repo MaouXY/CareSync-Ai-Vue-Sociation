@@ -44,6 +44,9 @@
                 class="search-input"
                 @keyup.enter="handleSearch"
               />
+              <button class="search-button" @click="handleSearch">
+                搜索
+              </button>
             </div>
             <a-select
               v-model="searchParams.potentialProblems"
@@ -93,6 +96,9 @@
                 class="date-picker"
               />
             </div>
+            <button class="clear-filters-button" @click="resetFilters">
+              清空筛选
+            </button>
           </div>
         </div>
       </div>
@@ -505,9 +511,44 @@ onMounted(() => {
   min-width: 200px;
 }
 
+.search-button {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: #4338ca;
+}
+
+.clear-filters-button {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-button:hover {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
 .search-input {
-  width: 100%;
-  padding: 12px 40px 12px 16px;
+    width: 100%;
+    padding: 12px 80px 12px 16px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
   border-radius: 12px;
