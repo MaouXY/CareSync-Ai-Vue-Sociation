@@ -38,52 +38,72 @@
       
       <!-- 搜索和筛选 -->
       <div class="search-filters-card">
-        <div class="responsive-filters-container">
-          <!-- 第一行：搜索框和下拉菜单 -->
-          <div class="filter-row">
-            <div class="filter-item search-container">
+        <div class="filters-header">
+          <h3 class="filters-title">筛选条件</h3>
+          <div class="filters-actions">
+            <a-button type="outline" size="small" @click="resetFilters" class="reset-btn">
+              <template #icon>
+                <icon-refresh />
+              </template>
+              重置
+            </a-button>
+            <a-button type="primary" size="small" @click="handleSearch" class="search-btn">
+              <template #icon>
+                <icon-search />
+              </template>
+              筛选
+            </a-button>
+          </div>
+        </div>
+        
+        <div class="filters-content">
+          <!-- 主要筛选条件 -->
+          <div class="main-filters">
+            <div class="filter-group">
+              <label class="filter-label">儿童姓名/编号</label>
               <a-input 
                 v-model="searchParams.name"
-                placeholder="搜索儿童姓名/编号" 
-                class="search-input"
+                placeholder="请输入儿童姓名或编号" 
+                class="search-input-primary"
                 @keyup.enter="handleSearch"
+                allow-clear
               >
                 <template #prefix>
                   <icon-search />
                 </template>
               </a-input>
             </div>
-            <a-select
-              v-model="searchParams.gender"
-              placeholder="所有性别"
-              allow-clear
-              class="filter-select"
-              @change="handleSearch"
-            >
-              <a-option value="">所有性别</a-option>
-              <a-option value="male">男</a-option>
-              <a-option value="female">女</a-option>
-            </a-select>
-            <a-select
-              v-model="searchParams.riskLevel"
-              placeholder="所有风险等级"
-              allow-clear
-              class="filter-select"
-              @change="handleSearch"
-            >
-              <a-option value="">所有风险等级</a-option>
-              <a-option value="low">低风险</a-option>
-              <a-option value="medium">中风险</a-option>
-              <a-option value="high">高风险</a-option>
-              <a-option value="urgent">紧急</a-option>
-            </a-select>
-          </div>
-          
-          <!-- 第二行：按钮 -->
-          <div class="filter-row">
-            <div class="action-buttons">
-              <a-button type="primary" class="filter-btn" @click="handleSearch">筛选</a-button>
-              <a-button type="default" class="filter-btn" @click="resetFilters">重置</a-button>
+            
+            <div class="filter-group">
+              <label class="filter-label">性别</label>
+              <a-select
+                v-model="searchParams.gender"
+                placeholder="请选择性别"
+                allow-clear
+                class="filter-select-primary"
+                @change="handleSearch"
+              >
+                <a-option value="">所有性别</a-option>
+                <a-option value="male">男</a-option>
+                <a-option value="female">女</a-option>
+              </a-select>
+            </div>
+            
+            <div class="filter-group">
+              <label class="filter-label">风险等级</label>
+              <a-select
+                v-model="searchParams.riskLevel"
+                placeholder="请选择风险等级"
+                allow-clear
+                class="filter-select-primary"
+                @change="handleSearch"
+              >
+                <a-option value="">所有风险等级</a-option>
+                <a-option value="low">低风险</a-option>
+                <a-option value="medium">中风险</a-option>
+                <a-option value="high">高风险</a-option>
+                <a-option value="urgent">紧急</a-option>
+              </a-select>
             </div>
           </div>
         </div>
@@ -512,97 +532,132 @@ onMounted(() => {
     display: inline-block;
   }
 
-  /* 搜索筛选区 */
+  /* 搜索筛选区 - 紫色社工端风格 */
   .search-filters-card {
-    background-color: white;
-    border-radius: 12px;
+    background: linear-gradient(135deg, #f8f7ff 0%, #f0efff 100%);
+    border: 1px solid #e5e7ff;
+    border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+    backdrop-filter: blur(10px);
   }
 
-  .responsive-filters-container {
-    width: 100%;
-  }
-
-  .filter-row {
+  .filters-header {
     display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
+    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7ff;
   }
 
-  .filter-row:last-child {
-    margin-bottom: 0;
+  .filters-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4f46e5;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  .filter-item {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .search-container {
-    flex: 2;
-    min-width: 280px;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 10px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    background-color: #ffffff;
-    transition: border-color 0.2s ease;
-  }
-
-  .search-input:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-  }
-
-  .filter-select {
-    flex: 1;
-    min-width: 160px;
-    padding: 10px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    background-color: white;
-    color: #374151;
-    transition: border-color 0.2s ease;
-  }
-
-  .filter-select:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-  }
-
-  .filter-select option {
-    color: #374151;
-    background-color: white;
-    padding: 8px 12px;
-  }
-
-  .filter-select option:checked {
-    background-color: #4f46e5;
-    color: white;
-  }
-
-  .filter-select option:hover {
-    background-color: #f3f4f6;
-  }
-
-  .action-buttons {
+  .filters-actions {
     display: flex;
     gap: 12px;
+    align-items: center;
   }
 
-  .filter-btn {
-    min-width: 80px;
+  .reset-btn {
+    padding: 12px 24px;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: transparent;
+  }
+
+  .reset-btn:hover {
+    background: #f3f4ff;
+    border-color: #4338ca;
+    color: #4338ca;
+  }
+
+  .search-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  }
+
+  .search-btn:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  }
+
+  .filters-content {
+    width: 100%;
+  }
+
+  .main-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    align-items: end;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4f46e5;
+    margin-bottom: 4px;
+  }
+
+  .search-input-primary {
+    width: 100%;
+    padding: 0px 16px;
+    border: 1px solid #d1d5ff;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .search-input-primary:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .search-input-primary:hover {
+    border-color: #a5b4fc;
+  }
+
+  .filter-select-primary {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5ff;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .filter-select-primary:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .filter-select-primary:hover {
+    border-color: #a5b4fc;
   }
 
   .table-wrapper {
@@ -611,7 +666,7 @@ onMounted(() => {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
 
-  /* 响应式设计 */
+  /* 响应式设计 - 紫色社工端风格 */
   @media (max-width: 1024px) {
     .children-main-content {
       padding: 20px;
@@ -619,6 +674,23 @@ onMounted(() => {
 
     .search-filters-card {
       padding: 20px;
+      border-radius: 12px;
+    }
+
+    .main-filters {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .filters-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .filters-actions {
+      width: 100%;
+      justify-content: flex-end;
     }
   }
 
@@ -629,23 +701,26 @@ onMounted(() => {
 
     .search-filters-card {
       padding: 16px;
+      border-radius: 10px;
     }
 
-    .filter-row {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
+    .main-filters {
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
 
-    .filter-item,
-    .search-container,
-    .filter-select {
-      width: 100%;
-      min-width: auto;
+    .filters-title {
+      font-size: 16px;
     }
 
-    .action-buttons {
-      justify-content: flex-end;
+    .filter-label {
+      font-size: 13px;
+    }
+
+    .search-input-primary,
+    .filter-select-primary {
+      padding: 10px 14px;
+      font-size: 13px;
     }
   }
 
@@ -654,26 +729,42 @@ onMounted(() => {
       font-size: 24px;
     }
 
-    .btn {
-      padding: 8px 12px;
-      font-size: 13px;
-    }
-
     .search-filters-card {
       padding: 12px;
       border-radius: 8px;
     }
 
-    .data-table th,
-    .data-table td {
-      padding: 8px 12px;
-      font-size: 13px;
+    .filters-header {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
     }
 
-    .child-avatar {
-      width: 32px;
-      height: 32px;
-      font-size: 13px;
+    .filters-title {
+      font-size: 15px;
+    }
+
+    .main-filters {
+      gap: 12px;
+    }
+
+    .filter-group {
+      gap: 6px;
+    }
+
+    .search-input-primary,
+    .filter-select-primary {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .filters-actions {
+      gap: 8px;
+    }
+
+    .reset-btn,
+    .search-btn {
+      font-size: 12px;
+      padding: 6px 12px;
     }
   }
 
