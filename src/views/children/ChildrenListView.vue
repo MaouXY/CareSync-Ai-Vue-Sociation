@@ -25,6 +25,7 @@
             <a-button 
               id="addChildBtn" 
               type="primary"
+              class="btn btn-primary"
               style="padding-left: 0.5rem; padding-right: 0.5rem; "
               @click="handleAddChild"
             >

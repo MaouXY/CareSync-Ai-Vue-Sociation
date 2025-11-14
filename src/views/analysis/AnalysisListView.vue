@@ -2,6 +2,7 @@
   <div class="analysis-list-container">
     <WorkHeader />
     <main class="analysis-main-content" style="padding-top: 80px;">
+      
       <div class="page-header pt-4">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
@@ -10,7 +11,7 @@
           </div>
 
           <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
-            <button 
+            <!-- <button 
               id="refreshBtn" 
               class="btn btn-outline  mr-4"
               @click="refreshData"
@@ -18,7 +19,7 @@
             >
               <i class="fa fa-refresh" :class="{ 'fa-spin': loading }"></i>
               <span class="hidden sm:inline-block">刷新</span>
-            </button>
+            </button> -->
             <button 
               id="regenerateAnalysisBtn" 
               class="btn btn-primary"
@@ -32,73 +33,97 @@
         </div>
       </div>
       
+      
+      <!-- 搜索和筛选 -->
       <div class="search-filters-card">
-        <div class="responsive-filters-container">
-          <!-- 第一行：搜索框和下拉菜单 -->
-          <div class="filter-row">
-            <div class="filter-item search-container">
-              <input 
-                v-model="searchParams.name"
-                type="text" 
-                placeholder="搜索儿童姓名/潜在问题/情感趋势" 
-                class="search-input"
-                @keyup.enter="handleSearch"
-              />
-              <button class="search-button" @click="handleSearch">
-                搜索
-              </button>
-            </div>
-            <a-select
-              v-model="searchParams.potentialProblems"
-              placeholder="所有潜在问题"
-              allow-clear
-              size="large"
-              class="filter-select"
-            >
-              <a-option value="">所有潜在问题</a-option>
-              <a-option value="confidence">社交互动信心不足</a-option>
-              <a-option value="attention">注意力分散问题</a-option>
-              <a-option value="communication">沟通主动性不足</a-option>
-              <a-option value="family">家庭情感支持不足</a-option>
-            </a-select>
-            <a-select
-              v-model="searchParams.emotionTrend"
-              placeholder="所有情感趋势"
-              allow-clear
-              size="large"
-              class="filter-select"
-            >
-              <a-option value="">所有情感趋势</a-option>
-              <a-option value="孤独">孤独</a-option>
-              <a-option value="平静">平静</a-option>
-              <a-option value="开心">开心</a-option>
-              <a-option value="专注">专注</a-option>
-              <a-option value="急躁">急躁</a-option>
-              <a-option value="封闭">封闭</a-option>
-            </a-select>
+        <div class="filters-header">
+          <h3 class="filters-title">筛选条件</h3>
+          <div class="filters-actions">
+            <a-button type="outline" size="small" @click="resetFilters" class="reset-btn">
+              <template #icon>
+                <icon-refresh />
+              </template>
+              重置
+            </a-button>
+            <a-button type="primary" size="small" @click="handleSearch" class="search-btn">
+              <template #icon>
+                <icon-search />
+              </template>
+              筛选
+            </a-button>
           </div>
-          
-          <!-- 第二行：日期选择和操作按钮 -->
-          <div class="filter-row">
-            <div class="date-range-container">
-              <span class="date-label">分析日期：</span>
-              <a-date-picker
-                v-model="searchParams.startDate"
-                placeholder="开始日期"
-                size="large"
-                class="date-picker"
-              />
-              <span class="date-separator">至</span>
-              <a-date-picker
-                v-model="searchParams.endDate"
-                placeholder="结束日期"
-                size="large"
-                class="date-picker"
-              />
+        </div>
+        
+        <div class="filters-content">
+          <!-- 主要筛选条件 -->
+          <div class="main-filters">
+            <div class="filter-group">
+              <label class="filter-label">搜索内容</label>
+              <a-input 
+                v-model="searchParams.name"
+                placeholder="搜索儿童姓名/潜在问题/情感趋势" 
+                class="search-input-primary"
+                @keyup.enter="handleSearch"
+                allow-clear
+              >
+                <template #prefix>
+                  <icon-search />
+                </template>
+              </a-input>
             </div>
-            <button class="clear-filters-button" @click="resetFilters">
-              清空筛选
-            </button>
+            
+            <div class="filter-group">
+              <label class="filter-label">潜在问题</label>
+              <a-select
+                v-model="searchParams.potentialProblems"
+                placeholder="所有潜在问题"
+                allow-clear
+                class="filter-select-primary"
+                @change="handleSearch"
+              >
+                <a-option value="">所有潜在问题</a-option>
+                <a-option value="confidence">社交互动信心不足</a-option>
+                <a-option value="attention">注意力分散问题</a-option>
+                <a-option value="communication">沟通主动性不足</a-option>
+                <a-option value="family">家庭情感支持不足</a-option>
+              </a-select>
+            </div>
+            
+            <div class="filter-group">
+              <label class="filter-label">情感趋势</label>
+              <a-select
+                v-model="searchParams.emotionTrend"
+                placeholder="所有情感趋势"
+                allow-clear
+                class="filter-select-primary"
+                @change="handleSearch"
+              >
+                <a-option value="">所有情感趋势</a-option>
+                <a-option value="孤独">孤独</a-option>
+                <a-option value="平静">平静</a-option>
+                <a-option value="开心">开心</a-option>
+                <a-option value="专注">专注</a-option>
+                <a-option value="急躁">急躁</a-option>
+                <a-option value="封闭">封闭</a-option>
+              </a-select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">分析日期</label>
+              <div class="date-range-container">
+                <a-date-picker
+                  v-model="searchParams.startDate"
+                  placeholder="开始日期"
+                  class="date-picker"
+                />
+                <span class="date-separator">至</span>
+                <a-date-picker
+                  v-model="searchParams.endDate"
+                  placeholder="结束日期"
+                  class="date-picker"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -458,7 +483,7 @@ onMounted(() => {
   margin: 0 auto;
   padding: 4em;
 }
-
+/* 页面标题 */
 .page-header {
   margin-bottom: 24px;
 }
@@ -471,174 +496,256 @@ onMounted(() => {
   line-height: 1.2;
 }
 
+/* Flexbox工具类 */
+  .flex {
+    display: flex;
+  }
+
+  .flex-col {
+    flex-direction: column;
+  }
+
+  .sm\:flex-row {
+    flex-direction: row;
+  }
+
+  .sm\:justify-between {
+    justify-content: space-between;
+  }
+
+  .sm\:items-center {
+    align-items: center;
+  }
+
 .page-subtitle {
   font-size: 14px;
   color: #64748b;
   margin: 0;
 }
 
+/* 搜索筛选区 - 紫色社工端风格 */
 .search-filters-card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8f7ff 0%, #f0efff 100%);
+  border: 1px solid #e5e7ff;
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+  backdrop-filter: blur(10px);
 }
 
-/* 响应式筛选布局 */
-.responsive-filters-container {
+/* 筛选区域样式 - 紫色社工端风格 */
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7ff;
+}
+
+.filters-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4f46e5;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.filters-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.reset-btn {
+  padding: 12px 24px;
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: transparent;
+}
+
+.reset-btn:hover {
+  background: #f3f4ff;
+  border-color: #4338ca;
+  color: #4338ca;
+}
+
+.search-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.filters-content {
+  width: 100%;
+}
+
+.main-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+.filter-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.filter-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.filter-item {
-  flex: 1;
-  min-width: 200px;
-}
-
-.search-container {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
-}
-
-.search-button {
-  position: absolute;
-  right: 2px;
-  top: 2px;
-  bottom: 2px;
-  background-color: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.search-button:hover {
-  background-color: #4338ca;
-}
-
-.clear-filters-button {
-  background-color: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.clear-filters-button:hover {
-  background-color: #e5e7eb;
-  color: #374151;
-}
-
-.search-input {
-    width: 100%;
-    padding: 12px 80px 12px 16px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1F2937;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box; /* 关键：让width包含padding和border */
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #4F46E5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.filter-select {
-  appearance: none;
-  background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234F46E5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") no-repeat right 12px center;
-  background-size: 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px 40px 12px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1F2937;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  min-width: 200px;
-  flex: 1;
-}
-
-/* 第二行布局样式 */
-.date-filters {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-  align-items: center;
-}
-
-.date-item {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  flex: 1;
 }
 
-.date-label {
+.filter-label {
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
-  white-space: nowrap;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+
+.search-input-primary {
+  width: 100%;
+  padding: 0px 16px;
+  border: 1px solid #d1d5ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+}
+
+.search-input-primary:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+.search-input-primary:hover {
+  border-color: #a5b4fc;
+}
+
+.filter-select-primary {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-select-primary:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+.filter-select-primary:hover {
+  border-color: #a5b4fc;
+}
+
+.date-range-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .date-separator {
   font-size: 14px;
   color: #6b7280;
-  padding: 0 4px;
+  white-space: nowrap;
 }
 
-.date-input {
+.date-picker {
   flex: 1;
-  min-width: 150px;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1F2937;
-  background-color: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 140px;
 }
 
-.date-input:focus {
-  outline: none;
-  border-color: #4F46E5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* 响应式设计 - 紫色社工端风格 */
+@media (max-width: 1024px) {
+  .analysis-main-content {
+    padding: 2em;
+  }
+  
+  .main-filters {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  
+  .search-filters-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .analysis-main-content {
+    padding: 1.5em;
+  }
+  
+  .filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+  
+  .filters-actions {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+  
+  .main-filters {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .search-filters-card {
+    padding: 16px;
+  }
+  
+  .filters-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .analysis-main-content {
+    padding: 1em;
+  }
+  
+  .search-filters-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .filters-title {
+    font-size: 15px;
+  }
+  
+  .main-filters {
+    gap: 12px;
+  }
+  
+  .search-input-primary,
+  .filter-select-primary {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .reset-btn,
+  .search-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
 }
 
 .action-buttons {
@@ -767,7 +874,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 16px;
+  padding-left: 0.5rem; padding-right: 0.5rem; 
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
