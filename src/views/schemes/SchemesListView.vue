@@ -50,10 +50,10 @@
           <!-- 主要筛选条件 -->
           <div class="main-filters">
             <div class="filter-group">
-              <label class="filter-label">方案名称</label>
+              <label class="filter-label">服务目标</label>
               <a-input 
-                v-model="searchParams.name"
-                placeholder="请输入方案名称" 
+                v-model="searchParams.target"
+                placeholder="请输入服务目标" 
                 class="search-input-primary"
                 @keyup.enter="handleSearch"
                 allow-clear
@@ -74,9 +74,9 @@
                 @change="handleSearch"
               >
                 <a-option value="">所有状态</a-option>
-                <a-option value="draft">草稿</a-option>
-                <a-option value="active">进行中</a-option>
-                <a-option value="completed">已完成</a-option>
+                <a-option value="DRAFT">草稿</a-option>
+                <a-option value="IN_PROGRESS">进行中</a-option>
+                <a-option value="COMPLETED">已完成</a-option>
                 <a-option value="paused">已暂停</a-option>
               </a-select>
             </div>
@@ -179,7 +179,7 @@ const columns = computed<TableColumnData[]>(() => [
     dataIndex: 'measures',
     width: 150,
     ellipsis: true,
-    render: ({ record }) => {
+    render: ({ record }:any) => {
       // 如果 measures 数组为空，显示建议措施
       if (Array.isArray(record.measures) && record.measures.length === 0 && record.measuresSuggest) {
         const totalSteps = record.measuresSuggest.reduce((sum, week) => sum + week.details.length, 0);
@@ -203,7 +203,7 @@ const columns = computed<TableColumnData[]>(() => [
     dataIndex: 'schemeStatus',
     width: 100,
     align: 'center',
-    render: ({ record }) => {
+    render: ({ record }:any) => {
       const statusText = getStatusText(record.schemeStatus);
       const statusColor = getStatusColor(record.schemeStatus);
       return h('span', {
@@ -223,7 +223,7 @@ const columns = computed<TableColumnData[]>(() => [
     dataIndex: 'createTime',
     width: 180,
     align: 'center',
-    render: ({ record }:SchemeQueryDTO) => {
+    render: ({ record }:any) => {
       return formatDate(record.createTime);
     }
   },
@@ -236,6 +236,7 @@ const columns = computed<TableColumnData[]>(() => [
   {
     title: '操作',
     dataIndex: 'operations',
+    fixed: 'right',
     width: 150,
     align: 'center',
     render: ({ record }:any) => {
@@ -276,6 +277,7 @@ const total = ref(0);
 const searchParams = ref<SchemeQueryDTO>({
   childId: null,
   workerId: null,
+  target: null,
   schemeStatus: null,
   name: null,
   startDate: null,
@@ -309,6 +311,9 @@ const buildQueryParams = (): SchemeQueryDTO => {
   // 只添加有意义的非空字段
   if (searchParams.value.name && typeof searchParams.value.name === 'string' && searchParams.value.name.trim()) {
     params.name = searchParams.value.name.trim();
+  }
+  if (searchParams.value.target && typeof searchParams.value.target === 'string' && searchParams.value.target.trim()) {
+    params.target = searchParams.value.target.trim();
   }
   if (searchParams.value.schemeStatus && typeof searchParams.value.schemeStatus === 'string' && searchParams.value.schemeStatus.trim()) {
     params.schemeStatus = searchParams.value.schemeStatus.trim();
@@ -555,71 +560,143 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* 搜索筛选区域样式 */
+/* 搜索筛选区域样式 - 紫色社工端风格 */
 .search-filters-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #f8f7ff 0%, #f0efff 100%);
+  border: 1px solid #e5e7ff;
   border-radius: 16px;
-  margin: 0 20px 24px;
-  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
-  overflow: hidden;
+  padding: 24px;
+  margin-left: 24px;
+  margin-right: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+  backdrop-filter: blur(10px);
 }
 
 .filters-header {
-  padding: 20px 24px 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7ff;
+}
+
+.filters-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4f46e5;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.filters-actions {
+  display: flex;
+  gap: 12px;
   align-items: center;
 }
 
 .filters-content {
-  padding: 20px 24px 24px;
+  width: 100%;
+}
+
+.main-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: end;
 }
 
 .filter-group {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: end;
-}
-
-.filter-item {
-  flex: 1;
-  min-width: 200px;
-  display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .filter-label {
   font-size: 14px;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 500;
+  color: #4f46e5;
   margin-bottom: 4px;
 }
 
-.filter-item :deep(.ant-input),
-.filter-item :deep(.ant-select-selector) {
+.search-input-primary {
+  width: 100%;
+  padding: 0px 16px;
+  border: 1px solid #d1d5ff;
   border-radius: 8px;
-  border: 2px solid #E5E7EB;
-  transition: all 0.3s ease;
   font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
 }
 
-.filter-item :deep(.ant-input:hover),
-.filter-item :deep(.ant-select:hover .ant-select-selector) {
-  border-color: #9CA3AF;
-}
-
-.filter-item :deep(.ant-input:focus),
-.filter-item :deep(.ant-select-focused .ant-select-selector) {
-  border-color: #4F46E5;
+.search-input-primary:focus {
+  outline: none;
+  border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
 }
 
-.filter-item :deep(.ant-input-prefix) {
-  color: #6B7280;
+.search-input-primary:hover {
+  border-color: #a5b4fc;
+}
+
+.filter-select-primary {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-select-primary:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+.filter-select-primary:hover {
+  border-color: #a5b4fc;
+}
+
+/* 日期筛选样式 */
+.date-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.date-input {
+  flex: 1;
+  padding: 0px 16px;
+  border: 1px solid #d1d5ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.1);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: translateY(-1px);
+}
+
+.date-input:hover {
+  border-color: #a5b4fc;
+}
+
+.date-separator {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .filter-actions {
@@ -628,37 +705,31 @@ onMounted(() => {
   margin-top: 8px;
 }
 
-/* 按钮样式 */
-.action-button {
-  border-radius: 8px;
-  font-weight: 600;
-  padding: 10px 20px;
-  height: auto;
-  transition: all 0.3s ease;
+/* 按钮样式 - 紫色社工端风格 */
+.reset-btn {
+  padding: 12px 24px;
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: transparent;
 }
 
-.search-button {
-  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+.reset-btn:hover {
+  background: #f3f4ff;
+  border-color: #4338ca;
+  color: #4338ca;
+}
+
+.search-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
   border: none;
-  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
 
-.search-button:hover {
-  background: linear-gradient(135deg, #4338CA, #6D28D9);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+.search-btn:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
   transform: translateY(-1px);
-}
-
-.reset-button {
-  border: 2px solid #E5E7EB;
-  color: #6B7280;
-  background: white;
-}
-
-.reset-button:hover {
-  border-color: #4F46E5;
-  color: #4F46E5;
-  background: rgba(79, 70, 229, 0.05);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
 }
 
 .primary-button {
@@ -815,20 +886,31 @@ onMounted(() => {
   color: #4F46E5;
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 紫色社工端风格 */
 @media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .children-main-content {
+    padding: 20px;
+  }
+
+  .search-filters-card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .main-filters {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 16px;
   }
-  
-  .filter-group {
+
+  .filters-header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 12px;
   }
-  
-  .filter-item {
-    min-width: auto;
+
+  .filters-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 
@@ -836,7 +918,7 @@ onMounted(() => {
   .schemes-main-content {
     padding: 16px 0;
   }
-  
+
   .schemes-list-container,
   .stats-grid,
   .search-filters-card,
@@ -847,60 +929,30 @@ onMounted(() => {
     padding-left: 16px;
     padding-right: 16px;
   }
-  
-  .stats-grid {
+
+  .search-filters-card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .main-filters {
     grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .stats-card {
-    padding: 20px;
-  }
-  
-  .stats-card-content {
     gap: 16px;
   }
-  
-  .stats-icon {
-    width: 56px;
-    height: 56px;
-    font-size: 24px;
+
+  .filters-title {
+    font-size: 16px;
   }
-  
-  .stats-value {
-    font-size: 28px;
-  }
-  
-  .filters-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    padding: 16px 20px 0;
-  }
-  
-  .filters-content {
-    padding: 16px 20px 20px;
-  }
-  
-  .filter-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .table-wrapper :deep(.ant-table-thead > tr > th),
-  .table-wrapper :deep(.ant-table-tbody > tr > td) {
-    padding: 12px 8px;
+
+  .filter-label {
     font-size: 13px;
   }
-  
-  .action-button-group {
-    flex-direction: column;
-    gap: 4px;
+
+  .search-input-primary,
+  .filter-select-primary,
+  .date-input {
+    padding: 10px 14px;
+    font-size: 13px;
   }
 }
 
@@ -915,54 +967,74 @@ onMounted(() => {
     padding-left: 12px;
     padding-right: 12px;
   }
-  
-  .stats-card {
-    padding: 16px;
+
+  .search-filters-card {
+    padding: 12px;
+    border-radius: 8px;
   }
-  
-  .stats-card-content {
-    flex-direction: column;
-    text-align: center;
+
+  .filters-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .filters-title {
+    font-size: 15px;
+  }
+
+  .main-filters {
     gap: 12px;
   }
-  
-  .stats-icon {
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
+
+  .filter-group {
+    gap: 6px;
   }
-  
-  .stats-value {
-    font-size: 24px;
-  }
-  
-  .stats-label {
-    font-size: 13px;
-  }
-  
-  .filters-content {
-    padding: 12px 16px 16px;
-  }
-  
-  .table-wrapper :deep(.ant-table-thead > tr > th),
-  .table-wrapper :deep(.ant-table-tbody > tr > td) {
-    padding: 8px 4px;
+
+  .search-input-primary,
+  .filter-select-primary,
+  .date-input {
+    padding: 8px 12px;
     font-size: 12px;
   }
-  
-  .action-button-group .ant-btn {
-    padding: 2px 6px;
-    font-size: 11px;
+
+  .filters-actions {
+    gap: 8px;
   }
-  
-  .pagination-wrapper {
-    padding: 16px 12px;
+
+  .reset-btn,
+  .search-btn {
+    font-size: 12px;
+    padding: 6px 12px;
   }
-  
-  .pagination-wrapper :deep(.ant-pagination) {
-    flex-wrap: wrap;
-    justify-content: center;
+}
+
+/* 按钮基础样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  gap: 6px;
+  font-family: inherit;
+  background-color: transparent;
+}
+
+.btn-primary {
+    background-color: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
   }
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
 }
 
 /* 加载动画优化 */

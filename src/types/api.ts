@@ -267,6 +267,7 @@ export type SchemeStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED';
 export interface SchemeQueryDTO {
   childId?: number | null;
   workerId?: number | null;
+  target?: string | null;
   schemeStatus?: string | null;
   name?: string | null;
   startDate?: string | null;
