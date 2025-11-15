@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen">
     <!-- 导航栏 -->
-    <header class="fixed top-0 left-0 right-0 bg-white backdrop-blur-md shadow-sm z-50 transition-custom" style="background-color: rgba(255, 255, 255, 0.8);">
+    <header class="fixed top-0 left-0 right-0 bg-light backdrop-blur-md shadow-sm z-50 transition-custom">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
@@ -26,7 +26,7 @@
     </header>
 
     <!-- 英雄区域 -->
-    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-primary">
+    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-primary-z">
       <div class="container text-center">
         <h1 class="responsive-heading text-dark mb-6 leading-tight text-shadow">
           <span class="text-primary">AI 智能陪伴</span> + 
@@ -36,11 +36,11 @@
           为留守儿童提供有温度、可信赖的即时情感回应和安全的倾诉出口，
           依托结构化数据支撑社工开展针对性服务
         </p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <a href="#login" class="btn btn-primary py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom" @click="scrollToSection('login')">
+        <div class="flex flex-row flex-wrap justify-center gap-4 px-4">
+          <a href="#login" class="btn btn-primary py-3 px-6 md:px-8 rounded-lg shadow-lg hover:shadow-xl transition-custom flex-shrink-0" @click="scrollToSection('login')">
             立即开始体验
           </a>
-          <a href="#features" class="btn btn-outline py-3 px-8 rounded-lg shadow hover:shadow-md transition-custom" @click="scrollToSection('features')">
+          <a href="#features" class="btn btn-outline py-3 px-6 md:px-8 rounded-lg shadow hover:shadow-md transition-custom flex-shrink-0" @click="scrollToSection('features')">
             了解更多功能
           </a>
         </div>
@@ -114,7 +114,7 @@
     </section>
 
     <!-- 平台优势 -->
-    <section id="advantages" class="py-20 bg-primary"> 
+    <section id="advantages" class="py-20 bg-primary-z"> 
       <div class="container px-4 sm:px-6 lg:px-8 mx-auto">
         <div class="text-center mb-16">
           <h2 class="responsive-subheading text-dark mb-4">平台优势</h2>
@@ -176,7 +176,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div class="bg-primary rounded-xl shadow-md p-8 card-hover">
+          <div class="bg-primary-z rounded-xl shadow-md p-8 card-hover">
             <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(79, 70, 229, 0.1);">
               <i class="fa fa-child text-3xl text-primary"></i>
             </div>
@@ -187,7 +187,7 @@
             </a>
           </div>
 
-          <div class="bg-secondary rounded-xl shadow-md p-8 card-hover">
+          <div class="bg-secondary-z rounded-xl shadow-md p-8 card-hover">
             <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(16, 185, 129, 0.1);">
               <i class="fa fa-user-md text-3xl text-secondary"></i>
             </div>
@@ -202,7 +202,7 @@
     </section>
 
     <!-- 关于我们 -->
-    <section id="about" class="py-8 bg-primary">
+    <section id="about" class="py-8 bg-primary-z">
       <div class="container px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="responsive-subheading text-dark mb-2">关于我们</h2>

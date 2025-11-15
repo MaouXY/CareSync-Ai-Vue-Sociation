@@ -245,3 +245,66 @@ export interface AiAnalysisQueryDTO {
   page?: number;
   pageSize?: number;
 }
+
+/* 服务方案相关类 */
+// 服务措施建议详情
+export interface MeasuresSuggestDetails {
+  content: string;
+  status: string;
+  assist_track_log_id: number;
+}
+
+// 服务措施建议
+export interface MeasuresSuggest {
+  week: string;
+  details: MeasuresSuggestDetails[];
+}
+
+// 服务方案状态枚举
+export type SchemeStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED';
+
+// 服务方案列表查询参数
+export interface SchemeQueryDTO {
+  childId?: number | null;
+  workerId?: number | null;
+  schemeStatus?: string | null;
+  name?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  page?: number;
+  pageSize?: number;
+}
+
+// 服务方案详情
+export interface AssistSchemeVO {
+  id: number;
+  childId: number;
+  workerId: number;
+  target: string;
+  measures: string[];
+  cycle: number;
+  schemeStatus: string;
+  targetSuggest: string[];
+  measuresSuggest: MeasuresSuggest[];
+  workerAdjustReason?: string;
+  aiAnalysisId?: number;
+  evaluationIndex?: any;
+  createTime: string;
+  updateTime: string;
+  childName: string;
+  childAge: string;
+  workerName: string;
+}
+
+// 分页结果
+export interface PageResultAssistSchemeVO {
+  total: number;
+  records: AssistSchemeVO[];
+}
+
+// API响应结果
+export interface ResultPageResultAssistSchemeVO {
+  code: number;
+  msg: string;
+  data: PageResultAssistSchemeVO;
+}

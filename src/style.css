@@ -101,7 +101,7 @@ body {
 }
 
 /* 背景颜色 */
-.bg-primary {
+.bg-primary-z {
   background-color: var(--primary-bg);
 }
 
@@ -113,7 +113,7 @@ body {
   background-color: var(--primary);
 }
 
-.bg-secondary {
+.bg-secondary-z {
   background-color: var(--secondary-bg);
 }
 
@@ -148,6 +148,7 @@ button:active,
 [role="button"]:active {
   transform: none !important;
 }
+
 .btn {
   display: inline-flex;
   align-items: center;

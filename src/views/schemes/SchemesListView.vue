@@ -50,10 +50,10 @@
           <!-- 主要筛选条件 -->
           <div class="main-filters">
             <div class="filter-group">
-              <label class="filter-label">儿童姓名</label>
+              <label class="filter-label">方案名称</label>
               <a-input 
-                v-model="searchParams.childName"
-                placeholder="请输入儿童姓名" 
+                v-model="searchParams.name"
+                placeholder="请输入方案名称" 
                 class="search-input-primary"
                 @keyup.enter="handleSearch"
                 allow-clear
@@ -143,7 +143,10 @@ import { ref, computed, onMounted, h } from 'vue';
 import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import type { TableColumnData } from '@arco-design/web-vue';
+import type { SchemeQueryDTO } from '@/types/api';
 import { http } from '@/services/api';
+import EnhancedPagination from '@/components/common/EnhancedPagination.vue';
+import WorkHeader from '@/components/layout/WorkHeader.vue';
 
 // 表格列配置
 const columns = computed<TableColumnData[]>(() => [
@@ -174,14 +177,26 @@ const columns = computed<TableColumnData[]>(() => [
   {
     title: '服务措施',
     dataIndex: 'measures',
-    width: 200,
+    width: 150,
     ellipsis: true,
     render: ({ record }) => {
-      if (Array.isArray(record.measures)) {
+      // 如果 measures 数组为空，显示建议措施
+      if (Array.isArray(record.measures) && record.measures.length === 0 && record.measuresSuggest) {
+        const totalSteps = record.measuresSuggest.reduce((sum, week) => sum + week.details.length, 0);
+        return `建议措施 ${totalSteps} 项`;
+      }
+      // 如果有直接措施
+      if (Array.isArray(record.measures) && record.measures.length > 0) {
         return record.measures.join(', ');
       }
-      return record.measures || '-';
+      return '-';
     }
+  },
+  {
+    title: '社工姓名',
+    dataIndex: 'workerName',
+    width: 100,
+    align: 'center'
   },
   {
     title: '方案状态',
@@ -208,7 +223,7 @@ const columns = computed<TableColumnData[]>(() => [
     dataIndex: 'createTime',
     width: 180,
     align: 'center',
-    render: ({ record }) => {
+    render: ({ record }:SchemeQueryDTO) => {
       return formatDate(record.createTime);
     }
   },
@@ -223,7 +238,7 @@ const columns = computed<TableColumnData[]>(() => [
     dataIndex: 'operations',
     width: 150,
     align: 'center',
-    render: ({ record }) => {
+    render: ({ record }:any) => {
       return h('div', { class: 'table-actions' }, [
         h('a', {
           href: 'javascript:;',
@@ -252,15 +267,21 @@ const router = useRouter();
 const isLoading = ref(false);
 
 // 方案数据
-const schemes = ref([]);
+const schemes = ref<any[]>([]);
 const total = ref(0);
 
-// 搜索参数
-const searchParams = ref({
-  childName: '',
-  schemeStatus: '',
-  startDate: '',
-  endDate: ''
+// 使用从 api.ts 导入的 SchemeQueryDTO 类型
+
+// 搜索参数 - 使用DTO格式，不使用的字段为null
+const searchParams = ref<SchemeQueryDTO>({
+  childId: null,
+  workerId: null,
+  schemeStatus: null,
+  name: null,
+  startDate: null,
+  endDate: null,
+  page: 1,
+  pageSize: 10
 });
 
 // 分页状态
@@ -278,35 +299,53 @@ const rowSelection = {
   onlyCurrent: false
 };
 
+// 构建查询参数 - 只传递非空字段
+const buildQueryParams = (): SchemeQueryDTO => {
+  const params: SchemeQueryDTO = {
+    page: currentPage.value,
+    pageSize: pageSize.value
+  };
+  
+  // 只添加有意义的非空字段
+  if (searchParams.value.name && typeof searchParams.value.name === 'string' && searchParams.value.name.trim()) {
+    params.name = searchParams.value.name.trim();
+  }
+  if (searchParams.value.schemeStatus && typeof searchParams.value.schemeStatus === 'string' && searchParams.value.schemeStatus.trim()) {
+    params.schemeStatus = searchParams.value.schemeStatus.trim();
+  }
+  if (searchParams.value.startDate && typeof searchParams.value.startDate === 'string' && searchParams.value.startDate.trim()) {
+    params.startDate = searchParams.value.startDate.trim();
+  }
+  if (searchParams.value.endDate && typeof searchParams.value.endDate === 'string' && searchParams.value.endDate.trim()) {
+    params.endDate = searchParams.value.endDate.trim();
+  }
+  // childId 和 workerId 暂时设为null，后续可以根据需要添加
+  
+  return params;
+};
+
 // API 请求函数
-const loadSchemes = async (params: any = {}) => {
-  try {
-    isLoading.value = true;
-    const response = await http.post('/api/social-worker/scheme/list', {
-      ...params,
-      page: currentPage.value - 1, // API 可能从 0 开始
-      pageSize: pageSize.value
-    });
-    
-    if (response.data.code === 0) {
-      schemes.value = response.data.data.records || [];
-      total.value = response.data.data.total || 0;
-    } else {
-      Message.error(response.data.msg || '获取方案列表失败');
-    }
-  } catch (error: any) {
-    console.error('获取方案列表失败:', error);
-    Message.error('获取方案列表失败');
-  } finally {
-    isLoading.value = false;
+const loadSchemes = async (params?: SchemeQueryDTO) => {
+  const queryParams = params || buildQueryParams();
+  
+  const response: any = await http.post('/api/social-worker/scheme/list', queryParams);
+  
+  // 直接使用response，因为后端返回格式就是 {code: 0, data: {...}}
+  if (response.code === 1) {
+    schemes.value = response.data.records || [];
+    total.value = response.data.total || 0;
+  } else {
+    Message.error(response.msg || '获取方案列表失败');
   }
 };
 
 // 获取状态文本
 const getStatusText = (status: string): string => {
   const statusMap = {
-    draft: '草稿',
-    active: '进行中',
+    DRAFT: '草稿',
+    IN_PROGRESS: '进行中',
+    COMPLETED: '已完成',
+    CANCELLED: '已取消',
     completed: '已完成',
     paused: '已暂停'
   };
@@ -316,10 +355,15 @@ const getStatusText = (status: string): string => {
 // 获取状态颜色
 const getStatusColor = (status: string) => {
   const colorMap = {
-    draft: { bg: 'rgba(107, 114, 128, 0.1)', color: '#6B7280' },
-    active: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22C55E' },
-    completed: { bg: 'rgba(79, 70, 229, 0.1)', color: '#4F46E5' },
-    paused: { bg: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B' }
+    DRAFT: { bg: '#F3F4F6', color: '#6B7280' },
+    IN_PROGRESS: { bg: '#DBEAFE', color: '#1D4ED8' },
+    COMPLETED: { bg: '#D1FAE5', color: '#059669' },
+    CANCELLED: { bg: '#FEE2E2', color: '#DC2626' },
+    draft: { bg: '#F3F4F6', color: '#6B7280' },
+    active: { bg: '#DBEAFE', color: '#1D4ED8' },
+    completed: { bg: '#D1FAE5', color: '#059669' },
+    paused: { bg: '#FEF3C7', color: '#D97706' },
+    cancelled: { bg: '#FEE2E2', color: '#DC2626' }
   };
   return colorMap[status as keyof typeof colorMap] || colorMap.draft;
 };
@@ -340,29 +384,34 @@ const formatDate = (dateString: string): string => {
 // 事件处理函数
 const handleSearch = () => {
   currentPage.value = 1;
-  loadSchemes(searchParams.value);
+  loadSchemes();
 };
 
 const handleReset = () => {
   searchParams.value = {
-    childName: '',
-    schemeStatus: '',
-    startDate: '',
-    endDate: ''
+    childId: null,
+    workerId: null,
+    schemeStatus: null,
+    name: null,
+    startDate: null,
+    endDate: null,
+    page: 1,
+    pageSize: 10
   };
   currentPage.value = 1;
-  loadSchemes(searchParams.value);
+  pageSize.value = 10;
+  loadSchemes();
 };
 
 const handlePageChange = (page: number) => {
   currentPage.value = page;
-  loadSchemes(searchParams.value);
+  loadSchemes();
 };
 
 const handlePageSizeChange = (size: number) => {
   pageSize.value = size;
   currentPage.value = 1;
-  loadSchemes(searchParams.value);
+  loadSchemes();
 };
 
 const handleViewDetail = (id: number) => {
@@ -377,10 +426,10 @@ const handleDelete = async (id: number) => {
   if (confirm('确定要删除这个方案吗？')) {
     try {
       // 这里应该调用删除API
-      message.success('删除成功');
-      loadSchemes(searchParams.value);
+      Message.success('删除成功');
+      loadSchemes();
     } catch (error) {
-      message.error('删除失败');
+      Message.error('删除失败');
     }
   }
 };
@@ -391,21 +440,21 @@ const handleCreateScheme = () => {
 
 // 组件挂载时加载数据
 onMounted(() => {
-  loadSchemes(searchParams.value);
+  loadSchemes();
 });
 </script>
 
 <style scoped>
 /* 页面容器 */
 .schemes-main-content {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  /* background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); */
   min-height: 100vh;
   padding: 20px 0;
 }
 
 .schemes-list-container {
   min-height: 100vh;
-  background-color: #f9fafb;
+  /* background-color: #f9fafb; */
   position: relative;
 }
 
