@@ -1,304 +1,249 @@
 <template>
-  <AppLayout title="服务方案管理 - CareSync AI">
-    <div class="schemes-list-container">
-      <!-- 页面头部 -->
-      <div class="page-header">
-        <h1 class="page-title">服务方案管理</h1>
-        <div class="header-actions">
-          <Button @click="handleCreateScheme" variant="primary">
-            <i class="icon-plus">+</i> 新建方案
-          </Button>
+  <div class="schemes-list-container">
+    <WorkHeader />
+    <main class="schemes-main-content" style="padding-top: 80px;">
+      <!-- 页面标题和操作栏 -->
+      <div class="page-header pt-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <div>
+            <h1 class="page-title">服务方案管理</h1>
+            <p class="page-subtitle">管理您负责的所有服务方案信息</p>
+          </div>
+          <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
+            <a-button 
+              id="addSchemeBtn" 
+              type="primary"
+              class="btn btn-primary"
+              style="padding-left: 0.4rem; padding-right: 0.8rem;"
+              @click="handleCreateScheme"
+            >
+              <template #icon>
+                <icon-plus />
+              </template>
+              <span>新建方案</span>
+            </a-button>
+          </div>
         </div>
       </div>
 
-      <!-- 统计卡片 -->
-      <div class="stats-cards">
-        <Card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">📋</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ totalSchemes }}</div>
-              <div class="stat-label">总方案数</div>
-            </div>
+      <!-- 搜索和筛选 -->
+      <div class="search-filters-card">
+        <div class="filters-header">
+          <h3 class="filters-title">筛选条件</h3>
+          <div class="filters-actions">
+            <a-button type="outline" size="small" @click="handleReset" class="reset-btn">
+              <template #icon>
+                <icon-refresh />
+              </template>
+              重置
+            </a-button>
+            <a-button type="primary" size="small" @click="handleSearch" class="search-btn">
+              <template #icon>
+                <icon-search />
+              </template>
+              筛选
+            </a-button>
           </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">🔄</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ activeSchemes }}</div>
-              <div class="stat-label">进行中方案</div>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ completedSchemes }}</div>
-              <div class="stat-label">已完成方案</div>
-            <div class="stat-trend positive">↑ 12%</div>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">👦</div>
-            <div class="stat-info">
-              <div class="stat-value">{{ helpedChildren }}</div>
-              <div class="stat-label">受助儿童数</div>
-            <div class="stat-trend positive">↑ 8%</div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- 搜索和筛选区域 -->
-      <Card class="filter-card">
-        <div class="filter-content">
-          <div class="filter-row">
-            <div class="filter-item">
+        </div>
+        
+        <div class="filters-content">
+          <!-- 主要筛选条件 -->
+          <div class="main-filters">
+            <div class="filter-group">
               <label class="filter-label">儿童姓名</label>
-              <Input 
-                v-model="searchForm.childName" 
-                placeholder="请输入儿童姓名"
-                size="large"
-              />
+              <a-input 
+                v-model="searchParams.childName"
+                placeholder="请输入儿童姓名" 
+                class="search-input-primary"
+                @keyup.enter="handleSearch"
+                allow-clear
+              >
+                <template #prefix>
+                  <icon-search />
+                </template>
+              </a-input>
             </div>
-            <div class="filter-item">
-              <label class="filter-label">方案类别</label>
-              <select v-model="searchForm.category" class="filter-select">
-                <option value="">全部类别</option>
-                <option value="emotional">情感支持</option>
-                <option value="academic">学业提升</option>
-                <option value="behavioral">行为引导</option>
-                <option value="social">社交能力</option>
-                <option value="comprehensive">综合方案</option>
-              </select>
-            </div>
-            <div class="filter-item">
+            
+            <div class="filter-group">
               <label class="filter-label">方案状态</label>
-              <select v-model="searchForm.status" class="filter-select">
-                <option value="">全部状态</option>
-                <option value="draft">草稿</option>
-                <option value="active">进行中</option>
-                <option value="completed">已完成</option>
-                <option value="paused">已暂停</option>
-              </select>
+              <a-select
+                v-model="searchParams.schemeStatus"
+                placeholder="请选择方案状态"
+                allow-clear
+                class="filter-select-primary"
+                @change="handleSearch"
+              >
+                <a-option value="">所有状态</a-option>
+                <a-option value="draft">草稿</a-option>
+                <a-option value="active">进行中</a-option>
+                <a-option value="completed">已完成</a-option>
+                <a-option value="paused">已暂停</a-option>
+              </a-select>
             </div>
-            <div class="filter-item">
+            
+            <div class="filter-group">
               <label class="filter-label">创建日期</label>
-              <div class="date-range">
-                <Input 
-                  v-model="searchForm.startDate" 
+              <div class="date-filters">
+                <a-input 
+                  v-model="searchParams.startDate"
                   placeholder="开始日期"
-                  size="large"
+                  class="date-input"
+                  @keyup.enter="handleSearch"
+                  allow-clear
                 />
                 <span class="date-separator">至</span>
-                <Input 
-                  v-model="searchForm.endDate" 
+                <a-input 
+                  v-model="searchParams.endDate"
                   placeholder="结束日期"
-                  size="large"
+                  class="date-input"
+                  @keyup.enter="handleSearch"
+                  allow-clear
                 />
               </div>
             </div>
           </div>
-          <div class="filter-actions">
-            <Button @click="handleSearch" variant="primary">搜索</Button>
-            <Button @click="handleReset" variant="secondary">重置</Button>
-          </div>
         </div>
-      </Card>
+      </div>
 
       <!-- 方案列表 -->
-      <Card class="schemes-table-card">
-        <div v-if="isLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p class="loading-text">加载中...</p>
+      <div class="table-wrapper">
+        <a-space direction="vertical" size="large" fill>
+          <a-table
+            row-key="id"
+            :columns="columns"
+            :data="schemes"
+            :loading="isLoading"
+            :pagination="false"
+            :row-selection="rowSelection"
+            v-model:selectedKeys="selectedIds"
+          />
+        </a-space>
+        
+        <!-- 增强版分页组件 -->
+        <div v-if="!isLoading && schemes.length > 0">
+          <EnhancedPagination
+            v-model:currentPage="currentPage"
+            v-model:pageSize="pageSize"
+            :total="total"
+            :pageSizeOptions="[5, 10, 20, 30, 50]"
+            showTotal
+            showJumper
+            showSizeChanger
+            @change="handlePageChange"
+            @page-size-change="handlePageSizeChange"
+          />
         </div>
-        <div v-else-if="serviceSchemes.length === 0" class="empty-state">
-          <div class="empty-icon">📋</div>
-          <h3 class="empty-title">暂无服务方案</h3>
-          <p class="empty-description">还没有创建任何服务方案</p>
-          <Button @click="handleCreateScheme" variant="primary">新建方案</Button>
-        </div>
-        <div v-else class="schemes-table">
-          <table>
-            <thead>
-              <tr>
-                <th class="table-checkbox">
-                  <input 
-                    type="checkbox" 
-                    v-model="selectAll" 
-                    @change="handleSelectAll"
-                    class="select-all-checkbox"
-                  />
-                </th>
-                <th>方案标题</th>
-                <th>服务对象</th>
-                <th>类别</th>
-                <th>状态</th>
-                <th>完成进度</th>
-                <th>创建时间</th>
-                <th>负责人</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="scheme in serviceSchemes" 
-                :key="scheme.id" 
-                class="table-row"
-              >
-                <td class="table-checkbox">
-                  <input 
-                    type="checkbox" 
-                    v-model="selectedSchemes" 
-                    :value="scheme.id" 
-                    class="row-checkbox"
-                  />
-                </td>
-                <td class="scheme-title">
-                  <a href="#" @click.prevent="handleViewDetail(scheme.id)"
-                    class="title-link">
-                    {{ scheme.title }}
-                  </a>
-                </td>
-                <td class="child-info">
-                  <div class="child-avatar">
-                    <img 
-                      :src="defaultAvatar" 
-                      :alt="scheme.childName"
-                    />
-                  </div>
-                  <div class="child-details">
-                      <div class="child-name">{{ scheme.childName }}</div>
-                      <div class="child-meta">{{ scheme.childAge }}岁</div>
-                    </div>
-                </td>
-                <td class="scheme-category">
-                  <span :class="['category-badge', `category-${scheme.category}`]">
-                    {{ getCategoryText(scheme.category) }}
-                  </span>
-                </td>
-                <td class="scheme-status">
-                  <span :class="['status-badge', `status-${scheme.status}`]">
-                    {{ getStatusText(scheme.status) }}
-                  </span>
-                </td>
-                <td class="completion-progress">
-                  <div class="progress-display">
-                    <div class="progress-bar">
-                      <div 
-                        class="progress-fill" 
-                        :style="{ width: scheme.progress + '%' }"
-                      ></div>
-                    </div>
-                    <div class="progress-text">{{ scheme.progress }}%</div>
-                  </div>
-                </td>
-                <td class="create-time">
-                  {{ formatDate(scheme.createTime) }}
-                </td>
-                <td class="responsible-person">
-                  {{ scheme.createdBy?.name || '-' }}
-                </td>
-                <td class="action-buttons">
-                  <Button 
-                    size="small" 
-                    @click="handleViewDetail(scheme.id)"
-                    class="view-button"
-                  >
-                    查看
-                  </Button>
-                  <Button 
-                    size="small" 
-                    @click="handleEdit(scheme.id)"
-                    class="edit-button"
-                    v-if="scheme.status !== 'completed'"
-                  >
-                    编辑
-                  </Button>
-                  <Button 
-                    size="small" 
-                    variant="danger" 
-                    @click="handleDelete(scheme.id)"
-                    class="delete-button"
-                  >
-                    删除
-                  </Button>
-                  <Button 
-                    size="small" 
-                    @click="handleToggleStatus(scheme)"
-                    :class="['status-button', scheme.status === 'active' ? 'pause-button' : 'resume-button']"
-                    v-if="scheme.status === 'active' || scheme.status === 'paused'"
-                  >
-                    {{ scheme.status === 'active' ? '暂停' : '继续' }}
-                  </Button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 分页控件 -->
-        <div v-if="!isLoading && serviceSchemes.length > 0" class="pagination">
-          <div class="pagination-info">
-            共 {{ totalCount }} 条记录，第 {{ currentPage }} / {{ totalPages }} 页
-          </div>
-          <div class="pagination-controls">
-            <Button 
-              size="small" 
-              @click="handlePageChange(1)"
-              :disabled="currentPage === 1"
-            >
-              首页
-            </Button>
-            <Button 
-              size="small" 
-              @click="handlePageChange(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              上一页
-            </Button>
-            <Button 
-              size="small" 
-              @click="handlePageChange(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              下一页
-            </Button>
-            <Button 
-              size="small" 
-              @click="handlePageChange(totalPages)"
-              :disabled="currentPage === totalPages"
-            >
-              末页
-            </Button>
-            <div class="page-size-selector">
-              <label>每页</label>
-              <select v-model="pageSize" @change="handlePageSizeChange">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-              </select>
-              <label>条</label>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
-  </AppLayout>
+      </div>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, h } from 'vue';
 import { useRouter } from 'vue-router';
-import AppLayout from '@/components/layout/AppLayout.vue';
-import Card from '@/components/common/Card.vue';
-import Button from '@/components/common/Button.vue';
-import Input from '@/components/common/Input.vue';
-import { schemeService, type ServiceScheme } from '@/services/mock/schemeService';
+import { Message } from '@arco-design/web-vue';
+import type { TableColumnData } from '@arco-design/web-vue';
+import { http } from '@/services/api';
+
+// 表格列配置
+const columns = computed<TableColumnData[]>(() => [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    width: 80,
+    align: 'center'
+  },
+  {
+    title: '服务目标',
+    dataIndex: 'target',
+    width: 200,
+    ellipsis: true
+  },
+  {
+    title: '儿童姓名',
+    dataIndex: 'childName',
+    width: 120,
+    align: 'center'
+  },
+  {
+    title: '儿童年龄',
+    dataIndex: 'childAge',
+    width: 100,
+    align: 'center'
+  },
+  {
+    title: '服务措施',
+    dataIndex: 'measures',
+    width: 200,
+    ellipsis: true,
+    render: ({ record }) => {
+      if (Array.isArray(record.measures)) {
+        return record.measures.join(', ');
+      }
+      return record.measures || '-';
+    }
+  },
+  {
+    title: '方案状态',
+    dataIndex: 'schemeStatus',
+    width: 100,
+    align: 'center',
+    render: ({ record }) => {
+      const statusText = getStatusText(record.schemeStatus);
+      const statusColor = getStatusColor(record.schemeStatus);
+      return h('span', {
+        style: {
+          padding: '2px 8px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: '500',
+          backgroundColor: statusColor.bg,
+          color: statusColor.color
+        }
+      }, statusText);
+    }
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+    width: 180,
+    align: 'center',
+    render: ({ record }) => {
+      return formatDate(record.createTime);
+    }
+  },
+  {
+    title: '周期(天)',
+    dataIndex: 'cycle',
+    width: 100,
+    align: 'center'
+  },
+  {
+    title: '操作',
+    dataIndex: 'operations',
+    width: 150,
+    align: 'center',
+    render: ({ record }) => {
+      return h('div', { class: 'table-actions' }, [
+        h('a', {
+          href: 'javascript:;',
+          onClick: () => handleViewDetail(record.id),
+          class: 'action-link view-link'
+        }, '查看'),
+        h('a', {
+          href: 'javascript:;',
+          onClick: () => handleEdit(record.id),
+          class: 'action-link edit-link'
+        }, '编辑'),
+        h('a', {
+          href: 'javascript:;',
+          onClick: () => handleDelete(record.id),
+          class: 'action-link delete-link'
+        }, '删除')
+      ]);
+    }
+  }
+]);
 
 // 路由实例
 const router = useRouter();
@@ -306,83 +251,58 @@ const router = useRouter();
 // 加载状态
 const isLoading = ref(false);
 
-// 默认头像
-const defaultAvatar = 'https://picsum.photos/40/40?random=default';
+// 方案数据
+const schemes = ref([]);
+const total = ref(0);
 
-// 服务方案列表
-const serviceSchemes = ref<ServiceScheme[]>([]);
-
-// 搜索表单
-const searchForm = ref({
+// 搜索参数
+const searchParams = ref({
   childName: '',
-  category: '',
-  status: '',
+  schemeStatus: '',
   startDate: '',
   endDate: ''
 });
 
-// 分页信息
+// 分页状态
 const currentPage = ref(1);
 const pageSize = ref(10);
-const totalCount = ref(0);
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)));
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)));
 
-// 选择状态
-const selectedSchemes = ref<string[]>([]);
-const selectAll = ref(false);
+// 选中的行
+const selectedIds = ref<string[]>([]);
 
-// 统计数据
-const totalSchemes = ref(0);
-const activeSchemes = ref(0);
-const completedSchemes = ref(0);
-const helpedChildren = ref(0);
+// 行选择配置
+const rowSelection = {
+  type: 'checkbox' as const,
+  showCheckedAll: true,
+  onlyCurrent: false
+};
 
-// 获取服务方案列表
-const fetchServiceSchemes = async () => {
+// API 请求函数
+const loadSchemes = async (params: any = {}) => {
   try {
     isLoading.value = true;
-    const response = await schemeService.getServiceSchemes({
-      ...searchForm.value,
-      page: currentPage.value,
+    const response = await http.post('/api/social-worker/scheme/list', {
+      ...params,
+      page: currentPage.value - 1, // API 可能从 0 开始
       pageSize: pageSize.value
     });
-    serviceSchemes.value = response.list;
-    totalCount.value = response.total;
-    selectedSchemes.value = [];
-    selectAll.value = false;
-    updateStats();
-  } catch (error) {
-    console.error('获取服务方案失败:', error);
-    alert('获取服务方案失败，请稍后重试');
+    
+    if (response.data.code === 0) {
+      schemes.value = response.data.data.records || [];
+      total.value = response.data.data.total || 0;
+    } else {
+      Message.error(response.data.msg || '获取方案列表失败');
+    }
+  } catch (error: any) {
+    console.error('获取方案列表失败:', error);
+    Message.error('获取方案列表失败');
   } finally {
     isLoading.value = false;
   }
 };
 
-// 更新统计数据
-const updateStats = () => {
-  totalSchemes.value = totalCount.value;
-  activeSchemes.value = serviceSchemes.value.filter(scheme => scheme.status === 'active').length;
-  completedSchemes.value = serviceSchemes.value.filter(scheme => scheme.status === 'completed').length;
-  
-  // 获取唯一的儿童ID数量
-  const uniqueChildIds = new Set(serviceSchemes.value.map(scheme => scheme.childId));
-  helpedChildren.value = uniqueChildIds.size;
-};
-
-// 获取方案类别文本
-const getCategoryText = (category: string): string => {
-  const categoryMap = {
-    emotional: '情感支持',
-    academic: '学业提升',
-    behavioral: '行为引导',
-    social: '社交能力',
-    comprehensive: '综合方案'
-  };
-  return categoryMap[category as keyof typeof categoryMap] || category;
-};
-
-// 获取方案状态文本
+// 获取状态文本
 const getStatusText = (status: string): string => {
   const statusMap = {
     draft: '草稿',
@@ -393,8 +313,20 @@ const getStatusText = (status: string): string => {
   return statusMap[status as keyof typeof statusMap] || status;
 };
 
+// 获取状态颜色
+const getStatusColor = (status: string) => {
+  const colorMap = {
+    draft: { bg: 'rgba(107, 114, 128, 0.1)', color: '#6B7280' },
+    active: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22C55E' },
+    completed: { bg: 'rgba(79, 70, 229, 0.1)', color: '#4F46E5' },
+    paused: { bg: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B' }
+  };
+  return colorMap[status as keyof typeof colorMap] || colorMap.draft;
+};
+
 // 格式化日期
 const formatDate = (dateString: string): string => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -405,199 +337,207 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-// 查看详情
-const handleViewDetail = (id: string) => {
-  router.push(`/schemes/detail/${id}`);
-};
-
-// 编辑方案
-const handleEdit = (id: string) => {
-  router.push(`/schemes/edit/${id}`);
-};
-
-// 删除方案
-const handleDelete = async (id: string) => {
-  // 实际项目中需要调用确认对话框
-  try {
-    await schemeService.deleteServiceScheme(id);
-    // 重新加载数据
-    fetchServiceSchemes();
-    // 显示成功提示
-    console.log('删除成功');
-  } catch (error) {
-    console.error('删除失败', error);
-  }
-};
-
-// 切换状态
-const handleToggleStatus = async (scheme: ServiceScheme) => {
-  try {
-    const newStatus = scheme.status === 'active' ? 'paused' : 'active';
-    await schemeService.updateSchemeStatus(scheme.id, newStatus);
-    // 重新加载数据
-    fetchServiceSchemes();
-    // 显示成功提示
-    console.log('状态更新成功');
-  } catch (error) {
-    console.error('状态更新失败', error);
-  }
-};
-
-// 全选/取消全选
-const handleSelectAll = () => {
-  if (selectAll.value) {
-    selectedSchemes.value = serviceSchemes.value.map(scheme => scheme.id);
-  } else {
-    selectedSchemes.value = [];
-  }
-};
-
-// 搜索
+// 事件处理函数
 const handleSearch = () => {
   currentPage.value = 1;
-  fetchServiceSchemes();
+  loadSchemes(searchParams.value);
 };
 
-// 重置
 const handleReset = () => {
-  searchForm.value = {
+  searchParams.value = {
     childName: '',
-    category: '',
-    status: '',
+    schemeStatus: '',
     startDate: '',
     endDate: ''
   };
   currentPage.value = 1;
-  fetchServiceSchemes();
+  loadSchemes(searchParams.value);
 };
 
-// 页面变化
 const handlePageChange = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-    fetchServiceSchemes();
+  currentPage.value = page;
+  loadSchemes(searchParams.value);
+};
+
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1;
+  loadSchemes(searchParams.value);
+};
+
+const handleViewDetail = (id: number) => {
+  router.push(`/schemes/detail/${id}`);
+};
+
+const handleEdit = (id: number) => {
+  router.push(`/schemes/edit/${id}`);
+};
+
+const handleDelete = async (id: number) => {
+  if (confirm('确定要删除这个方案吗？')) {
+    try {
+      // 这里应该调用删除API
+      message.success('删除成功');
+      loadSchemes(searchParams.value);
+    } catch (error) {
+      message.error('删除失败');
+    }
   }
 };
 
-// 每页条数变化
-const handlePageSizeChange = () => {
-  currentPage.value = 1;
-  fetchServiceSchemes();
-};
-
-// 新建方案
 const handleCreateScheme = () => {
   router.push('/schemes/create');
 };
 
-// 组件挂载时初始化数据
+// 组件挂载时加载数据
 onMounted(() => {
-  fetchServiceSchemes();
+  loadSchemes(searchParams.value);
 });
 </script>
 
 <style scoped>
-.schemes-list-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
+/* 页面容器 */
+.schemes-main-content {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  padding: 20px 0;
 }
 
-/* 页面头部 */
+.schemes-list-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  position: relative;
+}
+
+/* 页面标题 */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .page-title {
   font-size: 28px;
-  font-weight: 700;
-  color: #1F2937;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #6b7280;
   margin: 0;
 }
 
-/* 统计卡片 */
-.stats-cards {
+/* 统计卡片样式 */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
   margin-bottom: 24px;
+  padding: 0 20px;
 }
 
-.stat-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.stats-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899);
 }
 
-.stat-content {
+.stats-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.stats-card-content {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
-.stat-icon {
-  font-size: 48px;
+.stats-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: white;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
 }
 
-.stat-info {
+.stats-info {
   flex: 1;
 }
 
-.stat-value {
+.stats-value {
   font-size: 32px;
   font-weight: 700;
-  color: #4F46E5;
-  line-height: 1;
+  color: #1F2937;
+  line-height: 1.1;
+  margin-bottom: 4px;
 }
 
-.stat-label {
+.stats-label {
   font-size: 14px;
   color: #6B7280;
-  margin-top: 4px;
-}
-
-.stat-trend {
-  font-size: 12px;
   font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 12px;
 }
 
-.stat-trend.positive {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
+/* 搜索筛选区域样式 */
+.search-filters-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  margin: 0 20px 24px;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  overflow: hidden;
 }
 
-.stat-trend.negative {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-}
-
-/* 筛选卡片 */
-.filter-card {
-  margin-bottom: 24px;
-}
-
-.filter-content {
+.filters-header {
+  padding: 20px 24px 0;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+.filters-content {
+  padding: 20px 24px 24px;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   align-items: end;
 }
 
 .filter-item {
+  flex: 1;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -605,413 +545,409 @@ onMounted(() => {
 
 .filter-label {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
+  margin-bottom: 4px;
 }
 
-.filter-select {
-  padding: 8px 12px;
-  border: 1px solid #D1D5DB;
-  border-radius: 6px;
+.filter-item :deep(.ant-input),
+.filter-item :deep(.ant-select-selector) {
+  border-radius: 8px;
+  border: 2px solid #E5E7EB;
+  transition: all 0.3s ease;
   font-size: 14px;
-  color: #1F2937;
-  background-color: #FFFFFF;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
 }
 
-.filter-select:hover {
+.filter-item :deep(.ant-input:hover),
+.filter-item :deep(.ant-select:hover .ant-select-selector) {
   border-color: #9CA3AF;
 }
 
-.filter-select:focus {
-  outline: none;
+.filter-item :deep(.ant-input:focus),
+.filter-item :deep(.ant-select-focused .ant-select-selector) {
   border-color: #4F46E5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-.date-range {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.date-separator {
+.filter-item :deep(.ant-input-prefix) {
   color: #6B7280;
-  font-size: 14px;
 }
 
 .filter-actions {
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  margin-top: 8px;
 }
 
-/* 表格卡片 */
-.schemes-table-card {
-  position: relative;
-}
-
-/* 加载状态 */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #E5E7EB;
-  border-top: 3px solid #4F46E5;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-  color: #6B7280;
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 空状态 */
-.empty-state {
-  text-align: center;
-  padding: 80px 20px;
-}
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-}
-
-.empty-title {
-  font-size: 20px;
+/* 按钮样式 */
+.action-button {
+  border-radius: 8px;
   font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 8px 0;
+  padding: 10px 20px;
+  height: auto;
+  transition: all 0.3s ease;
 }
 
-.empty-description {
+.search-button {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border: none;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.search-button:hover {
+  background: linear-gradient(135deg, #4338CA, #6D28D9);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  transform: translateY(-1px);
+}
+
+.reset-button {
+  border: 2px solid #E5E7EB;
   color: #6B7280;
-  font-size: 14px;
-  margin: 0 0 20px 0;
+  background: white;
+}
+
+.reset-button:hover {
+  border-color: #4F46E5;
+  color: #4F46E5;
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border: none;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  color: white;
+}
+
+.primary-button:hover {
+  background: linear-gradient(135deg, #4338CA, #6D28D9);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  transform: translateY(-1px);
+  color: white;
+}
+
+/* 表格容器样式 */
+.table-wrapper {
+  margin: 0 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  overflow: hidden;
 }
 
 /* 表格样式 */
-.schemes-table {
-  overflow-x: auto;
+.table-wrapper :deep(.ant-table) {
+  background: transparent;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.table-wrapper :deep(.ant-table-thead > tr > th) {
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+  border-bottom: 2px solid #E2E8F0;
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+.table-wrapper :deep(.ant-table-tbody > tr > td) {
+  border-bottom: 1px solid #F1F5F9;
+  padding: 16px;
   font-size: 14px;
 }
 
-th {
-  background-color: #F9FAFB;
-  padding: 12px 16px;
-  text-align: left;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #E5E7EB;
-  white-space: nowrap;
+.table-wrapper :deep(.ant-table-tbody > tr:hover > td) {
+  background: rgba(79, 70, 229, 0.02);
 }
 
-td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #E5E7EB;
-  vertical-align: middle;
+.table-wrapper :deep(.ant-table-tbody > tr:last-child > td) {
+  border-bottom: none;
 }
 
-.table-row {
-  transition: background-color 0.2s ease;
-}
-
-.table-row:hover {
-  background-color: #F9FAFB;
-}
-
-/* 表格中的特定列样式 */
-.table-checkbox {
-  width: 40px;
-}
-
-.select-all-checkbox,
-.row-checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.scheme-title .title-link {
-  color: #4F46E5;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.scheme-title .title-link:hover {
-  color: #4338CA;
-  text-decoration: underline;
-}
-
-.child-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.child-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.child-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.child-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.child-name {
-  font-weight: 500;
-  color: #1F2937;
-}
-
-.child-meta {
-  font-size: 12px;
-  color: #6B7280;
-}
-
-.category-badge,
-.status-badge {
+/* 状态标签样式 */
+.status-tag {
+  border-radius: 20px;
   padding: 4px 12px;
-  border-radius: 16px;
   font-size: 12px;
-  font-weight: 500;
-}
-
-.category-emotional {
-  background-color: rgba(236, 72, 153, 0.1);
-  color: #EC4899;
-}
-
-.category-academic {
-  background-color: rgba(79, 70, 229, 0.1);
-  color: #4F46E5;
-}
-
-.category-behavioral {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-}
-
-.category-social {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
-}
-
-.category-comprehensive {
-  background-color: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
-}
-
-.status-draft {
-  background-color: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
+  font-weight: 600;
+  border: none;
 }
 
 .status-active {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22C55E;
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-draft {
+  background: linear-gradient(135deg, #6B7280, #4B5563);
+  color: white;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
 }
 
 .status-completed {
-  background-color: rgba(79, 70, 229, 0.1);
-  color: #4F46E5;
+  background: linear-gradient(135deg, #4F46E5, #4338CA);
+  color: white;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
 
 .status-paused {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
-.progress-display {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 8px;
-  background-color: #E5E7EB;
-  border-radius: 4px;
-  overflow: hidden;
-  min-width: 80px;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #4F46E5;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-weight: 600;
-  color: #1F2937;
-  min-width: 35px;
-  text-align: right;
-}
-
-.action-buttons {
+/* 操作按钮组 */
+.action-button-group {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.status-button.pause-button {
-  background-color: #F59E0B;
-  color: #FFFFFF;
+.action-button-group .ant-btn {
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  height: auto;
+  font-weight: 500;
 }
 
-.status-button.resume-button {
-  background-color: #22C55E;
-  color: #FFFFFF;
+/* 表格行选择样式 */
+.table-wrapper :deep(.ant-checkbox-checked .ant-checkbox-inner) {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border-color: #4F46E5;
 }
 
-/* 分页控件 */
-.pagination {
+/* 分页样式 */
+.pagination-wrapper {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #E5E7EB;
+  justify-content: center;
+  padding: 24px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 0 16px 16px;
+  margin: 0 20px;
 }
 
-.pagination-info {
-  color: #6B7280;
-  font-size: 14px;
-}
-
-.pagination-controls {
+.pagination-wrapper :deep(.ant-pagination) {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.page-size-selector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: #6B7280;
+.pagination-wrapper :deep(.ant-pagination-item) {
+  border-radius: 8px;
+  border: 2px solid #E5E7EB;
+  transition: all 0.3s ease;
 }
 
-.page-size-selector select {
-  padding: 4px 8px;
-  border: 1px solid #D1D5DB;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #FFFFFF;
-  cursor: pointer;
+.pagination-wrapper :deep(.ant-pagination-item:hover) {
+  border-color: #4F46E5;
+}
+
+.pagination-wrapper :deep(.ant-pagination-item:hover a) {
+  color: #4F46E5;
+}
+
+.pagination-wrapper :deep(.ant-pagination-item-active) {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border-color: #4F46E5;
+}
+
+.pagination-wrapper :deep(.ant-pagination-item-active a) {
+  color: white;
+}
+
+.pagination-wrapper :deep(.ant-pagination-next):hover .ant-pagination-item-link,
+.pagination-wrapper :deep(.ant-pagination-prev):hover .ant-pagination-item-link {
+  border-color: #4F46E5;
+  color: #4F46E5;
 }
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
-  .filter-row {
+  .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .schemes-list-container {
-    padding: 16px;
-  }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 16px;
   }
   
-  .stats-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-  
-  .pagination {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
-  .pagination-controls {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .page-title {
-    font-size: 24px;
-  }
-  
-  .date-range {
+  .filter-group {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .date-separator {
-    text-align: center;
+  .filter-item {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .schemes-main-content {
+    padding: 16px 0;
   }
   
-  th,
-  td {
-    padding: 8px 12px;
+  .schemes-list-container,
+  .stats-grid,
+  .search-filters-card,
+  .table-wrapper,
+  .pagination-wrapper {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .stats-card {
+    padding: 20px;
+  }
+  
+  .stats-card-content {
+    gap: 16px;
+  }
+  
+  .stats-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+  
+  .stats-value {
+    font-size: 28px;
+  }
+  
+  .filters-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px 20px 0;
+  }
+  
+  .filters-content {
+    padding: 16px 20px 20px;
+  }
+  
+  .filter-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .table-wrapper :deep(.ant-table-thead > tr > th),
+  .table-wrapper :deep(.ant-table-tbody > tr > td) {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .action-button-group {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .schemes-list-container,
+  .stats-grid,
+  .search-filters-card,
+  .table-wrapper,
+  .pagination-wrapper {
+    margin-left: 8px;
+    margin-right: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .stats-card {
+    padding: 16px;
+  }
+  
+  .stats-card-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .stats-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+  
+  .stats-value {
+    font-size: 24px;
+  }
+  
+  .stats-label {
+    font-size: 13px;
+  }
+  
+  .filters-content {
+    padding: 12px 16px 16px;
+  }
+  
+  .table-wrapper :deep(.ant-table-thead > tr > th),
+  .table-wrapper :deep(.ant-table-tbody > tr > td) {
+    padding: 8px 4px;
     font-size: 12px;
   }
   
-  .action-buttons {
-    flex-direction: column;
+  .action-button-group .ant-btn {
+    padding: 2px 6px;
+    font-size: 11px;
   }
   
-  .progress-display {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .pagination-wrapper {
+    padding: 16px 12px;
   }
   
-  .progress-bar {
-    min-width: auto;
-    width: 100%;
+  .pagination-wrapper :deep(.ant-pagination) {
+    flex-wrap: wrap;
+    justify-content: center;
   }
+}
+
+/* 加载动画优化 */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+  }
+}
+
+.stats-card.loading {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* 焦点状态优化 */
+.action-button:focus,
+.filter-item :deep(.ant-input):focus,
+.filter-item :deep(.ant-select-focused .ant-select-selector) {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 悬停效果增强 */
+.stats-card,
+.search-filters-card,
+.table-wrapper {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.stats-card:hover,
+.search-filters-card:hover,
+.table-wrapper:hover {
+  transform: translateY(-2px);
 }
 </style>
