@@ -123,6 +123,14 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'AI模拟训练 - CareSync AI'
     }
+  },
+  {
+    path: '/training',
+    name: 'training',
+    component: () => import('../views/tracking/TrackingListView.vue'),
+    meta: {
+      title: '服务跟踪 - CareSync AI'
+    }
   }
 ]
 
