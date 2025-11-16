@@ -29,11 +29,12 @@
                 <p class="page-subtitle">儿童编号: {{ childDetail.childNo }}</p>
               </div>
               <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
-                <a-button @click="$router.push('/social-worker/children')">
+                <a-button class="btn btn-primary" @click="$router.push('/social-worker/children')">
                   <template #icon><ArrowLeftOutlined /></template>
                   返回列表
                 </a-button>
                 <a-button 
+                  class="btn btn-primary"
                   :type="editMode ? 'default' : 'primary'" 
                   @click="toggleEditMode"
                 >
