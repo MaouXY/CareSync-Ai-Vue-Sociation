@@ -228,7 +228,7 @@ const columns = computed<TableColumnData[]>(() => [
     }
   },
   {
-    title: '周期(天)',
+    title: '周期',
     dataIndex: 'cycle',
     width: 100,
     align: 'center'
@@ -1060,7 +1060,7 @@ onMounted(() => {
 }
 
 /* 悬停效果增强 */
-.stats-card,
+/* .stats-card,
 .search-filters-card,
 .table-wrapper {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1070,5 +1070,5 @@ onMounted(() => {
 .search-filters-card:hover,
 .table-wrapper:hover {
   transform: translateY(-2px);
-}
+} */
 </style>

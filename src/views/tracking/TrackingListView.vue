@@ -17,7 +17,7 @@
               @click="handleExport"
             >
               <template #icon>
-                <icon-plus />
+                <icon-launch />
               </template>
               导出进度报告
             </a-button>
@@ -118,7 +118,11 @@
             </div>
           </div>
           <div class="chart-container">
-            <canvas ref="statusChartRef"></canvas>
+            <div 
+              ref="statusChartRef" 
+              class="echart-container"
+              style="height: 300px;"
+            ></div>
           </div>
         </div>
 
@@ -134,7 +138,11 @@
             </div>
           </div>
           <div class="chart-container">
-            <canvas ref="progressChartRef"></canvas>
+            <div 
+              ref="progressChartRef" 
+              class="echart-container"
+              style="height: 300px;"
+            ></div>
           </div>
         </div>
       </div>
@@ -165,7 +173,7 @@
             <div class="filter-group">
               <label class="filter-label">方案名称/儿童姓名</label>
               <a-input 
-                v-model="searchParams.name"
+                v-model="searchParams.target"
                 placeholder="请输入方案名称或儿童姓名" 
                 class="search-input-primary"
                 @keyup.enter="handleSearch"
@@ -198,7 +206,7 @@
             <div class="filter-group">
               <label class="filter-label">方案类型</label>
               <a-select
-                v-model="searchParams.schemeType"
+                v-model="searchParams.schemeStatus"
                 placeholder="请选择方案类型"
                 allow-clear
                 class="filter-select-primary"
@@ -280,6 +288,7 @@ import { ref, reactive, computed, onMounted, nextTick, h } from 'vue';
 import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import type { TableColumnData } from '@arco-design/web-vue';
+import * as echarts from 'echarts';
 import { http } from '@/services/api';
 import EnhancedPagination from '@/components/common/EnhancedPagination.vue';
 import WorkHeader from '@/components/layout/WorkHeader.vue';
@@ -295,6 +304,7 @@ import {
   IconLoading,
   IconCheckCircle,
   IconBarChart,
+  IconLaunch,
 } from '@arco-design/web-vue/es/icon'
 
 // 路由
@@ -307,14 +317,16 @@ const total = ref(0);
 const selectedIds = ref<string[]>([]);
 
 // 统计数据
-const totalSchemes = ref(32);
-const inProgressSchemes = ref(18);
-const completedSchemes = ref(10);
-const averageCompletionRate = ref(83);
+const totalSchemes = ref(0);
+const inProgressSchemes = ref(0);
+const completedSchemes = ref(0);
+const averageCompletionRate = ref(0);
 
-// 图表相关
-const statusChartRef = ref<HTMLCanvasElement>();
-const progressChartRef = ref<HTMLCanvasElement>();
+// 图表引用
+const statusChartRef = ref<HTMLDivElement>();
+const progressChartRef = ref<HTMLDivElement>();
+
+// 图表相关（已合并到上面的引用定义）
 const statusChartPeriod = ref('30');
 const progressChartPeriod = ref('8');
 
@@ -528,38 +540,216 @@ const loadTrackingData = async () => {
   }
 };
 
+// 加载统计数据
+const loadStatistics = async () => {
+  try {
+    const response: any = await http.get('/api/social-worker/track/statistics');
+    
+    if (response.code === 1) {
+      const data = response.data || {};
+      totalSchemes.value = data.totalSchemeCount || 0;
+      inProgressSchemes.value = data.inProgressCount || 0;
+      // 暂时不使用 progressTrend 数据
+      
+      // 计算已完成方案数和平均完成率
+      completedSchemes.value = totalSchemes.value - inProgressSchemes.value;
+      if (totalSchemes.value > 0) {
+        averageCompletionRate.value = Math.round((completedSchemes.value / totalSchemes.value) * 100);
+      }
+    } else {
+      console.error('获取统计数据失败:', response.msg);
+    }
+  } catch (error) {
+    console.error('获取统计数据异常:', error);
+  }
+};
+
 // 更新统计数据
 const updateStatistics = () => {
-  // 模拟统计数据，实际应该从后端获取
-  totalSchemes.value = trackingData.value.length;
-  inProgressSchemes.value = trackingData.value.filter((item: any) => item.schemeStatus === 'IN_PROGRESS').length;
-  completedSchemes.value = trackingData.value.filter((item: any) => item.schemeStatus === 'COMPLETED').length;
-  
-  // 计算平均完成率
-  const totalProgress = trackingData.value.reduce((sum: number, item: any) => {
-    const progress = item.totalTasks > 0 ? (item.progress / item.totalTasks) * 100 : 0;
-    return sum + progress;
-  }, 0);
-  averageCompletionRate.value = trackingData.value.length > 0 ? Math.round(totalProgress / trackingData.value.length) : 0;
+  // 如果列表数据发生变化，重新计算平均值（不影响总的方案数和进行中方案数）
+  if (trackingData.value.length > 0) {
+    // 计算平均完成率（基于已完成的任务/总任务）
+    const totalProgress = trackingData.value.reduce((sum: number, item: any) => {
+      const progress = item.totalTasks > 0 ? (item.progress / item.totalTasks) * 100 : 0;
+      return sum + progress;
+    }, 0);
+    averageCompletionRate.value = Math.round(totalProgress / trackingData.value.length);
+  }
 };
 
 // 初始化图表
 const initCharts = () => {
   nextTick(() => {
-    // 这里应该使用Chart.js初始化图表
-    // 为了演示，这里只是占位
-    console.log('图表初始化');
+    if (statusChartRef.value) {
+      initStatusChart();
+    }
+    if (progressChartRef.value) {
+      initProgressChart();
+    }
   });
+};
+
+// 初始化状态分布饼图
+const initStatusChart = () => {
+  if (!statusChartRef.value) return;
+  
+  const chart = echarts.init(statusChartRef.value);
+  
+  // 基于响应式数据生成图表配置
+  const option = generateStatusChartOption();
+  
+  chart.setOption(option);
+  
+  // 响应式处理
+  window.addEventListener('resize', () => {
+    chart.resize();
+  });
+  
+  // 保存图表实例以便后续更新
+  (statusChartRef.value as any).chart = chart;
+};
+
+// 生成状态图表配置
+const generateStatusChartOption = () => {
+  // 计算各状态的方案数量
+  const statusData = [
+    { name: '进行中', value: inProgressSchemes.value, color: '#22C55E' },
+    { name: '已完成', value: completedSchemes.value, color: '#4F46E5' },
+    { name: '待审核', value: Math.max(0, totalSchemes.value - inProgressSchemes.value - completedSchemes.value), color: '#F59E0B' }
+  ];
+  
+  return {
+    title: {
+      // text: '方案状态分布',
+      left: 'center',
+      top: '5%',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#374151'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'horizontal',
+      bottom: '10%',
+      left: 'center',
+      itemGap: 20,
+      textStyle: {
+        fontSize: 12,
+        color: '#6B7280'
+      }
+    },
+    series: [
+      {
+        name: '方案状态',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['50%', '45%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 8,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '18',
+            fontWeight: 'bold',
+            color: '#374151'
+          },
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: statusData.map(item => ({
+          value: item.value,
+          name: item.name,
+          itemStyle: {
+            color: item.color
+          }
+        }))
+      }
+    ]
+  };
+};
+
+// 初始化进度趋势图表（留空实现）
+const initProgressChart = () => {
+  // 进度趋势图表的实现，这里暂时留空
+  if (progressChartRef.value) {
+    const chart = echarts.init(progressChartRef.value);
+    const option = {
+      title: {
+        // text: '服务进度趋势',
+        left: 'center',
+        top: '5%',
+        textStyle: {
+          fontSize: 16,
+          fontWeight: 'bold',
+          color: '#374151'
+        }
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      xAxis: {
+        type: 'category',
+        data: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周']
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [{
+        data: [120, 200, 150, 80, 70, 110, 130, 90],
+        type: 'line',
+        smooth: true,
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(79, 70, 229, 0.8)' },
+              { offset: 1, color: 'rgba(79, 70, 229, 0.1)' }
+            ]
+          }
+        }
+      }]
+    };
+    chart.setOption(option);
+    (progressChartRef.value as any).chart = chart;
+  }
 };
 
 // 更新状态分布图表
 const updateStatusChart = () => {
-  console.log('更新状态分布图表，周期：', statusChartPeriod.value);
+  if (statusChartRef.value && (statusChartRef.value as any).chart) {
+    const chart = (statusChartRef.value as any).chart;
+    const newOption = generateStatusChartOption();
+    chart.setOption(newOption, true);
+  }
 };
 
 // 更新进度趋势图表
 const updateProgressChart = () => {
-  console.log('更新进度趋势图表，周期：', progressChartPeriod.value);
+  if (progressChartRef.value && (progressChartRef.value as any).chart) {
+    const chart = (progressChartRef.value as any).chart;
+    // 这里可以更新进度趋势数据，暂时使用固定数据
+    console.log('更新进度趋势图表');
+  }
 };
 
 // 事件处理函数
@@ -614,8 +804,9 @@ const handlePageSizeChange = (size: number) => {
 };
 
 // 组件挂载时加载数据
-onMounted(() => {
-  loadTrackingData();
+onMounted(async () => {
+  await loadStatistics(); // 先加载统计数据
+  await loadTrackingData(); // 再加载跟踪数据
   initCharts();
 });
 </script>
