@@ -1,7 +1,7 @@
 <template>
   <div class="app-layout">
     <!-- 导航栏 -->
-    <Navbar />
+    <WorkHeader />
     
     <!-- 主内容区域 -->
     <main class="main-content" :class="{ 'no-padding': $slots.header || $slots.footer }">
@@ -22,7 +22,7 @@
     </main>
     
     <!-- 页脚 -->
-    <Footer />
+    <!-- <Footer /> -->
     
     <!-- 返回顶部按钮 -->
     <button
@@ -42,6 +42,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import Navbar from './Navbar.vue';
 import Footer from './Footer.vue';
+import WorkHeader from './WorkHeader.vue';
 
 // 响应式数据
 const showBackToTop = ref(false);
@@ -79,7 +80,7 @@ onUnmounted(() => {
 /* 主内容区域 */
 .main-content {
   flex: 1;
-  padding-top: 72px; /* 导航栏高度 */
+  padding-top: 30px; /* 导航栏高度 */
 }
 
 .main-content.no-padding {

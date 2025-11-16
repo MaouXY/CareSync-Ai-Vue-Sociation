@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-light">
     <AppLayout>
-      <div class="p-6">
+      <div class="px-6">
         <!-- 页面加载状态 -->
         <div v-if="loading" class="flex justify-center items-center h-64">
           <a-spin size="large" />
@@ -21,28 +21,30 @@
         
         <!-- 儿童详情内容 -->
         <div v-else-if="childDetail" class="space-y-6">
-          <!-- 页面头部和操作按钮 -->
-          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-            <div>
-              <h1 class="text-2xl font-bold text-dark">{{ childDetail.name }}的详情</h1>
-              <p class="text-neutral mt-1">儿童编号: {{ childDetail.childNo }}</p>
-            </div>
-            <div class="flex flex-wrap gap-3">
-              <a-button @click="$router.push('/social-worker/children')">
-                <template #icon><ArrowLeftOutlined /></template>
-                返回列表
-              </a-button>
-              <a-button 
-                :type="editMode ? 'default' : 'primary'" 
-                @click="toggleEditMode"
-              >
-                <template #icon><EditOutlined v-if="!editMode" /><CloseOutlined v-else /></template>
-                {{ editMode ? '取消编辑' : '编辑信息' }}
-              </a-button>
-              <a-button type="default" @click="viewRecordMode = !viewRecordMode">
-                <template #icon><FileTextOutlined /></template>
-                {{ viewRecordMode ? '隐藏记录' : '查看记录' }}
-              </a-button>
+          <!-- 页面标题和操作栏 -->
+          <div class="page-header pt-4">
+            <div class="flex sm:flex-row sm:justify-between sm:items-center">
+              <div class="flex flex-col">
+                <h1 class="page-title">{{ childDetail.name }}的详情</h1>
+                <p class="page-subtitle">儿童编号: {{ childDetail.childNo }}</p>
+              </div>
+              <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
+                <a-button @click="$router.push('/social-worker/children')">
+                  <template #icon><ArrowLeftOutlined /></template>
+                  返回列表
+                </a-button>
+                <a-button 
+                  :type="editMode ? 'default' : 'primary'" 
+                  @click="toggleEditMode"
+                >
+                  <template #icon><EditOutlined v-if="!editMode" /><CloseOutlined v-else /></template>
+                  {{ editMode ? '取消编辑' : '编辑信息' }}
+                </a-button>
+                <!-- <a-button type="default" @click="viewRecordMode = !viewRecordMode">
+                  <template #icon><FileTextOutlined /></template>
+                  {{ viewRecordMode ? '隐藏记录' : '查看记录' }}
+                </a-button> -->
+              </div>
             </div>
           </div>
           
@@ -57,9 +59,16 @@
                 <div class="mt-4 text-center">
                   <h2 class="text-xl font-bold text-dark">{{ childDetail.name }}</h2>
                   <p class="text-neutral text-sm mt-1">编号: {{ childDetail.childNo }}</p>
+                  <p class="text-neutral text-sm mt-1">年龄: {{ childDetail.age }}岁</p>
                   <div class="flex justify-center space-x-2 mt-3">
                     <a-tag :color="childDetail.hasNewChat ? 'processing' : 'default'">
                       {{ childDetail.hasNewChat ? '有新对话' : '无新对话' }}
+                    </a-tag>
+                    <a-tag :color="getRiskLevelColor(childDetail.riskLevel)">
+                      {{ childDetail.riskLevel }}
+                    </a-tag>
+                    <a-tag :color="getServiceStatusColor(childDetail.serviceStatus)">
+                      {{ childDetail.serviceStatus }}
                     </a-tag>
                   </div>
                 </div>
@@ -71,112 +80,126 @@
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">姓名</label>
-                      <a-input 
-                        v-model:value="editForm.name" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                      />
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.name" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.name || '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">性别</label>
-                      <a-select 
-                        v-model:value="editForm.gender" 
-                        :disabled="!editMode"
-                        class="w-full bg-gray-50"
-                      >
-                        <a-select-option value="male">男</a-select-option>
-                        <a-select-option value="female">女</a-select-option>
-                      </a-select>
+                      <div v-if="editMode">
+                        <a-select 
+                          v-model:value="editForm.gender" 
+                          class="w-full bg-gray-50"
+                        >
+                          <a-select-option value="male">男</a-select-option>
+                          <a-select-option value="female">女</a-select-option>
+                        </a-select>
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.gender === 'male' ? '男' : childDetail.gender === 'female' ? '女' : '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">出生日期</label>
-                      <a-date-picker 
-                        v-model:value="editForm.birthDate" 
-                        :disabled="!editMode"
-                        class="w-full bg-gray-50"
-                        placeholder="选择出生日期"
-                      />
+                      <div v-if="editMode">
+                        <a-date-picker 
+                          v-model:value="editForm.birthDate" 
+                          class="w-full bg-gray-50"
+                          placeholder="选择出生日期"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.birthDate ? formatDate(childDetail.birthDate) : '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">身份证号</label>
-                      <a-input 
-                        v-model:value="editForm.idCard" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                      />
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.idCard" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.idCard || '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">联系电话</label>
-                      <a-input 
-                        v-model:value="editForm.phone" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                      />
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.phone" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.phone || '-' }}</div>
                     </div>
                   </div>
                   
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">风险等级</label>
-                      <a-select 
-                        v-model:value="editForm.riskLevel" 
-                        :disabled="!editMode"
-                        class="w-full bg-gray-50"
-                      >
-                        <a-select-option value="low">低风险</a-select-option>
-                        <a-select-option value="medium">中风险</a-select-option>
-                        <a-select-option value="high">高风险</a-select-option>
-                      </a-select>
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.riskLevel" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.riskLevel || '-' }}</div>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-neutral mb-2">支持状态</label>
-                      <a-select 
-                        v-model:value="editForm.supportStatus" 
-                        :disabled="!editMode"
-                        class="w-full bg-gray-50"
-                      >
-                        <a-select-option value="active">进行中</a-select-option>
-                        <a-select-option value="pending">待开始</a-select-option>
-                        <a-select-option value="completed">已完成</a-select-option>
-                      </a-select>
+                      <label class="block text-sm font-medium text-neutral mb-2">服务状态</label>
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.serviceStatus" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.serviceStatus || '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">监护人姓名</label>
-                      <a-input 
-                        v-model:value="editForm.guardianName" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                      />
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.guardianName" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.guardianName || '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">监护人电话</label>
-                      <a-input 
-                        v-model:value="editForm.guardianPhone" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                      />
+                      <div v-if="editMode">
+                        <a-input 
+                          v-model:value="editForm.guardianPhone" 
+                          class="bg-gray-50"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.guardianPhone || '-' }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">地址</label>
-                      <a-textarea 
-                        v-model:value="editForm.address" 
-                        :disabled="!editMode" 
-                        class="bg-gray-50"
-                        :rows="2"
-                      />
+                      <div v-if="editMode">
+                        <a-textarea 
+                          v-model:value="editForm.address" 
+                          class="bg-gray-50"
+                          :rows="2"
+                        />
+                      </div>
+                      <div v-else class="text-dark py-2">{{ childDetail.address || '-' }}</div>
                     </div>
                   </div>
                 </div>
                 
                 <div class="mt-6">
                   <label class="block text-sm font-medium text-neutral mb-2">备注</label>
-                  <a-textarea 
-                    v-model:value="editForm.notes" 
-                    :disabled="!editMode" 
-                    class="bg-gray-50"
-                    :rows="3"
-                    placeholder="请输入备注信息"
-                  />
+                  <div v-if="editMode">
+                    <a-textarea 
+                      v-model:value="editForm.notes" 
+                      class="bg-gray-50"
+                      :rows="3"
+                      placeholder="请输入备注信息"
+                    />
+                  </div>
+                  <div v-else class="text-dark py-2">{{ childDetail.notes || '-' }}</div>
                 </div>
               </div>
             </div>
@@ -201,16 +224,16 @@
           </div>
           
           <!-- AI分析结果区域 -->
-          <div v-if="aiAnalysisData" class="bg-white rounded-xl shadow card-shadow p-6">
+          <div v-if="childDetail.aiStructInfo" class="bg-white rounded-xl shadow card-shadow p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-xl font-bold text-dark">AI情感分析结果</h3>
               <a-tag color="primary">
-                最近分析: {{ formatDate(childDetail.aiAnalysisTime || '') }}
+                最近分析: {{ formatDate(childDetail.aiStructInfo.latestAnalysis || childDetail.aiAnalysisTime || '') }}
               </a-tag>
             </div>
             
             <!-- 情感趋势图 -->
-            <div class="mb-8" v-if="aiAnalysisData.emotion_history && aiAnalysisData.emotion_history.length > 0">
+            <div class="mb-8" v-if="childDetail.aiStructInfo.emotionHistory && childDetail.aiStructInfo.emotionHistory.length > 0">
               <div class="flex justify-between items-center mb-4">
                 <h4 class="text-lg font-medium text-dark">情感变化趋势</h4>
                 <div class="flex space-x-2">
@@ -243,11 +266,11 @@
             </div>
             
             <!-- 情感指标评分卡片 -->
-            <div v-if="aiAnalysisData.emotion_scores" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div v-for="(score, emotion) in aiAnalysisData.emotion_scores" :key="emotion" 
+            <div v-if="childDetail.aiStructInfo.emotionScores" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div v-for="(score, emotion) in childDetail.aiStructInfo.emotionScores" :key="emotion" 
                    class="bg-blue-50 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm font-medium text-blue-700">{{ emotion }}</span>
+                  <span class="text-sm font-medium text-blue-700">{{ getEmotionDisplayName(emotion) }}</span>
                   <span class="text-xl font-bold text-blue-800">{{ score }}分</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -263,20 +286,20 @@
             </div>
             
             <!-- 核心需求和关键发现 -->
-            <div v-if="aiAnalysisData.core_needs || aiAnalysisData.key_findings" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div v-if="aiAnalysisData.core_needs" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+            <div v-if="childDetail.aiStructInfo.coreNeeds || childDetail.aiStructInfo.keyFindings" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div v-if="childDetail.aiStructInfo.coreNeeds" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                 <h4 class="text-md font-medium text-dark mb-3">核心需求</h4>
                 <div class="space-y-2">
-                  <a-tag v-for="need in aiAnalysisData.core_needs" :key="need" color="primary">
+                  <a-tag v-for="need in childDetail.aiStructInfo.coreNeeds" :key="need" color="primary">
                     {{ need }}
                   </a-tag>
                 </div>
               </div>
               
-              <div v-if="aiAnalysisData.key_findings" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+              <div v-if="childDetail.aiStructInfo.keyFindings" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                 <h4 class="text-md font-medium text-dark mb-3">关键发现</h4>
                 <ul class="space-y-1 text-sm text-neutral">
-                  <li v-for="finding in aiAnalysisData.key_findings" :key="finding" class="flex items-start">
+                  <li v-for="finding in childDetail.aiStructInfo.keyFindings" :key="finding" class="flex items-start">
                     <i class="fa fa-check-circle text-success mr-2 mt-0.5 flex-shrink-0"></i>
                     {{ finding }}
                   </li>
@@ -285,11 +308,28 @@
             </div>
             
             <!-- AI分析摘要 -->
-            <div v-if="aiAnalysisData.description" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+            <div v-if="childDetail.aiStructInfo.description" class="bg-gray-50 rounded-lg p-5 border border-gray-200 mb-6">
               <h4 class="text-md font-medium text-dark mb-3">分析摘要</h4>
               <p class="text-sm text-neutral leading-relaxed">
-                {{ aiAnalysisData.description }}
+                {{ childDetail.aiStructInfo.description }}
               </p>
+            </div>
+            
+            <!-- 建议措施 -->
+            <div v-if="childDetail.aiStructInfo.recommendations" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+              <h4 class="text-md font-medium text-dark mb-3">建议措施</h4>
+              <div class="space-y-4">
+                <div v-for="(recommendation, index) in childDetail.aiStructInfo.recommendations" :key="index" 
+                     class="p-4 border border-gray-200 rounded-lg bg-white">
+                  <div class="flex justify-between items-start mb-2">
+                    <h5 class="font-medium text-dark">{{ recommendation.title }}</h5>
+                    <a-tag :color="getPriorityColor(recommendation.priority)">
+                      {{ getPriorityText(recommendation.priority) }}
+                    </a-tag>
+                  </div>
+                  <p class="text-sm text-neutral">{{ recommendation.description }}</p>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -392,7 +432,7 @@ const editForm = ref({
   idCard: '',
   phone: '',
   riskLevel: '',
-  supportStatus: '',
+  serviceStatus: '',
   guardianName: '',
   guardianPhone: '',
   address: '',
@@ -492,46 +532,45 @@ const initEditForm = () => {
   if (childDetail.value) {
     editForm.value = {
       name: childDetail.value.name || '',
-      gender: '',
-      birthDate: null,
-      idCard: '',
-      phone: '',
-      riskLevel: '',
-      supportStatus: '',
-      guardianName: '',
-      guardianPhone: '',
-      address: '',
-      notes: ''
+      gender: childDetail.value.gender || '',
+      birthDate: childDetail.value.birthDate ? new Date(childDetail.value.birthDate) : null,
+      idCard: childDetail.value.idCard || '',
+      phone: childDetail.value.phone || '',
+      riskLevel: childDetail.value.riskLevel || '',
+      serviceStatus: childDetail.value.serviceStatus || '',
+      guardianName: childDetail.value.guardianName || '',
+      guardianPhone: childDetail.value.guardianPhone || '',
+      address: childDetail.value.address || '',
+      notes: childDetail.value.notes || ''
     }
   }
 }
 
-// 解析AI分析数据
+// 解析AI分析数据（保留兼容性）
 const parseAiAnalysisData = () => {
   if (childDetail.value?.aiStructInfo) {
-    try {
-      aiAnalysisData.value = JSON.parse(childDetail.value.aiStructInfo)
-      nextTick(() => {
-        initEmotionChart()
-      })
-    } catch (err) {
-      console.error('解析AI数据失败:', err)
-      aiAnalysisData.value = null
-    }
+    aiAnalysisData.value = childDetail.value.aiStructInfo
+    nextTick(() => {
+      initEmotionChart()
+    })
   }
 }
 
 // 初始化情感图表
 const initEmotionChart = () => {
-  if (!emotionChartRef.value || !aiAnalysisData.value?.emotion_history) return
+  if (!emotionChartRef.value || !aiAnalysisData.value?.emotionScores) return
   
   // 销毁现有图表
   if (emotionChart) {
     emotionChart.destroy()
   }
   
-  // 简化图表实现（使用纯CSS进度条替代Canvas）
-  console.log('初始化情感趋势图...')
+  // 使用情感分数数据创建图表
+  const scores = aiAnalysisData.value.emotionScores
+  console.log('初始化情感趋势图:', scores)
+  
+  // 可以在这里使用 Chart.js 或其他图表库创建可视化
+  // 暂时使用console输出调试
 }
 
 // 切换编辑模式
@@ -574,6 +613,67 @@ const saveChanges = async () => {
   }
 }
 
+// 获取风险等级颜色
+const getRiskLevelColor = (riskLevel: string) => {
+  const colorMap: Record<string, string> = {
+    '高': 'red',
+    '中': 'orange',
+    '低': 'green',
+    '正常': 'blue'
+  }
+  return colorMap[riskLevel] || 'default'
+}
+
+// 获取服务状态颜色
+const getServiceStatusColor = (serviceStatus: string) => {
+  const colorMap: Record<string, string> = {
+    '进行中': 'processing',
+    '已完成': 'success',
+    '暂停': 'warning',
+    '未开始': 'default',
+    '待服务': 'default'
+  }
+  return colorMap[serviceStatus] || 'default'
+}
+
+// 获取情感指标显示名称
+const getEmotionDisplayName = (emotion: string) => {
+  const nameMap: Record<string, string> = {
+    'emotionalStability': '情绪稳定性',
+    'positiveEmotion': '积极情绪指数',
+    'anxietyLevel': '焦虑水平',
+    'socialAdaptation': '社交适应性',
+    'learningMotivation': '学习积极性'
+  }
+  return nameMap[emotion] || emotion
+}
+
+// 获取优先级颜色
+const getPriorityColor = (priority: string) => {
+  const colorMap: Record<string, string> = {
+    '高': 'red',
+    '中': 'orange',
+    '低': 'green',
+    'high': 'red',
+    'medium': 'orange',
+    'low': 'green'
+  }
+  return colorMap[priority] || 'default'
+}
+
+// 获取优先级文本
+const getPriorityText = (priority: string) => {
+  const textMap: Record<string, string> = {
+    'high': '高优先级',
+    'medium': '中优先级',
+    'low': '低优先级',
+    '高': '高优先级',
+    '中': '中优先级',
+    '低': '低优先级'
+  }
+  return textMap[priority] || priority
+}
+
 // 获取情感描述
 const getEmotionDescription = (emotion: string, score: number) => {
   const descriptions: Record<string, Record<string, string>> = {
@@ -612,7 +712,11 @@ const getEmotionDescription = (emotion: string, score: number) => {
 // 格式化日期
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString('zh-CN')
+  const d = new Date(dateStr)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 // 监听图表周期变化
