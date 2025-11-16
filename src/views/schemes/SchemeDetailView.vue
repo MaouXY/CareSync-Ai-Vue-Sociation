@@ -222,7 +222,7 @@
           </div>
         </Card>
 
-        <!-- 执行日志 --<Card class="execution-logs-card">
+        <!-- 执行日志 --><Card class="execution-logs-card">
           <div class="card-header">
             <h2 class="card-title">执行日志</h2>
             <Button 
@@ -271,7 +271,7 @@
           </div>
         </Card>
 
-        <!-- 效果评估 --<Card class="evaluation-card">
+        <!-- 效果评估 --><Card class="evaluation-card">
           <div class="card-header">
             <h2 class="card-title">效果评估</h2>
           </div>
