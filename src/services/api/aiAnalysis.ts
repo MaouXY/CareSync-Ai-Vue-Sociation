@@ -18,7 +18,9 @@ const getAnalysisList = (params: AiAnalysisQueryDTO): Promise<ResultPageResultAi
  * 获取AI分析结果详情
  */
 const getAnalysisDetail = (id: number): Promise<ResultAiAnalysisResultVO> => {
-  return http.get(`/api/social-worker/ai/analysis/${id}`);
+  const res= http.get(`/api/social-worker/ai/analysis/${id}`);
+  console.log('getAnalysisDetail', res);
+  return res as any
 };
 
 /**

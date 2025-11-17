@@ -37,6 +37,7 @@ http.interceptors.response.use(
       if (result.code === 0 || result.code === 1) {
         // 成功，返回数据部分
         return result.data
+        //return result
       } else {
         // 失败，显示错误信息
         const errorMessage = result.msg || '请求失败'

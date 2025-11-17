@@ -521,7 +521,7 @@ const loadTrackingData = async () => {
     isLoading.value = true;
     const queryParams = buildQueryParams();
     
-    const response: any = await http.post('/api/social-worker/track/scheme/list', queryParams);
+    const response: any = await http.post('/social-worker/track/scheme/list', queryParams);
     
     if (response.code === 1) {
       trackingData.value = response.data.records || [];
@@ -543,7 +543,7 @@ const loadTrackingData = async () => {
 // 加载统计数据
 const loadStatistics = async () => {
   try {
-    const response: any = await http.get('/api/social-worker/track/statistics');
+    const response: any = await http.get('/social-worker/track/statistics');
     
     if (response.code === 1) {
       const data = response.data || {};
@@ -932,8 +932,8 @@ onMounted(async () => {
 .btn-primary:hover:not(:disabled) {
   background-color: #4338ca;
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
-}
+ /*  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+ */}
 
 .btn-outline {
   background-color: white;
@@ -965,8 +965,8 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08); */
+  /* transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
   position: relative;
   overflow: hidden;
 }
@@ -982,8 +982,8 @@ onMounted(async () => {
 }
 
 .stats-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.15);
+  /* transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.15); */
   border-color: rgba(79, 70, 229, 0.2);
 }
 
@@ -1066,12 +1066,12 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
 }
 
 .chart-card:hover {
-  box-shadow: 0 8px 30px rgba(79, 70, 229, 0.12);
+  /* box-shadow: 0 8px 30px rgba(79, 70, 229, 0.12); */
 }
 
 .chart-header {

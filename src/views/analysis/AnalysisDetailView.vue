@@ -34,22 +34,21 @@
           <div class="overview-header">
             <div class="analysis-basic-info">
               <div class="analysis-type-section">
-                <span :class="['analysis-type-badge', `type-${analysisRecord.analysisType}`]">
-                  {{ getAnalysisTypeText(analysisRecord.analysisType) }}
+                <span :class="['analysis-type-badge', 'type-comprehensive']">
+                  AI智能分析
                 </span>
-                <span class="analysis-date">{{ formatDate(analysisRecord.analysisDate) }}</span>
+                <span class="analysis-date">{{ formatDate(analysisRecord.createTime) }}</span>
               </div>
               <div class="child-info-section">
                 <div class="child-profile">
                   <div class="child-avatar">
-                    <img :src="analysisRecord.childAvatar || defaultAvatar" :alt="analysisRecord.childName" />
+                    <img :src="defaultAvatar" :alt="analysisRecord.childName" />
                   </div>
                   <div class="child-details">
                     <h2 class="child-name">{{ analysisRecord.childName }}</h2>
                     <div class="child-meta">
-                      <span class="meta-item">{{ analysisRecord.childAge }}岁</span>
-                      <span class="meta-item">{{ analysisRecord.childGender === 'male' ? '男' : '女' }}</span>
-                      <span class="meta-item">{{ analysisRecord.childSchool }}</span>
+                      <span class="meta-item">ID: {{ analysisRecord.childId }}</span>
+                      <span class="meta-item">分析ID: {{ analysisRecord.id }}</span>
                     </div>
                   </div>
                 </div>
@@ -58,16 +57,14 @@
             <div class="analysis-summary-section">
               <div class="summary-card">
                 <dl class="summary-data">
-                  <dt class="summary-label">情绪分数</dt>
-                  <dd class="summary-value emotion-score">{{ analysisRecord.emotionScore }}</dd>
-                  <dt class="summary-label">风险等级</dt>
+                  <dt class="summary-label">触发类型</dt>
+                  <dd class="summary-value">{{ analysisRecord.triggerType || '常规分析' }}</dd>
+                  <dt class="summary-label">分析状态</dt>
                   <dd class="summary-value">
-                    <span :class="['risk-badge', `risk-${analysisRecord.riskLevel}`]">
-                      {{ getRiskLevelText(analysisRecord.riskLevel) }}
-                    </span>
+                    <span class="risk-badge risk-low">已完成</span>
                   </dd>
-                  <dt class="summary-label">分析时长</dt>
-                  <dd class="summary-value">{{ analysisRecord.analysisDuration }}分钟</dd>
+                  <dt class="summary-label">会话数量</dt>
+                  <dd class="summary-value">{{ analysisRecord.sessionIds?.length || 0 }}</dd>
                 </dl>
               </div>
             </div>
@@ -121,93 +118,92 @@
           </div>
         </Card>
 
-        <!-- 关键发现和关键词云 -->
-        <div class="findings-section">
-          <Card class="key-findings-card">
-            <div class="card-header-title">
-              <i class="icon-findings">🔍</i> 关键发现
-            </div>
-            <div class="findings-list">
-              <div 
-                v-for="(finding, index) in analysisRecord.keyFindings" 
-                :key="index" 
-                class="finding-item"
-              >
-                <div class="finding-icon">{{ index + 1 }}</div>
-                <div class="finding-content">
-                  <p class="finding-text">{{ finding }}</p>
-                </div>
+        <!-- 关键发现 -->
+        <Card class="key-findings-card">
+          <div class="card-header-title">
+            <i class="icon-findings">🔍</i> 关键发现
+          </div>
+          <div v-if="keyFindings.length > 0" class="findings-list">
+            <div 
+              v-for="(finding, index) in keyFindings" 
+              :key="index" 
+              class="finding-item"
+            >
+              <div class="finding-icon">{{ index + 1 }}</div>
+              <div class="finding-content">
+                <p class="finding-text">{{ finding }}</p>
               </div>
             </div>
-          </Card>
-          <Card class="keywords-card">
-            <div class="card-header-title">
-              <i class="icon-keywords">🔑</i> 关键词云
-            </div>
-            <div class="keywords-cloud">
-              <span 
-                v-for="(keyword, index) in keywordCloudData" 
-                :key="index" 
-                :class="['keyword-tag', `keyword-${keyword.weight}`]"
-              >
-                {{ keyword.text }}
-              </span>
-            </div>
-          </Card>
-        </div>
+          </div>
+          <div v-else class="no-data">
+            <p>暂无关键发现</p>
+          </div>
+        </Card>
 
-        <!-- 风险评估和建议 -->
+        <!-- 情绪趋势标签 -->
+        <Card class="emotion-trends-card">
+          <div class="card-header-title">
+            <i class="icon-trends">📈</i> 情绪趋势标签
+          </div>
+          <div v-if="emotionTrendTags.length > 0" class="trends-cloud">
+            <span 
+              v-for="(tag, index) in emotionTrendTags" 
+              :key="index" 
+              class="trend-tag"
+            >
+              {{ tag }}
+            </span>
+          </div>
+          <div v-else class="no-data">
+            <p>暂无情绪趋势标签</p>
+          </div>
+        </Card>
+
+        <!-- 潜在问题和建议 -->
         <div class="risk-recommendations-section">
           <Card class="risk-assessment-card">
             <div class="card-header-title">
-              <i class="icon-risk">⚠️</i> 风险评估
+              <i class="icon-risk">⚠️</i> 潜在问题
             </div>
             <div class="risk-content">
-              <div class="risk-score-container">
-                <div class="risk-score">{{ riskAssessment.score }}</div>
-                <div class="risk-scale">
-                  <div class="scale-labels">
-                    <span class="scale-label">低风险</span>
-                    <span class="scale-label">中风险</span>
-                    <span class="scale-label">高风险</span>
-                  </div>
-                  <div class="scale-bar">
-                    <div 
-                      class="risk-indicator" 
-                      :style="{ left: (riskAssessment.score / 100) * 100 + '%' }"
-                    ></div>
+              <div v-if="potentialProblems" class="potential-problems">
+                <p class="problems-text">{{ potentialProblems }}</p>
+              </div>
+              <div v-else class="no-data">
+                <p>未发现明显潜在问题</p>
+              </div>
+              
+              <!-- 情绪分数详情 -->
+              <div v-if="Object.keys(emotionScores).length > 0" class="emotion-scores-detail">
+                <h4 class="section-subtitle">情绪分数详情</h4>
+                <div class="scores-grid">
+                  <div 
+                    v-for="(score, emotion, index) in emotionScores" 
+                    :key="emotion" 
+                    class="score-item"
+                  >
+                    <div class="score-label">{{ getEmotionLabel(emotion) }}</div>
+                    <div class="score-value">{{ score }}</div>
                   </div>
                 </div>
               </div>
-              <div class="risk-factors">
-                <h4 class="section-subtitle">风险因素</h4>
-                <ul class="risk-factors-list">
-                  <li 
-                    v-for="(factor, index) in riskAssessment.factors" 
-                    :key="index" 
-                    class="risk-factor-item"
-                  >
-                    <div class="factor-label">• {{ factor.name }}</div>
-                    <div class="factor-score">影响程度: {{ factor.score }}%</div>
-                  </li>
-                </ul>
-              </div>
             </div>
           </Card>
+          
           <Card class="recommendations-card">
             <div class="card-header-title">
               <i class="icon-recommendations">💡</i> 干预建议
             </div>
-            <div class="recommendations-content">
+            <div v-if="recommendations.length > 0" class="recommendations-content">
               <div 
                 v-for="(recommendation, index) in recommendations" 
                 :key="index" 
                 class="recommendation-item"
               >
                 <div class="recommendation-header">
-                  <div class="recommendation-icon">{{ getRecommendationIcon(recommendation.type) }}</div>
+                  <div class="recommendation-icon">💡</div>
                   <div class="recommendation-title">{{ recommendation.title }}</div>
-                  <span :class="['priority-badge', `priority-${recommendation.priority}`]">
+                  <span :class="['priority-badge', `priority-${recommendation.priority?.toLowerCase()}`]">
                     {{ getPriorityText(recommendation.priority) }}
                   </span>
                 </div>
@@ -216,23 +212,19 @@
                 </div>
               </div>
             </div>
+            <div v-else class="no-data">
+              <p>暂无建议</p>
+            </div>
           </Card>
         </div>
 
-        <!-- 详细分析报告 -->
-        <Card class="analysis-report-card">
+        <!-- AI结构化信息 -->
+        <Card class="ai-struct-card" v-if="Object.keys(aiStructInfo).length > 0">
           <div class="card-header-title">
-            <i class="icon-report">📄</i> 详细分析报告
+            <i class="icon-ai">🤖</i> AI结构化分析数据
           </div>
-          <div class="report-content">
-            <h3 class="report-section-title">分析背景</h3>
-            <p class="report-paragraph">{{ analysisRecord.analysisBackground }}</p>
-            <h3 class="report-section-title">分析方法</h3>
-            <p class="report-paragraph">{{ analysisRecord.analysisMethod }}</p>
-            <h3 class="report-section-title">详细分析结果</h3>
-            <p class="report-paragraph">{{ analysisRecord.detailedResults }}</p>
-            <h3 class="report-section-title">结论与展望</h3>
-            <p class="report-paragraph">{{ analysisRecord.conclusion }}</p>
+          <div class="ai-struct-content">
+            <pre class="ai-struct-json">{{ JSON.stringify(aiStructInfo, null, 2) }}</pre>
           </div>
         </Card>
       </div>
@@ -246,7 +238,8 @@ import { useRoute, useRouter } from 'vue-router';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
-import { analysisService, type AnalysisRecord, type EmotionTrendData, type KeywordData, type RiskAssessment, type Recommendation } from '@/services/mock/analysisService';
+import { aiAnalysisService } from '@/services/api/aiAnalysis';
+import type { AiAnalysisResultVO, EmotionHistoryItem, Recommendation } from '@/types/api';
 
 // 路由实例
 const route = useRoute();
@@ -259,19 +252,57 @@ const isLoading = ref(true);
 const defaultAvatar = 'https://picsum.photos/60/60?random=default';
 
 // 分析记录
-const analysisRecord = ref<AnalysisRecord | null>(null);
+const analysisRecord = ref<AiAnalysisResultVO | null>(null);
 
-// 情绪趋势数据
-const emotionTrendData = ref<EmotionTrendData[]>([]);
+// 情绪趋势数据（从emotionHistory转换）
+const emotionTrendData = computed(() => {
+  if (!analysisRecord.value?.emotionHistory) return [];
+  
+  return analysisRecord.value.emotionHistory.map((item: EmotionHistoryItem) => {
+    // 计算综合情绪分数（所有分数的平均值）
+    const scores = Object.values(item.scores).filter(score => typeof score === 'number');
+    const avgScore = scores.length > 0 ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 0;
+    
+    return {
+      date: item.date,
+      happiness: item.scores.happiness || 0,
+      anxiety: item.scores.anxiety || 0,
+      confidence: item.scores.confidence || 0,
+      stress: item.scores.stress || 0,
+      score: avgScore // 综合分数用于趋势图
+    };
+  });
+});
 
-// 关键词云数据
-const keywordCloudData = ref<KeywordData[]>([]);
-
-// 风险评估数据
-const riskAssessment = ref<RiskAssessment | null>(null);
+// 情绪分数详情（用于雷达图等）
+const emotionScores = computed(() => {
+  return analysisRecord.value?.emotionScores || {};
+});
 
 // 建议数据
-const recommendations = ref<Recommendation[]>([]);
+const recommendations = computed(() => {
+  return analysisRecord.value?.recommendations || [];
+});
+
+// 关键发现
+const keyFindings = computed(() => {
+  return analysisRecord.value?.keyFindings || [];
+});
+
+// 潜在问题
+const potentialProblems = computed(() => {
+  return analysisRecord.value?.potentialProblems || '';
+});
+
+// AI结构化信息
+const aiStructInfo = computed(() => {
+  return analysisRecord.value?.aiStructInfo || {};
+});
+
+// 情绪趋势标签
+const emotionTrendTags = computed(() => {
+  return analysisRecord.value?.emotionTrendTags || [];
+});
 
 // 趋势统计数据
 const trendStats = computed(() => {
@@ -313,21 +344,19 @@ const trendStats = computed(() => {
 const fetchAnalysisDetail = async () => {
   try {
     isLoading.value = true;
-    const id = route.params.id as string;
-    const data = await analysisService.getAnalysisRecordById(id);
-    analysisRecord.value = data;
+    const id = Number(route.params.id);
     
-    // 初始化相关数据
-    emotionTrendData.value = data.emotionTrend || [];
-    keywordCloudData.value = data.keywordCloud || [];
-    riskAssessment.value = data.riskAssessment || {
-      score: 0,
-      factors: []
-    };
-    recommendations.value = data.recommendations || [];
+    if (isNaN(id)) {
+      throw new Error('无效的分析ID');
+    }
+    
+    const response = await aiAnalysisService.getAnalysisDetail(id);
+    console.log('获取分析详情响应:', response);
+    analysisRecord.value = response;
   } catch (error) {
     console.error('获取分析详情失败:', error);
-    alert('获取分析详情失败，请稍后重试');
+    analysisRecord.value = null;
+    // 可以显示错误消息给用户
   } finally {
     isLoading.value = false;
   }
@@ -403,6 +432,21 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+// 获取情绪标签文本
+const getEmotionLabel = (emotion: string): string => {
+  const emotionMap: Record<string, string> = {
+    'happiness': '快乐',
+    'anxiety': '焦虑',
+    'confidence': '自信',
+    'stress': '压力',
+    'sadness': '悲伤',
+    'anger': '愤怒',
+    'fear': '恐惧',
+    'surprise': '惊讶'
+  };
+  return emotionMap[emotion] || emotion;
 };
 
 // 返回上一页
@@ -1028,6 +1072,88 @@ onMounted(() => {
   color: #374151;
   line-height: 1.8;
   font-size: 15px;
+}
+
+/* AI结构化信息 */
+.ai-struct-card {
+  margin-bottom: 24px;
+}
+
+.ai-struct-content {
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.ai-struct-json {
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 潜在问题样式 */
+.potential-problems {
+  margin-bottom: 16px;
+}
+
+.problems-text {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 情绪分数详情样式 */
+.emotion-scores-detail {
+  margin-top: 20px;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 12px 0;
+}
+
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.score-item {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.score-label {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.score-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+/* 无数据状态样式 */
+.no-data {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748B;
+  font-size: 14px;
 }
 
 /* 响应式设计 */
