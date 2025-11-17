@@ -45,7 +45,7 @@
       <!-- 服务跟踪详情内容 -->
       <div v-else-if="trackingDetail" class="tracking-detail-content">
         <!-- 基本信息卡片 -->
-        <Card class="basic-info-card">
+        <div class="basic-info-card p-12">
           <div class="card-header">
             <h2 class="card-title">基本信息</h2>
             <span 
@@ -122,11 +122,11 @@
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         <!-- 服务目标和措施 -->
-        <div class="two-column-grid">
-          <Card class="service-target-card">
+        <div class="basic-info-card p-12">
+          <div class="service-target-card">
             <div class="card-header">
               <h2 class="card-title">服务目标</h2>
             </div>
@@ -147,24 +147,22 @@
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           <!-- 服务调整原因 -->
-          <Card class="adjustment-card" v-if="trackingDetail?.workerAdjustReason">
+          <div class="adjustment-card" v-if="trackingDetail?.workerAdjustReason">
             <div class="card-header">
               <h2 class="card-title">服务调整原因</h2>
             </div>
             <div class="card-content">
               <p class="adjustment-text">{{ trackingDetail?.workerAdjustReason }}</p>
             </div>
-          </Card>
-
-          
+          </div>
         </div>
 
         <!-- 服务措施和AI分析 -->
-        <div class="analysis-section" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.aiAnalysisId">
-          <Card class="service-measures-card">
+        <div class="basic-info-card p-12" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.aiAnalysisId">
+          <div class="service-measures-card">
             <div class="card-header">
               <h2 class="card-title">服务措施</h2>
               <div class="measures-tags">
@@ -213,7 +211,7 @@
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           <!-- <Card class="ai-analysis-card" v-if="trackingDetail?.aiAnalysisId">
             <div class="card-header">
@@ -493,14 +491,13 @@ onMounted(() => {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 24px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.2s ease-in-out;
 }
 
-.basic-info-card:hover {
+/* .basic-info-card:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
+} */
 
 .card-header {
   display: flex;

@@ -28,9 +28,10 @@
         <p class="error-description">找不到指定的AI分析记录，请检查是否输入了正确的ID。</p>
         <Button @click="handleGoBack">返回分析列表</Button>
       </div>
+
       <div v-else class="analysis-detail-content">
         <!-- 分析概览卡片 -->
-        <Card class="analysis-overview-card">
+        <div class="basic-info-card p-12 mb-6">
           <div class="overview-header">
             <div class="analysis-basic-info">
               <div class="analysis-type-section">
@@ -69,10 +70,10 @@
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         <!-- 情绪趋势图表 -->
-        <Card class="emotion-trend-card">
+        <div class="basic-info-card p-12 mb-6">
           <div class="card-header-title">
             <i class="icon-trend">📈</i> 情绪趋势分析
           </div>
@@ -116,10 +117,10 @@
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         <!-- 关键发现 -->
-        <Card class="key-findings-card">
+        <div class="basic-info-card p-12 mb-6">
           <div class="card-header-title">
             <i class="icon-findings">🔍</i> 关键发现
           </div>
@@ -138,10 +139,10 @@
           <div v-else class="no-data">
             <p>暂无关键发现</p>
           </div>
-        </Card>
+        </div>
 
         <!-- 情绪趋势标签 -->
-        <Card class="emotion-trends-card">
+        <div class="basic-info-card p-12 mb-6">
           <div class="card-header-title">
             <i class="icon-trends">📈</i> 情绪趋势标签
           </div>
@@ -157,11 +158,11 @@
           <div v-else class="no-data">
             <p>暂无情绪趋势标签</p>
           </div>
-        </Card>
+        </div>
 
         <!-- 潜在问题和建议 -->
         <div class="risk-recommendations-section">
-          <Card class="risk-assessment-card">
+          <div class="basic-info-card p-12">
             <div class="card-header-title">
               <i class="icon-risk">⚠️</i> 潜在问题
             </div>
@@ -188,9 +189,9 @@
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
           
-          <Card class="recommendations-card">
+          <div class="basic-info-card p-12">
             <div class="card-header-title">
               <i class="icon-recommendations">💡</i> 干预建议
             </div>
@@ -215,18 +216,18 @@
             <div v-else class="no-data">
               <p>暂无建议</p>
             </div>
-          </Card>
+          </div>
         </div>
 
         <!-- AI结构化信息 -->
-        <Card class="ai-struct-card" v-if="Object.keys(aiStructInfo).length > 0">
+        <div class="basic-info-card p-12 mb-6" v-if="Object.keys(aiStructInfo).length > 0">
           <div class="card-header-title">
             <i class="icon-ai">🤖</i> AI结构化分析数据
           </div>
           <div class="ai-struct-content">
             <pre class="ai-struct-json">{{ JSON.stringify(aiStructInfo, null, 2) }}</pre>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   </AppLayout>
@@ -473,6 +474,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.basic-info-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+
+
 .analysis-detail-container {
   max-width: 1400px;
   margin: 0 auto;
