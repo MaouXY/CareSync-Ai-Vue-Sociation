@@ -45,7 +45,7 @@
       <!-- 服务方案详情内容 -->
       <div v-else-if="schemeDetail" class="scheme-detail-content">
         <!-- 基本信息卡片 -->
-        <Card class="basic-info-card">
+        <div class="basic-info-card p-12">
           <div class="card-header">
             <h2 class="card-title">基本信息</h2>
             <span 
@@ -122,20 +122,20 @@
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         <!-- 问题概述和目标 -->
         <div class="two-column-grid">
-          <Card class="problem-overview-card">
+          <div class="basic-info-card p-12">
             <div class="card-header">
               <h2 class="card-title">问题概述</h2>
             </div>
             <div class="card-content">
               <p class="description-text">{{ schemeDetail?.description }}</p>
             </div>
-          </Card>
+          </div>
 
-          <Card class="goals-card">
+          <div class="basic-info-card p-12">
             <div class="card-header">
               <h2 class="card-title">服务目标</h2>
             </div>
@@ -151,11 +151,11 @@
                 </li>
               </ul>
             </div>
-          </Card>
+          </div>
         </div>
 
         <!-- 干预措施 -->
-        <Card class="interventions-card">
+        <div class="basic-info-card p-12">
           <div class="card-header">
             <h2 class="card-title">干预措施</h2>
             <Button 
@@ -263,9 +263,10 @@
               <p>暂无干预措施</p>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <!-- 效果评估 --><Card class="evaluation-card">
+        <!-- 效果评估 -->
+        <div class="basic-info-card p-12">
           <div class="card-header">
             <h2 class="card-title">效果评估</h2>
           </div>
@@ -303,7 +304,7 @@
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   </AppLayout>
@@ -600,6 +601,15 @@ scheme-detail-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
+}
+
+/* 基本信息卡片 */
+.basic-info-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease-in-out;
 }
 
 /* 页面头部 */
