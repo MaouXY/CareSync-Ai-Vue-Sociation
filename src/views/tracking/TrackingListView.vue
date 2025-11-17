@@ -521,7 +521,7 @@ const loadTrackingData = async () => {
     isLoading.value = true;
     const queryParams = buildQueryParams();
     
-    const response: any = await http.post('/social-worker/track/scheme/list', queryParams);
+    const response: any = await http.post('/api/social-worker/track/scheme/list', queryParams);
     
     if (response.code === 1) {
       trackingData.value = response.data.records || [];
@@ -953,6 +953,7 @@ onMounted(async () => {
 
 /* 统计卡片样式 */
 .stats-grid {
+  border-radius: var(--radius-lg);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
