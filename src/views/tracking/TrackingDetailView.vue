@@ -149,6 +149,21 @@
             </div>
           </Card>
 
+          <!-- 服务调整原因 -->
+          <Card class="adjustment-card" v-if="trackingDetail?.workerAdjustReason">
+            <div class="card-header">
+              <h2 class="card-title">服务调整原因</h2>
+            </div>
+            <div class="card-content">
+              <p class="adjustment-text">{{ trackingDetail?.workerAdjustReason }}</p>
+            </div>
+          </Card>
+
+          
+        </div>
+
+        <!-- 服务措施和AI分析 -->
+        <div class="analysis-section" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.aiAnalysisId">
           <Card class="service-measures-card">
             <div class="card-header">
               <h2 class="card-title">服务措施</h2>
@@ -199,20 +214,8 @@
               </div>
             </div>
           </Card>
-        </div>
 
-        <!-- 调整原因和AI分析 -->
-        <div class="analysis-section" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.aiAnalysisId">
-          <Card class="adjustment-card" v-if="trackingDetail?.workerAdjustReason">
-            <div class="card-header">
-              <h2 class="card-title">服务调整原因</h2>
-            </div>
-            <div class="card-content">
-              <p class="adjustment-text">{{ trackingDetail?.workerAdjustReason }}</p>
-            </div>
-          </Card>
-
-          <Card class="ai-analysis-card" v-if="trackingDetail?.aiAnalysisId">
+          <!-- <Card class="ai-analysis-card" v-if="trackingDetail?.aiAnalysisId">
             <div class="card-header">
               <h2 class="card-title">AI分析</h2>
             </div>
@@ -227,7 +230,7 @@
                 </div>
               </div>
             </div>
-          </Card>
+          </Card> -->
         </div>
       </div>
     </div>
@@ -740,8 +743,8 @@ onMounted(() => {
 }
 
 .analysis-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
