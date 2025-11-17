@@ -29,7 +29,7 @@
                 <p class="page-subtitle">儿童编号: {{ childDetail.childNo }}</p>
               </div>
               <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
-                <a-button class="btn btn-primary" @click="$router.push('/social-worker/children')">
+                <a-button class="btn btn-primary" @click="$router.push('/children')">
                   <template #icon><ArrowLeftOutlined /></template>
                   返回列表
                 </a-button>
@@ -61,7 +61,7 @@
                   <h2 class="text-xl font-bold text-dark">{{ childDetail.name }}</h2>
                   <p class="text-neutral text-sm mt-1">编号: {{ childDetail.childNo }}</p>
                   <p class="text-neutral text-sm mt-1">年龄: {{ childDetail.age }}岁</p>
-                  <div class="flex justify-center space-x-2 mt-3">
+                  <!-- <div class="flex justify-center space-x-2 mt-3">
                     <a-tag :color="childDetail.hasNewChat ? 'processing' : 'default'">
                       {{ childDetail.hasNewChat ? '有新对话' : '无新对话' }}
                     </a-tag>
@@ -71,7 +71,7 @@
                     <a-tag :color="getServiceStatusColor(childDetail.serviceStatus)">
                       {{ childDetail.serviceStatus }}
                     </a-tag>
-                  </div>
+                  </div> -->
                 </div>
               </div>
               
@@ -95,12 +95,17 @@
                         <a-select 
                           v-model:value="editForm.gender" 
                           class="w-full bg-gray-50"
+                          placeholder="请选择性别"
                         >
                           <a-select-option value="male">男</a-select-option>
                           <a-select-option value="female">女</a-select-option>
                         </a-select>
                       </div>
-                      <div v-else class="text-dark py-2">{{ childDetail.gender === 'male' ? '男' : childDetail.gender === 'female' ? '女' : '-' }}</div>
+                      <div v-else class="text-dark py-2">{{ 
+                        childDetail.gender === 'male' || childDetail.gender === '男' ? '男' : 
+                        childDetail.gender === 'female' || childDetail.gender === '女' ? '女' : 
+                        childDetail.gender || '-' 
+                      }}</div>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-neutral mb-2">出生日期</label>
@@ -237,52 +242,23 @@
             <div class="mb-8" v-if="childDetail.aiStructInfo.emotionHistory && childDetail.aiStructInfo.emotionHistory.length > 0">
               <div class="flex justify-between items-center mb-4">
                 <h4 class="text-lg font-medium text-dark">情感变化趋势</h4>
-                <div class="flex space-x-2">
-                  <a-button 
-                    :type="chartPeriod === '7' ? 'primary' : 'default'"
-                    size="small"
-                    @click="chartPeriod = '7'"
-                  >
-                    最近7天
-                  </a-button>
-                  <a-button 
-                    :type="chartPeriod === '30' ? 'primary' : 'default'"
-                    size="small"
-                    @click="chartPeriod = '30'"
-                  >
-                    最近30天
-                  </a-button>
-                  <a-button 
-                    :type="chartPeriod === '90' ? 'primary' : 'default'"
-                    size="small"
-                    @click="chartPeriod = '90'"
-                  >
-                    最近90天
-                  </a-button>
-                </div>
               </div>
-              <div class="h-80">
-                <canvas ref="emotionChartRef"></canvas>
+              <div class="chart-container bg-white rounded-xl shadow-sm p-4">
+                <div class="h-96">
+                  <div ref="emotionChartRef" style="width: 100%; height: 250%;"></div>
+                </div>
               </div>
             </div>
             
-            <!-- 情感指标评分卡片 -->
-            <div v-if="childDetail.aiStructInfo.emotionScores" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div v-for="(score, emotion) in childDetail.aiStructInfo.emotionScores" :key="emotion" 
-                   class="bg-blue-50 rounded-lg p-4">
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm font-medium text-blue-700">{{ getEmotionDisplayName(emotion) }}</span>
-                  <span class="text-xl font-bold text-blue-800">{{ score }}分</span>
+            <!-- 情感指标评分雷达图 -->
+            <div v-if="childDetail.aiStructInfo.emotionScores" class="mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-medium text-dark">情感指标评分</h4>
+              </div>
+              <div class="chart-container bg-white rounded-xl shadow-sm p-4">
+                <div class="h-96">
+                  <div ref="emotionRadarChartRef" style="width: 100%; height: 150%;"></div>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000" 
-                    :style="{ width: `${score}%` }"
-                  ></div>
-                </div>
-                <p class="mt-2 text-xs text-blue-600">
-                  {{ getEmotionDescription(emotion, score) }}
-                </p>
               </div>
             </div>
             
@@ -400,7 +376,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 //import { message } from 'ant-design-vue'
 // import { 
@@ -413,6 +389,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { childApi } from '@/services/api/child'
 import { ChildInfoVO, AIData } from '@/types/api'
+import * as echarts from 'echarts'
 
 // 响应式数据
 const childDetail = ref<ChildInfoVO | null>(null)
@@ -424,74 +401,27 @@ const viewRecordMode = ref(false)
 const saving = ref(false)
 const chartPeriod = ref('7')
 const emotionChartRef = ref<HTMLCanvasElement>()
+const emotionRadarChartRef = ref<HTMLCanvasElement>()
+
+// 图表实例
+let emotionChart: echarts.ECharts | null = null
+let emotionRadarChart: echarts.ECharts | null = null
 
 // 编辑表单数据
 const editForm = ref({
+  serviceStatus: '',
+  riskLevel: '',
   name: '',
+  age: 0,
   gender: '',
   birthDate: null as any,
   idCard: '',
+  address: '',
+  notes: '',
   phone: '',
-  riskLevel: '',
-  serviceStatus: '',
   guardianName: '',
   guardianPhone: '',
-  address: '',
-  notes: ''
 })
-
-// 服务计划数据
-const servicePlans = ref([
-  {
-    title: '每周心理疏导',
-    description: '每周三下午3点进行1对1心理疏导，帮助缓解学习压力和思乡情绪。',
-    completed: 4,
-    total: 12,
-    icon: 'fa fa-comments'
-  },
-  {
-    title: '学习辅导',
-    description: '每周一、五放学后进行数学和英语辅导，提高学习自信心。',
-    completed: 6,
-    total: 24,
-    icon: 'fa fa-book'
-  },
-  {
-    title: '亲子远程连线',
-    description: '每月安排1-2次与父母的视频通话，缓解思乡情绪。',
-    completed: 1,
-    total: 4,
-    icon: 'fa fa-phone'
-  }
-])
-
-// 互动记录数据
-const interactionRecords = ref([
-  {
-    id: 1,
-    type: '心理疏导',
-    time: '2023-06-14 16:30:00',
-    content: '与小华进行了约45分钟的心理疏导，主要讨论了最近的学习压力和对父母的思念。小华表示最近数学学习有些困难，对即将到来的考试感到紧张。给予了积极的鼓励和学习方法建议。',
-    recorder: '王社工'
-  },
-  {
-    id: 2,
-    type: '数学辅导',
-    time: '2023-06-13 17:00:00',
-    content: '帮助小华复习了上周学习的小数除法内容，解答了作业中的疑难问题。小华对知识点的掌握有所进步，但还需要更多练习。布置了额外的练习题。',
-    recorder: '张志愿者'
-  },
-  {
-    id: 3,
-    type: '亲子视频通话',
-    time: '2023-06-10 19:30:00',
-    content: '协助小华与父母进行了视频通话，时长约30分钟。小华向父母展示了最近的绘画作品和考试成绩，父母对小华的进步表示肯定和鼓励。通话氛围温馨。',
-    recorder: '王社工'
-  }
-])
-
-// 图表实例
-let emotionChart: any = null
 
 // 加载儿童详情
 const loadChildDetail = async () => {
@@ -531,18 +461,27 @@ const loadChildDetail = async () => {
 // 初始化编辑表单
 const initEditForm = () => {
   if (childDetail.value) {
+    // 处理性别字段，确保兼容中英文
+    let genderValue = childDetail.value.gender || '';
+    if (genderValue === '男' || genderValue === 'male') {
+      genderValue = 'male';
+    } else if (genderValue === '女' || genderValue === 'female') {
+      genderValue = 'female';
+    }
+    
     editForm.value = {
+      serviceStatus: childDetail.value.serviceStatus || '',
+      riskLevel: childDetail.value.riskLevel || '',
       name: childDetail.value.name || '',
-      gender: childDetail.value.gender || '',
+      age: childDetail.value.age || 0,
+      gender: genderValue,
       birthDate: childDetail.value.birthDate ? new Date(childDetail.value.birthDate) : null,
       idCard: childDetail.value.idCard || '',
+      address: childDetail.value.address || '',
+      notes: childDetail.value.notes || '',
       phone: childDetail.value.phone || '',
-      riskLevel: childDetail.value.riskLevel || '',
-      serviceStatus: childDetail.value.serviceStatus || '',
       guardianName: childDetail.value.guardianName || '',
       guardianPhone: childDetail.value.guardianPhone || '',
-      address: childDetail.value.address || '',
-      notes: childDetail.value.notes || ''
     }
   }
 }
@@ -551,27 +490,511 @@ const initEditForm = () => {
 const parseAiAnalysisData = () => {
   if (childDetail.value?.aiStructInfo) {
     aiAnalysisData.value = childDetail.value.aiStructInfo
+    // 确保DOM已渲染且图表容器存在
     nextTick(() => {
-      initEmotionChart()
+      // 添加延迟确保图表容器完全渲染
+      setTimeout(() => {
+        if (emotionChartRef.value && childDetail.value?.aiStructInfo?.emotionHistory) {
+          initEmotionChart()
+        }
+        if (emotionRadarChartRef.value && childDetail.value?.aiStructInfo?.emotionScores) {
+          initEmotionRadarChart()
+        }
+      }, 100)
     })
   }
 }
 
 // 初始化情感图表
 const initEmotionChart = () => {
-  if (!emotionChartRef.value || !aiAnalysisData.value?.emotionScores) return
+  if (!emotionChartRef.value || !childDetail.value?.aiStructInfo?.emotionHistory) return
   
   // 销毁现有图表
   if (emotionChart) {
-    emotionChart.destroy()
+    emotionChart.dispose()
   }
   
-  // 使用情感分数数据创建图表
-  const scores = aiAnalysisData.value.emotionScores
-  console.log('初始化情感趋势图:', scores)
+  // 初始化ECharts实例
+  emotionChart = echarts.init(emotionChartRef.value)
   
-  // 可以在这里使用 Chart.js 或其他图表库创建可视化
-  // 暂时使用console输出调试
+  // 获取情感历史数据
+  const emotionHistory = childDetail.value.aiStructInfo.emotionHistory
+  
+  // 根据选择的周期过滤数据
+  const periodDays = parseInt(chartPeriod.value)
+  const now = new Date()
+  const startDate = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000)
+  
+  // 创建过滤后的数据，并为每个数据项添加日期
+  const filteredData = emotionHistory.filter((item, index) => {
+    // 为没有日期的数据项生成日期
+    if (!item.date) {
+      // 从今天开始往前推算日期
+      const date = new Date(now.getTime() - (emotionHistory.length - 1 - index) * 24 * 60 * 60 * 1000)
+      item.date = date.toISOString().split('T')[0]
+    }
+    
+    const itemDate = new Date(item.date)
+    return itemDate >= startDate && itemDate <= now
+  })
+  
+  // 如果没有数据，显示空状态
+  if (filteredData.length === 0) {
+    emotionChart.setOption({
+      title: {
+        text: '暂无数据',
+        left: 'center',
+        top: 'middle',
+        textStyle: {
+          color: '#999',
+          fontSize: 16
+        }
+      },
+      backgroundColor: '#fafafa',
+      grid: {
+        left: '5%',
+        right: '5%',
+        bottom: '5%',
+        top: '5%',
+        containLabel: true
+      }
+    })
+    return
+  }
+  
+  // 准备图表数据
+  const dates = filteredData.map(item => item.date)
+  
+  // 适配实际数据结构
+  const emotionTypes = ['stability', 'anxiety', 'happiness', 'socialConfidence']
+  const emotionNames = {
+    'stability': '情绪稳定性',
+    'anxiety': '焦虑水平',
+    'happiness': '快乐指数',
+    'socialConfidence': '社交自信'
+  }
+  
+  // 统一的主题颜色，与项目设计规范匹配
+  const themeColors = ['#4F46E5', '#10B981', '#F97316', '#EF4444']
+  
+  // 创建系列数据
+  const series = emotionTypes.map((emotionType, index) => {
+    const data = filteredData.map(item => {
+      // 直接从数据项中获取值
+      return item[emotionType] || 0
+    })
+    
+    return {
+      name: emotionNames[emotionType],
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 8,
+      symbolOffset: [0, 0],
+      lineStyle: {
+        width: 3,
+        color: themeColors[index],
+        shadowColor: themeColors[index],
+        shadowBlur: 8,
+        shadowOffsetX: 0,
+        shadowOffsetY: 3
+      },
+      emphasis: {
+        focus: 'series',
+        symbolSize: 10,
+        itemStyle: {
+          borderWidth: 3,
+          borderColor: '#fff'
+        }
+      },
+      areaStyle: {
+        opacity: 0.2,
+        color: {
+          type: 'linear',
+          x: 0, y: 0,
+          x2: 0, y2: 1,
+          colorStops: [
+            {offset: 0, color: themeColors[index] + 'AA'},
+            {offset: 1, color: themeColors[index] + '11'}
+          ]
+        }
+      },
+      data: data,
+      animationDuration: 1000,
+      animationEasing: 'cubicOut'
+    }
+  })
+  
+  // 图表配置项
+  const option = {
+    backgroundColor: '#ffffff',
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      textStyle: {
+        color: '#fff',
+        fontSize: 14
+      },
+      padding: [12, 16],
+      borderRadius: 8,
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#4F46E5',
+          color: '#fff',
+          borderRadius: 4,
+          padding: [4, 8]
+        },
+        lineStyle: {
+          color: '#e0e0e0',
+          type: 'dashed'
+        }
+      },
+      formatter: function(params: any) {
+        const date = new Date(params[0].axisValue)
+        const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`
+        let result = `<div style="margin-bottom: 8px; font-weight: 500;">${formattedDate}</div>`
+        params.forEach((param: any) => {
+          result += `<div style="display: flex; align-items: center; margin-bottom: 4px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${param.color}; margin-right: 8px;"></span>
+            <span style="flex: 1;">${param.seriesName}</span>
+            <span style="font-weight: 600;">${param.value}分</span>
+          </div>`
+        })
+        return result
+      }
+    },
+    legend: {
+      data: emotionTypes.map(type => emotionNames[type]),
+      top: 0,
+      left: 'center',
+      textStyle: {
+        color: '#6B7280',
+        fontSize: 14
+      },
+      icon: 'circle',
+      itemWidth: 10,
+      itemHeight: 10,
+      itemGap: 24,
+      formatter: function(name: string) {
+        return name
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '3%',
+      bottom: '10%',
+      top: '15%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates,
+      axisLine: {
+        lineStyle: {
+          color: '#e5e7eb'
+        }
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        color: '#6B7280',
+        fontSize: 12,
+        formatter: function(value: string) {
+          const date = new Date(value)
+          return `${date.getMonth() + 1}/${date.getDate()}`
+        }
+      },
+      splitLine: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      splitNumber: 5,
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        color: '#6B7280',
+        fontSize: 12,
+        formatter: '{value}分'
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#f3f4f6',
+          type: 'solid'
+        }
+      }
+    },
+    series: series,
+    color: themeColors,
+    dataZoom: [
+      {
+        type: 'inside',
+        start: 0,
+        end: 100,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: true
+      },
+      {
+        type: 'slider',
+        start: 0,
+        end: 100,
+        height: 30,
+        bottom: 0,
+        backgroundColor: '#f9fafb',
+        fillerColor: 'rgba(79, 70, 229, 0.1)',
+        borderColor: '#e5e7eb',
+        handleStyle: {
+          color: '#4F46E5',
+          shadowBlur: 4,
+          shadowColor: 'rgba(0, 0, 0, 0.1)',
+          shadowOffsetX: 0,
+          shadowOffsetY: 2,
+          borderColor: '#ffffff'
+        },
+        textStyle: {
+          color: '#6B7280',
+          fontSize: 12
+        }
+      }
+    ],
+    animation: true,
+    animationDuration: 1500,
+    animationEasing: 'cubicOut'
+  }
+  
+  // 应用配置项
+  emotionChart.setOption(option)
+  
+  // 响应式调整
+  const handleResize = () => {
+    emotionChart?.resize()
+  }
+  window.addEventListener('resize', handleResize)
+  
+  // 返回清理函数
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
+}
+
+// 初始化情感雷达图
+const initEmotionRadarChart = () => {
+  if (!emotionRadarChartRef.value || !childDetail.value?.aiStructInfo?.emotionScores) return
+  
+  // 销毁现有图表
+  if (emotionRadarChart) {
+    emotionRadarChart.dispose()
+  }
+  
+  // 初始化ECharts实例
+  emotionRadarChart = echarts.init(emotionRadarChartRef.value)
+  
+  // 获取情感评分数据
+  const emotionScores = childDetail.value.aiStructInfo.emotionScores
+  
+  // 情感指标中文映射
+  const emotionNamesMap: Record<string, string> = {
+    'stability': '情绪稳定性',
+    'anxiety': '焦虑水平',
+    'happiness': '快乐指数',
+    'socialConfidence': '社交自信'
+  }
+  
+  // 准备雷达图数据
+  const indicators = []
+  const data = []
+  
+  // 遍历情感评分数据
+  for (const [emotion, score] of Object.entries(emotionScores)) {
+    indicators.push({
+      name: emotionNamesMap[emotion] || emotion,
+      max: 100
+    })
+    data.push(score)
+  }
+  
+  // 统一的主题颜色，与趋势图保持一致
+  const primaryColor = '#4F46E5'
+  
+  // 图表配置项
+  const option = {
+    backgroundColor: '#ffffff',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      borderColor: 'transparent',
+      borderWidth: 0,
+      textStyle: {
+        color: '#fff',
+        fontSize: 14
+      },
+      padding: [10, 14],
+      borderRadius: 8,
+      formatter: function(params: any) {
+        const score = params.value
+        let level = ''
+        let color = ''
+        
+        if (score >= 80) {
+          level = '优秀'
+          color = '#10B981'
+        } else if (score >= 60) {
+          level = '良好'
+          color = '#4F46E5'
+        } else if (score >= 40) {
+          level = '一般'
+          color = '#F97316'
+        } else {
+          level = '需关注'
+          color = '#EF4444'
+        }
+        
+        return `<div style="text-align: center;">
+          <div style="margin-bottom: 6px; font-weight: 500;">${params.name}</div>
+          <div style="display: flex; align-items: center; justify-content: center;">
+            <span style="margin-right: 8px;">评分:</span>
+            <span style="font-weight: 600; font-size: 16px; color: ${color};">${score}</span>
+          </div>
+          <div style="margin-top: 4px; font-size: 12px; opacity: 0.9;">评级: ${level}</div>
+        </div>`
+      }
+    },
+    radar: {
+      indicator: indicators,
+      shape: 'circle', // 使用圆形雷达图更现代
+      radius: '60%',
+      splitNumber: 5,
+      center: ['50%', '52%'],
+      axisName: {
+        color: '#6B7280',
+        fontSize: 12,
+        padding: [0, 5],
+        rich: {
+          a: {
+            fontSize: 11,
+            lineHeight: 14,
+            width: 60,
+            overflow: 'break',
+            align: 'center'
+          }
+        },
+        formatter: function(value: string) {
+          // 根据文字长度调整显示
+          if (value.length > 4) {
+            return `{a|${value}}`
+          } else {
+            return value
+          }
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#e5e7eb',
+          type: 'solid'
+        }
+      },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['#ffffff', '#f9fafb', '#f3f4f6', '#e5e7eb', '#d1d5db'],
+          opacity: 0.8
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#d1d5db'
+        }
+      }
+    },
+    series: [{
+      name: '情感指标',
+      type: 'radar',
+      data: [{
+        value: data,
+        name: '当前评分',
+        areaStyle: {
+          color: {
+            type: 'radial',
+            x: 0.5,
+            y: 0.5,
+            r: 0.5,
+            colorStops: [
+              {offset: 0, color: primaryColor + '40'},
+              {offset: 1, color: primaryColor + '10'}
+            ]
+          }
+        },
+        lineStyle: {
+          color: primaryColor,
+          width: 3,
+          shadowColor: primaryColor,
+          shadowBlur: 8,
+          shadowOffsetX: 0,
+          shadowOffsetY: 2
+        },
+        itemStyle: {
+          color: primaryColor,
+          borderColor: '#fff',
+          borderWidth: 3,
+          shadowColor: primaryColor,
+          shadowBlur: 5,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0
+        },
+        emphasis: {
+          itemStyle: {
+            borderWidth: 4,
+            shadowBlur: 10,
+            shadowColor: primaryColor
+          },
+          areaStyle: {
+            color: {
+              type: 'radial',
+              x: 0.5,
+              y: 0.5,
+              r: 0.5,
+              colorStops: [
+                {offset: 0, color: primaryColor + '60'},
+                {offset: 1, color: primaryColor + '20'}
+              ]
+            }
+          }
+        }
+      }],
+      animationDuration: 1500,
+      animationEasing: 'cubicOut'
+    }],
+    animation: true,
+    animationDuration: 2000,
+    animationEasing: 'cubicOut'
+  }
+  
+  // 应用配置项
+  emotionRadarChart.setOption(option)
+  
+  // 响应式调整
+  const handleResize = () => {
+    emotionRadarChart?.resize()
+  }
+  window.addEventListener('resize', handleResize)
+  
+  // 返回清理函数
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
 }
 
 // 切换编辑模式
@@ -729,6 +1152,18 @@ watch(chartPeriod, () => {
 onMounted(() => {
   loadChildDetail()
 })
+
+// 组件销毁时清理资源
+onUnmounted(() => {
+  if (emotionChart) {
+    emotionChart.dispose()
+    emotionChart = null
+  }
+  if (emotionRadarChart) {
+    emotionRadarChart.dispose()
+    emotionRadarChart = null
+  }
+})
 </script>
 
 <style scoped>
@@ -746,5 +1181,22 @@ onMounted(() => {
 
 .transition-all {
   transition: all 0.3s ease;
+}
+
+.chart-container {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-color: #4F46E5;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    padding: 2px;
+  }
 }
 </style>

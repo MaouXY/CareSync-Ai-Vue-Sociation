@@ -78,7 +78,7 @@ const initChart = () => {
         itemStyle: {
           borderRadius: 10,
           borderColor: '#fff',
-          borderWidth: 2,
+          borderWidth: 4, // 增加扇区间隙宽度
         },
         label: {
           show: false,

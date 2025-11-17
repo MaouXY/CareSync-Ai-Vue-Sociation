@@ -1,5 +1,20 @@
 // API接口相关类型定义
 
+/* 登录相关类型定义 */
+// 通用API响应格式
+export interface ResultLoginVO {
+  code: number;
+  msg: string | null;
+  data: LoginVO;
+}
+
+// API错误响应
+export interface ApiError {
+  code: number;
+  message: string;
+  timestamp?: string;
+}
+
 // 登录请求参数
 export interface SocialWorkerLoginDTO {
   workerNo?: string;
@@ -12,13 +27,6 @@ export interface LoginVO {
   name: string;
   token: string;
   role: number;
-}
-
-// 通用API响应格式
-export interface ResultLoginVO {
-  code: number;
-  msg: string | null;
-  data: LoginVO;
 }
 
 // 用户信息
@@ -36,14 +44,8 @@ export interface LoginState {
   loading: boolean;
 }
 
-// API错误响应
-export interface ApiError {
-  code: number;
-  message: string;
-  timestamp?: string;
-}
-
-// 社工首页相关类型定义
+/* 社工首页相关类型定义 */
+// 社工首页数据
 export interface HomeStatisticsDTO {
   childCount: number;
   pendingTaskCount: number;
@@ -51,6 +53,7 @@ export interface HomeStatisticsDTO {
   aiAnalysisCount: number;
 }
 
+// 待处理任务
 export interface PendingTaskVO {
   id: number;
   childId: number;
@@ -60,6 +63,7 @@ export interface PendingTaskVO {
   remainingDays: number;
 }
 
+// 最近活动记录
 export interface RecentActivityVO {
   id: number;
   schemeId: number;
@@ -70,16 +74,19 @@ export interface RecentActivityVO {
   createTime: string;
 }
 
+// 情感分析图表数据
 export interface EmotionChartDataVO {
   data: number[];
   name: string;
   type: string;
 }
 
+// 情感分析雷达图数据
 export interface RadarChartDataVO {
   [key: string]: number;
 }
 
+// 社工首页数据
 export interface SocialWorkerHomeVO {
   statistics: HomeStatisticsDTO;
   emotionChartData: EmotionChartDataVO[];
@@ -89,12 +96,14 @@ export interface SocialWorkerHomeVO {
   recentActivities: RecentActivityVO[];
 }
 
+// 社工首页API响应
 export interface ResultSocialWorkerHomeVO {
   code: number;
   msg: string | null;
   data: SocialWorkerHomeVO;
 }
 
+/* 儿童管理相关类型定义 */
 // 儿童管理相关类型定义
 export interface ChildQueryDTO {
   childNo?: string;
@@ -108,6 +117,7 @@ export interface ChildQueryDTO {
   pageSize?: number;
 }
 
+// 儿童队列VO
 export interface ChildQueueVO {
   id: number;
   childNo: string;
@@ -125,29 +135,43 @@ export interface ChildQueueVO {
   updateTime: string;
 }
 
+// 分页结果
 export interface PageResultChildQueueVO {
   total: number;
   records: ChildQueueVO[];
 }
 
+// 儿童队列分页结果API响应
 export interface ResultPageResultChildQueueVO {
   code: number;
   msg?: string;
   data: PageResultChildQueueVO;
 }
 
+// 儿童详情VO
 export interface ChildInfoVO {
   id: number;
   childNo: string;
+  serviceStatus: ServiceStatus;
+  riskLevel: RiskLevel;
   name: string;
   age: number;
+  gender: string;
+  birthDate: string;
+  idCard: string;
+  address: string;
+  notes: string;
+  phone: string;
+  guardianName: string;
+  guardianPhone: string;
   hasNewChat: boolean;
-  aiStructInfo: string; // JSON字符串
+  aiStructInfo: AIData;
   aiAnalysisTime: string;
   createTime: string;
   updateTime: string;
 }
 
+// 儿童详情API响应
 export interface ResultChildInfoVO {
   code: number;
   msg?: string;
@@ -156,35 +180,35 @@ export interface ResultChildInfoVO {
 
 // 解析后的AI分析信息
 export interface AIData {
-  core_needs: string[];
+  coreNeeds: string[];
   description: string;
-  key_findings: string[];
+  keyFindings: string[];
   emotion_trend: string[];
-  emotion_scores: {
+  emotionScores: {
     [key: string]: number;
   };
-  emotion_history: {
+  emotionHistory: {
     date: string;
     scores: {
       [key: string]: number;
     };
   }[];
-  latest_analysis: string;
+  latestAnalysis: string;
   recommendations: {
     title: string;
     priority: string;
     description: string;
   }[];
-  potential_problems?: string;
+  potentialProblems?: string;
 }
 
 // 风险等级类型
-export type RiskLevel = 'low' | 'medium' | 'high' | 'urgent';
+export type RiskLevel = '低风险' | '中风险' | '高风险' | '紧急风险';
 
 // 服务状态类型
-export type ServiceStatus = 'pending' | 'inProgress' | 'completed' | 'paused';
+export type ServiceStatus = '待服务' | '服务中' | '已完成' | '暂停服务';
 
-// AI分析结果相关类型定义
+// 情感历史记录项
 export interface EmotionHistoryItem {
   date: string;
   scores: {
@@ -192,12 +216,14 @@ export interface EmotionHistoryItem {
   };
 }
 
+// 服务建议
 export interface Recommendation {
   title: string;
   description: string;
   priority: string;
 }
 
+// AI分析结果VO
 export interface AiAnalysisResultVO {
   id: number;
   childId: number;
@@ -220,17 +246,20 @@ export interface AiAnalysisResultVO {
   aiStructInfo: any;
 }
 
+// 分页结果
 export interface PageResultAiAnalysisResultVO {
   total: number;
   records: AiAnalysisResultVO[];
 }
 
+// 分页结果API响应
 export interface ResultPageResultAiAnalysisResultVO {
   code: number;
   msg?: string;
   data: PageResultAiAnalysisResultVO;
 }
 
+// AI分析结果详情API响应
 export interface ResultAiAnalysisResultVO {
   code: number;
   msg?: string;
