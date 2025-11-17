@@ -264,12 +264,27 @@
             
             <!-- 核心需求和关键发现 -->
             <div v-if="childDetail.aiStructInfo.coreNeeds || childDetail.aiStructInfo.keyFindings" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div v-if="childDetail.aiStructInfo.coreNeeds" class="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                <h4 class="text-md font-medium text-dark mb-3">核心需求</h4>
+              <div v-if="childDetail.aiStructInfo.coreNeeds" class="bg-white border border-gray-100 p-5">
+                <div class="flex items-center mb-4">
+                  <div class="w-3 h-3 bg-primary rounded-full mr-3"></div>
+                  <h4 class="text-lg font-semibold text-dark">核心需求</h4>
+                </div>
                 <div class="space-y-2">
-                  <a-tag v-for="need in childDetail.aiStructInfo.coreNeeds" :key="need" color="primary">
-                    {{ need }}
-                  </a-tag>
+                  <div 
+                    v-for="(need, index) in childDetail.aiStructInfo.coreNeeds" 
+                    :key="need" 
+                    class="flex items-center p-3 bg-white rounded-lg border border-gray-100 hover:border-primary transition-all duration-200"
+                  >
+                    <div class="mr-2 flex-shrink-0 w-6 h-6 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                      {{ index + 1 }}
+                    </div>
+                    <div class="flex-1">
+                      <span class="text-sm font-medium text-dark">{{ need }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="childDetail.aiStructInfo.coreNeeds.length > 0" class="mt-4 pt-3 border-t border-gray-100">
+                  <p class="text-xs text-gray-500">共发现 {{ childDetail.aiStructInfo.coreNeeds.length }} 项核心需求</p>
                 </div>
               </div>
               
