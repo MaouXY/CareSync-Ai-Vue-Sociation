@@ -34,7 +34,7 @@ http.interceptors.response.use(
     
     // 如果后端返回统一格式 {code, msg, data}，则根据code判断成功/失败
     if (result && typeof result === 'object' && 'code' in result) {
-      if (result.code === 1) {
+      if (result.code === 0 || result.code === 1) {
         // 成功，返回数据部分
         return result.data
       } else {

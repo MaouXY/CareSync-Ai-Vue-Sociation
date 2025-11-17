@@ -223,6 +223,7 @@ export interface Recommendation {
   priority: string;
 }
 
+/* AI分析相关类型定义 */
 // AI分析结果VO
 export interface AiAnalysisResultVO {
   id: number;
@@ -308,22 +309,21 @@ export interface SchemeQueryDTO {
 // 服务方案详情
 export interface AssistSchemeVO {
   id: number;
-  childId: number;
-  workerId: number;
   target: string;
-  measures: string[];
+  createTime: string;
   cycle: number;
   schemeStatus: string;
+  childId: number;
+  workerAdjustReason?: string;
+  workerId?: number;
+  workerName: string;
+  measures: string[];
+  childInfo: ChildInfoVO;
   targetSuggest: string[];
   measuresSuggest: MeasuresSuggest[];
-  workerAdjustReason?: string;
   aiAnalysisId?: number;
   evaluationIndex?: any;
-  createTime: string;
   updateTime: string;
-  childName: string;
-  childAge: string;
-  workerName: string;
 }
 
 // 分页结果

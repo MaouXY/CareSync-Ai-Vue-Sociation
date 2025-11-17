@@ -81,6 +81,7 @@ onUnmounted(() => {
 .main-content {
   flex: 1;
   padding-top: 30px; /* 导航栏高度 */
+  background-color: var(--light);
 }
 
 .main-content.no-padding {
