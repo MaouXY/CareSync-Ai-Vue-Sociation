@@ -226,7 +226,7 @@
                   <div class="action-buttons">
                     <button 
                       class="btn btn-sm btn-outline"
-                      @click="viewAnalysisDetail(analysis.id)"
+                      @click="viewAnalysisDetail(analysis.childId)"
                     >
                       查看
                     </button>
@@ -431,7 +431,7 @@ const handleSelectAll = () => {
 }
 
 const viewAnalysisDetail = (id: number) => {
-  router.push(`/analysis/detail/${id}`)
+  router.push(`/analysis/${id}`)
 }
 
 const generateAnalysis = (childId: number) => {
@@ -1199,6 +1199,12 @@ onMounted(() => {
 
 /* 潜在问题颜色主题 */
 .problem-tag.社交互动信心不足 {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+
+.problem-tag.社交互动自信心不足 {
   background-color: #fef3c7;
   color: #d97706;
   border-color: #fed7aa;
