@@ -22,7 +22,7 @@
               </template>
               <span>AI生成方案</span>
             </a-button>
-            <a-button 
+            <!-- <a-button 
               id="addSchemeBtn" 
               type="primary"
               class="btn btn-primary"
@@ -33,7 +33,7 @@
                 <icon-plus />
               </template>
               <span>新建方案</span>
-            </a-button>
+            </a-button> -->
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@ import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import type { TableColumnData } from '@arco-design/web-vue';
 import type { SchemeQueryDTO, GenerateSchemeDTO } from '@/types/api';
-import { http } from '@/services/api';
+import { http, aiHttp } from '@/services/api';
 import EnhancedPagination from '@/components/common/EnhancedPagination.vue';
 import WorkHeader from '@/components/layout/WorkHeader.vue';
 
@@ -531,10 +531,10 @@ const handleGenerateScheme = async () => {
     // 显示加载状态
     isGenerating.value = true;
     
-    // 调用生成AI服务方案接口
-    const response = await http.post('/api/social-worker/scheme/generate', generateSchemeDTO.value);
+    // 调用生成AI服务方案接口，使用AI专用实例
+    const response = await aiHttp.post('/api/social-worker/scheme/generate', generateSchemeDTO.value);
     
-    if (response.code === 0) {
+    if (response.code === 1) {
       Message.success('AI服务方案生成成功');
       // 关闭弹窗
       showGenerateModal.value = false;
