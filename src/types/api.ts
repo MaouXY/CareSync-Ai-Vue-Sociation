@@ -307,6 +307,11 @@ export interface SchemeQueryDTO {
 }
 
 // 服务方案详情
+export interface GenerateSchemeDTO{
+  childId: number;
+  additionalInfo?: string;
+}
+
 export interface AssistSchemeVO {
   id: number;
   target: string;

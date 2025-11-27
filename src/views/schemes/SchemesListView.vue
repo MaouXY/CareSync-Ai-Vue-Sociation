@@ -11,6 +11,18 @@
           </div>
           <div class="flex items-center ml-auto space-x-4 mt-4 sm:mt-0">
             <a-button 
+              id="generateSchemeBtn" 
+              type="primary"
+              class="btn btn-primary"
+              style="padding-left: 0.4rem; padding-right: 0.8rem;"
+              @click="handleOpenGenerateModal"
+            >
+              <template #icon>
+                <icon-robot />
+              </template>
+              <span>AI生成方案</span>
+            </a-button>
+            <a-button 
               id="addSchemeBtn" 
               type="primary"
               class="btn btn-primary"
@@ -105,6 +117,57 @@
         </div>
       </div>
 
+      <!-- AI生成方案弹窗 -->
+      <a-modal
+        v-model:visible="showGenerateModal"
+        title="AI生成服务方案"
+        :footer="false"
+        width="600px"
+        :mask-closable="false"
+      >
+        <div class="generate-modal-content">
+          <div class="form-group">
+            <label class="form-label">儿童ID <span class="required">*</span></label>
+            <a-input-number
+              v-model="generateSchemeDTO.childId"
+              placeholder="请输入儿童ID"
+              :min="1"
+              :precision="0"
+              class="form-input-number"
+              allow-clear
+            />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">补充信息</label>
+            <a-textarea
+              v-model="generateSchemeDTO.additionalInfo"
+              placeholder="请输入补充信息（可选），例如：儿童的特殊需求、重点关注的问题等"
+              :rows="4"
+              class="form-textarea"
+              allow-clear
+            />
+          </div>
+          
+          <div class="modal-actions">
+            <!-- <a-button @click="showGenerateModal = false" class="cancel-btn">
+              取消
+            </a-button> -->
+            <a-button 
+              type="primary" 
+              @click="handleGenerateScheme"
+              :loading="isGenerating"
+              class="generate-btn"
+            >
+              <template #icon>
+                <icon-robot />
+              </template>
+              生成方案
+            </a-button>
+          </div>
+        </div>
+      </a-modal>
+
       <!-- 方案列表 -->
       <div class="table-wrapper">
         <a-space direction="vertical" size="large" fill>
@@ -143,7 +206,7 @@ import { ref, computed, onMounted, h } from 'vue';
 import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import type { TableColumnData } from '@arco-design/web-vue';
-import type { SchemeQueryDTO } from '@/types/api';
+import type { SchemeQueryDTO, GenerateSchemeDTO } from '@/types/api';
 import { http } from '@/services/api';
 import EnhancedPagination from '@/components/common/EnhancedPagination.vue';
 import WorkHeader from '@/components/layout/WorkHeader.vue';
@@ -420,7 +483,7 @@ const handlePageSizeChange = (size: number) => {
 };
 
 const handleViewDetail = (id: number) => {
-  router.push(`/schemes/detail/${id}`);
+  router.push(`/schemes/${id}`);
 };
 
 const handleEdit = (id: number) => {
@@ -439,6 +502,55 @@ const handleDelete = async (id: number) => {
   }
 };
 
+// 生成AI服务方案
+const generateSchemeDTO = ref<GenerateSchemeDTO>({
+  childId: 0,
+  additionalInfo: ''
+});
+
+const showGenerateModal = ref(false);
+const isGenerating = ref(false);
+
+// 打开生成弹窗
+const handleOpenGenerateModal = () => {
+  // 重置表单
+  generateSchemeDTO.childId = 0;
+  generateSchemeDTO.additionalInfo = '';
+  showGenerateModal.value = true;
+};
+
+// 生成AI服务方案
+const handleGenerateScheme = async () => {
+  try {
+    // 检查是否选择了儿童
+    if (!generateSchemeDTO.value.childId || generateSchemeDTO.value.childId === 0) {
+      Message.error('请选择儿童');
+      return;
+    }
+
+    // 显示加载状态
+    isGenerating.value = true;
+    
+    // 调用生成AI服务方案接口
+    const response = await http.post('/api/social-worker/scheme/generate', generateSchemeDTO.value);
+    
+    if (response.code === 0) {
+      Message.success('AI服务方案生成成功');
+      // 关闭弹窗
+      showGenerateModal.value = false;
+      // 重新加载方案列表
+      loadSchemes();
+    } else {
+      Message.error(response.msg || '生成AI服务方案失败');
+    }
+  } catch (error) {
+    console.error('生成AI服务方案失败:', error);
+    Message.error('生成AI服务方案失败，请稍后重试');
+  } finally {
+    isGenerating.value = false;
+  }
+};
+
 const handleCreateScheme = () => {
   router.push('/schemes/create');
 };
@@ -452,6 +564,7 @@ onMounted(() => {
 <style scoped>
 /* 页面容器 */
 .schemes-main-content {
+  background-color: #ffffff;
   /* background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); */
   min-height: 100vh;
   padding: 20px 0;

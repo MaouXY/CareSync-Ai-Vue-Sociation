@@ -1,6 +1,6 @@
 <template>
   <AppLayout title="服务方案详情 - CareSync AI">
-    <div class="scheme-detail-container">
+    <div class="scheme-detail-container ">
       <!-- 页面头部和操作栏 -->
       <div class="page-header">
         <div class="header-left">
