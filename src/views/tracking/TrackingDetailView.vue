@@ -241,7 +241,7 @@ import { useRouter, useRoute } from 'vue-router';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
-import http from '@/services/http';
+import { http } from '@/services/api';
 
 // 路由实例
 const router = useRouter();

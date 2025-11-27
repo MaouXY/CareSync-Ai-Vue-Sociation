@@ -785,7 +785,7 @@ const handleExport = () => {
 };
 
 const handleViewDetail = (id: number) => {
-  router.push(`/tracking/detail/${id}`);
+  router.push(`/tracking/${id}`);
 };
 
 const handleEdit = (id: number) => {
