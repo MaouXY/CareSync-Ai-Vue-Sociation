@@ -42,6 +42,20 @@
         <Button @click="fetchTrackingDetail" variant="primary">重试</Button>
       </div>
 
+      <!-- 成功消息 -->
+      <div v-if="successMessage" class="message success-message">
+        <span class="message-icon">✅</span>
+        <span class="message-text">{{ successMessage }}</span>
+        <Button @click="successMessage = null" variant="text" size="small" class="message-close">关闭</Button>
+      </div>
+
+      <!-- 错误消息 -->
+      <div v-if="errorMessage" class="message error-message">
+        <span class="message-icon">❌</span>
+        <span class="message-text">{{ errorMessage }}</span>
+        <Button @click="errorMessage = null" variant="text" size="small" class="message-close">关闭</Button>
+      </div>
+
       <!-- 服务跟踪详情内容 -->
       <div v-else-if="trackingDetail" class="tracking-detail-content">
         <!-- 基本信息卡片 -->
@@ -207,19 +221,24 @@
                       <div class="intervention-info">
                         <span class="intervention-number">{{ taskIndex + 1 }}</span>
                         <h3 class="intervention-title">{{ task.content }}</h3>
-                        <span 
-                          :class="['completion-badge', `completion-${task.status?.toLowerCase()}`]"
-                          :style="{
-                            backgroundColor: getStatusColor(task.status || '').bg,
-                            color: getStatusColor(task.status || '').color,
-                            borderColor: getStatusColor(task.status || '').border
-                          }"
-                        >
-                          {{ getStatusText(task.status) }}
-                        </span>
+                        <div class="status-selector-container">
+                          <select 
+                            v-model="task.status" 
+                            @change="updateTaskStatus(task.assist_track_log_id, task.status)"
+                            :class="['status-selector', { 'loading': updatingTasks.has(task.assist_track_log_id) }]"
+                            :disabled="updatingTasks.has(task.assist_track_log_id)"
+                          >
+                            <option value="pending">待处理</option>
+                            <option value="in_progress">进行中</option>
+                            <option value="completed">已完成</option>
+                          </select>
+                          <div v-if="updatingTasks.has(task.assist_track_log_id)" class="status-loading">
+                            <div class="loading-spinner-small"></div>
+                          </div>
+                        </div>
                       </div>
                       <div class="intervention-meta">
-                        <span class="task-id">ID: {{ task.assistTrackLogId }}</span>
+                        <span class="task-id">ID: {{ task.assist_track_log_id }}</span>
                       </div>
                     </div>
                   </div>
@@ -264,6 +283,9 @@ const route = useRoute();
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const trackingDetail = ref<TrackingDetailVO | null>(null);
+const updatingTasks = ref<Set<number>>(new Set());
+const successMessage = ref<string | null>(null);
+const errorMessage = ref<string | null>(null);
 
 // 接口响应数据类型定义
 interface MeasuresSuggestDetails {
@@ -405,6 +427,44 @@ const getWeekProgress = (details: any[]) => {
   if (details.length === 0) return 0;
   const completedCount = getWeekCompletedCount(details);
   return Math.round((completedCount / details.length) * 100);
+};
+
+// 更新任务状态
+const updateTaskStatus = async (taskId: number, newStatus: string) => {
+  try {
+    // 添加到更新中的任务集合
+    updatingTasks.value.add(taskId);
+    // 清除之前的消息
+    successMessage.value = null;
+    errorMessage.value = null;
+    
+    // 调用接口更新状态
+    await http.put(`/api/social-worker/track/log/${taskId}`, {
+      id: taskId,
+      completionStatus: newStatus
+    });
+    
+    // 更新成功
+    successMessage.value = '任务状态更新成功';
+    // 3秒后清除成功消息
+    setTimeout(() => {
+      successMessage.value = null;
+    }, 3000);
+    
+    // 重新获取跟踪详情，确保数据最新
+    fetchTrackingDetail();
+  } catch (err) {
+    // 更新失败
+    errorMessage.value = '任务状态更新失败';
+    console.error('更新任务状态失败:', err);
+    // 3秒后清除错误消息
+    setTimeout(() => {
+      errorMessage.value = null;
+    }, 3000);
+  } finally {
+    // 从更新中的任务集合中移除
+    updatingTasks.value.delete(taskId);
+  }
 };
 
 // 格式化日期
@@ -1022,6 +1082,106 @@ onMounted(() => {
   color: #22C55E;
 }
 
+/* 状态选择器样式 */
+.status-selector-container {
+  position: relative;
+  display: inline-block;
+}
+
+.status-selector {
+  padding: 6px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  color: #1F2937;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.status-selector:hover:not(:disabled) {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.status-selector:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.status-selector:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-selector.loading {
+  opacity: 0.6;
+}
+
+/* 状态加载样式 */
+.status-loading {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #E5E7EB;
+  border-top: 2px solid #4F46E5;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* 消息提示样式 */
+.message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.success-message {
+  background-color: #D1FAE5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.error-message {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.message-icon {
+  font-size: 18px;
+}
+
+.message-text {
+  flex: 1;
+}
+
+.message-close {
+  padding: 0;
+  margin-left: auto;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .tracking-detail-container {
@@ -1063,6 +1223,21 @@ onMounted(() => {
   .intervention-meta {
     width: 100%;
     justify-content: flex-start;
+  }
+  
+  .status-selector {
+    min-width: 100px;
+    font-size: 13px;
+  }
+  
+  .message {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .message-close {
+    align-self: flex-end;
   }
 }
 </style>
