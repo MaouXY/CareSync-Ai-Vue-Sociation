@@ -119,7 +119,7 @@ const measureStatusMapping: Record<string, 'not_started' | 'in_progress' | 'comp
 };
 
 // 适配函数：将API数据转换为页面组件期望的格式
-function adaptSchemeDetail(apiData: DetailSchemeVO): AdaptedSchemeDetail {
+function adaptSchemeDetail(apiData: any): AdaptedSchemeDetail {
   // 根据目标推断类别
   const inferCategory = (target: string, suggestions: string[]): 'emotional' | 'academic' | 'behavioral' | 'social' | 'comprehensive' => {
     const text = (target + ' ' + suggestions.join(' ')).toLowerCase();
@@ -136,10 +136,15 @@ function adaptSchemeDetail(apiData: DetailSchemeVO): AdaptedSchemeDetail {
     }
   };
 
+  // 处理不同命名格式的字段
+  const targetSuggest = apiData.targetSuggest || apiData.target_suggest || [];
+  const measuresSuggest = apiData.measuresSuggest || apiData.measures_suggest || [];
+
   // 适配干预措施
-  const adaptedInterventions: Intervention[] = apiData.measuresSuggest.flatMap((measure, measureIndex) => {
-    return measure.details.map((detail, detailIndex) => {
+  const adaptedInterventions: Intervention[] = measuresSuggest.flatMap((measure: any, measureIndex: number) => {
+    return measure.details.map((detail: any, detailIndex: number) => {
       const interventionId = `${apiData.id}-${measureIndex}-${detailIndex}`;
+      const assistTrackLogId = detail.assistTrackLogId || detail.assist_track_log_id || 0;
       return {
         id: interventionId,
         name: `${measure.week}任务`,
@@ -150,7 +155,7 @@ function adaptSchemeDetail(apiData: DetailSchemeVO): AdaptedSchemeDetail {
         status: measureStatusMapping[detail.status] || 'not_started',
         completionRate: measureStatusMapping[detail.status] === 'completed' ? 100 : 
                         measureStatusMapping[detail.status] === 'in_progress' ? 50 : 0,
-        notes: [measure.week, `任务ID: ${detail.assistTrackLogId}`]
+        notes: [measure.week, `任务ID: ${assistTrackLogId}`]
       };
     });
   });
@@ -170,11 +175,11 @@ function adaptSchemeDetail(apiData: DetailSchemeVO): AdaptedSchemeDetail {
     childRiskLevel: apiData.childInfo.riskLevel,
     childEmotionScores: apiData.childInfo.emotionScores,
     childEmotionTrend: apiData.childInfo.emotionTrend,
-    category: inferCategory(apiData.target, apiData.targetSuggest),
+    category: inferCategory(apiData.target, targetSuggest),
     status: statusMapping[apiData.schemeStatus] || 'draft',
     startTime: undefined, // API中没有提供，设为undefined
     endTime: undefined,   // API中没有提供，设为undefined
-    targetGoals: apiData.targetSuggest,
+    targetGoals: targetSuggest,
     interventions: adaptedInterventions,
     progress,
     cycle: apiData.cycle,
