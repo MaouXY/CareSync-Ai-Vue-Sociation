@@ -432,27 +432,31 @@ const columns = computed<TableColumnData[]>(() => [
       }, statusInfo.text);
     }
   },
-  {
-    title: '完成进度',
+  { title: '完成进度',
     dataIndex: 'progress',
     width: 180,
     render: ({ record }: any) => {
-      const progress = record.totalTasks > 0 ? Math.round((record.progress / record.totalTasks) * 100) : 0;
-      return h('div', {
-        class: 'w-full'
-      }, [
-        h('div', {
-          class: 'w-full bg-gray-200 rounded-full h-2.5 mb-1'
-        }, [
+      // 计算总任务数和已完成任务数
+      const measuresSuggest = record.measures_suggest || record.measuresSuggest || [];
+      const totalTasks = measuresSuggest.reduce((sum: number, week: any) => {
+        return sum + (week.details?.length || 0);
+      }, 0);
+      
+      const completedTasks = measuresSuggest.reduce((sum: number, week: any) => {
+        return sum + (week.details?.filter((task: any) => task.status === 'completed' || task.status === 'COMPLETED').length || 0);
+      }, 0);
+      
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      return h('div', { class: 'w-full' }, [
+        h('div', { class: 'w-full bg-gray-200 rounded-full h-2.5 mb-1' }, [
           h('div', {
             class: 'bg-success h-2.5 rounded-full progress-bar-animated',
             style: { width: `${progress}%` }
           })
         ]),
-        h('div', {
-          class: 'flex justify-between text-xs text-neutral'
-        }, [
-          h('span', `${record.progress || 0}/${record.totalTasks || 0}个任务`),
+        h('div', { class: 'flex justify-between text-xs text-neutral' }, [
+          h('span', `${completedTasks}/${totalTasks}个任务`),
           h('span', `${progress}%`)
         ])
       ]);
@@ -543,7 +547,7 @@ const loadTrackingData = async () => {
 // 加载统计数据
 const loadStatistics = async () => {
   try {
-    const response: any = await http.get('/social-worker/track/statistics');
+    const response: any = await http.get('/api/social-worker/track/statistics');
     
     if (response.code === 1) {
       const data = response.data || {};
@@ -570,7 +574,17 @@ const updateStatistics = () => {
   if (trackingData.value.length > 0) {
     // 计算平均完成率（基于已完成的任务/总任务）
     const totalProgress = trackingData.value.reduce((sum: number, item: any) => {
-      const progress = item.totalTasks > 0 ? (item.progress / item.totalTasks) * 100 : 0;
+      // 从measures_suggest或measuresSuggest数组中计算进度
+      const measuresSuggest = item.measures_suggest || item.measuresSuggest || [];
+      const totalTasks = measuresSuggest.reduce((sumTasks: number, week: any) => {
+        return sumTasks + (week.details?.length || 0);
+      }, 0);
+      
+      const completedTasks = measuresSuggest.reduce((sumCompleted: number, week: any) => {
+        return sumCompleted + (week.details?.filter((task: any) => task.status === 'completed' || task.status === 'COMPLETED').length || 0);
+      }, 0);
+      
+      const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
       return sum + progress;
     }, 0);
     averageCompletionRate.value = Math.round(totalProgress / trackingData.value.length);

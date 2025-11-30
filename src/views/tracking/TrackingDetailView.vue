@@ -109,15 +109,15 @@
               <div class="progress-header">
                 <h3 class="progress-title">任务进度</h3>
                 <div class="progress-stats">
-                  <span class="progress-percentage">{{ trackingDetail?.progress || 0 }}%</span>
+                  <span class="progress-percentage">{{ trackingDetail?.totalTasks > 0 ? Math.round((trackingDetail?.progress || 0) / trackingDetail?.totalTasks * 100) : 0 }}%</span>
                   <span class="progress-count">{{ trackingDetail?.progress || 0 }}/{{ trackingDetail?.totalTasks || 0 }} 任务完成</span>
                 </div>
               </div>
               <div class="progress-bar">
                 <div 
                   class="progress-fill" 
-                  :style="{ width: (trackingDetail?.progress || 0) + '%' }"
-                  :class="getProgressClass(trackingDetail?.progress || 0)"
+                  :style="{ width: (trackingDetail?.totalTasks > 0 ? Math.round((trackingDetail?.progress || 0) / trackingDetail?.totalTasks * 100) : 0) + '%' }"
+                  :class="getProgressClass(trackingDetail?.totalTasks > 0 ? Math.round((trackingDetail?.progress || 0) / trackingDetail?.totalTasks * 100) : 0)"
                 ></div>
               </div>
               <div class="task-breakdown">
@@ -224,21 +224,21 @@
                         <div class="status-selector-container">
                           <select 
                             v-model="task.status" 
-                            @change="updateTaskStatus(task.assist_track_log_id, task.status)"
-                            :class="['status-selector', { 'loading': updatingTasks.has(task.assist_track_log_id) }]"
-                            :disabled="updatingTasks.has(task.assist_track_log_id)"
+                            @change="updateTaskStatus(task.assist_track_log_id || task.assistTrackLogId, task.status)"
+                            :class="['status-selector', { 'loading': updatingTasks.has(task.assist_track_log_id || task.assistTrackLogId) }]"
+                            :disabled="updatingTasks.has(task.assist_track_log_id || task.assistTrackLogId)"
                           >
                             <option value="pending">待处理</option>
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                           </select>
-                          <div v-if="updatingTasks.has(task.assist_track_log_id)" class="status-loading">
+                          <div v-if="updatingTasks.has(task.assist_track_log_id || task.assistTrackLogId)" class="status-loading">
                             <div class="loading-spinner-small"></div>
                           </div>
                         </div>
                       </div>
                       <div class="intervention-meta">
-                        <span class="task-id">ID: {{ task.assist_track_log_id }}</span>
+                        <span class="task-id">ID: {{ task.assist_track_log_id || task.assistTrackLogId }}</span>
                       </div>
                     </div>
                   </div>
@@ -331,7 +331,44 @@ const fetchTrackingDetail = async () => {
     
     // 调用接口获取跟踪详情
     const response = await http.get(`/api/social-worker/track/scheme/${id}`);
-    trackingDetail.value = response.data;
+    const data = response.data;
+    
+    // 获取measures_suggest或measuresSuggest数组
+    const measuresSuggest = data.measures_suggest || data.measuresSuggest || [];
+    
+    // 计算总任务数
+    const totalTasks = measuresSuggest.reduce((sum: number, week: any) => {
+      return sum + (week.details?.length || 0);
+    }, 0);
+    
+    // 计算已完成任务数
+    const completedTasks = measuresSuggest.reduce((sum: number, week: any) => {
+      return sum + (week.details?.filter((task: any) => task.status === 'completed' || task.status === 'COMPLETED').length || 0);
+    }, 0);
+    
+    // 计算进行中任务数
+    const inProgressTasks = measuresSuggest.reduce((sum: number, week: any) => {
+      return sum + (week.details?.filter((task: any) => task.status === 'in_progress' || task.status === 'IN_PROGRESS').length || 0);
+    }, 0);
+    
+    // 转换数据结构，处理字段命名和数据提取
+    const transformedData = {
+      ...data,
+      // 从 childInfo 中提取字段
+      childName: data.childInfo?.name || '',
+      childAge: data.childInfo?.age ? `${data.childInfo.age}岁` : '',
+      // 处理下划线命名转换为驼峰命名
+      targetSuggest: data.target_suggest || data.targetSuggest || [],
+      measuresSuggest: measuresSuggest,
+      // 使用计算出的值覆盖API返回值
+      progress: completedTasks,
+      inProgressTasks: inProgressTasks,
+      totalTasks: totalTasks,
+      measures: data.measures || [],
+      updateTime: data.updateTime || data.createTime || ''
+    };
+    
+    trackingDetail.value = transformedData;
   } catch (err) {
     error.value = '获取跟踪详情失败';
     console.error('获取跟踪详情失败:', err);
