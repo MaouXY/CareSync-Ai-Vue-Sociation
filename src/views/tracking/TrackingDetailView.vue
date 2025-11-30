@@ -123,7 +123,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- 服务目标和措施 -->
         <div class="basic-info-card p-12">
           <div class="service-target-card">
@@ -160,8 +160,8 @@
           </div>
         </div>
 
-        <!-- 服务措施和AI分析 -->
-        <div class="basic-info-card p-12" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.aiAnalysisId">
+        <!-- 服务措施和执行详情 -->
+        <div class="basic-info-card p-12" v-if="trackingDetail?.workerAdjustReason || trackingDetail?.measuresSuggest">
           <div class="service-measures-card">
             <div class="card-header">
               <h2 class="card-title">服务措施</h2>
@@ -176,23 +176,39 @@
               </div>
             </div>
             <div class="card-content">
-              <div class="measures-details" v-if="trackingDetail?.measuresSuggest && trackingDetail.measuresSuggest.length > 0">
+              <!-- 按周分组的服务措施 -->
+              <div v-if="trackingDetail?.measuresSuggest && trackingDetail.measuresSuggest.length > 0">
                 <div 
-                  v-for="(weekMeasure, weekIndex) in trackingDetail?.measuresSuggest" 
-                  :key="weekIndex" 
-                  class="week-measure"
+                  v-for="(weekMeasure, weekKey) in trackingDetail?.measuresSuggest" 
+                  :key="weekKey" 
+                  class="week-group"
                 >
-                  <h4 class="week-title">{{ weekMeasure.week }}</h4>
-                  <div class="measure-tasks">
-                    <div 
-                      v-for="(task, taskIndex) in weekMeasure.details" 
-                      :key="taskIndex" 
-                      class="task-item"
-                    >
-                      <div class="task-header">
-                        <span class="task-number">{{ taskIndex + 1 }}</span>
+                  <div class="week-header">
+                    <h3 class="week-title">{{ weekMeasure.week }}</h3>
+                    <div class="week-progress">
+                      <span class="progress-text">
+                        {{ getWeekCompletedCount(weekMeasure.details) }}/{{ weekMeasure.details.length }} 已完成
+                      </span>
+                      <div class="mini-progress-bar">
+                        <div 
+                          class="mini-progress-fill" 
+                          :style="{ width: (getWeekProgress(weekMeasure.details)) + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    v-for="(task, taskIndex) in weekMeasure.details" 
+                    :key="taskIndex" 
+                    class="intervention-item"
+                  >
+                    <div class="intervention-header">
+                      <div class="intervention-info">
+                        <span class="intervention-number">{{ taskIndex + 1 }}</span>
+                        <h3 class="intervention-title">{{ task.content }}</h3>
                         <span 
-                          :class="['task-status', `status-${task.status?.toLowerCase()}`]"
+                          :class="['completion-badge', `completion-${task.status?.toLowerCase()}`]"
                           :style="{
                             backgroundColor: getStatusColor(task.status || '').bg,
                             color: getStatusColor(task.status || '').color,
@@ -202,33 +218,30 @@
                           {{ getStatusText(task.status) }}
                         </span>
                       </div>
-                      <div class="task-content">{{ task.content }}</div>
-                      <div class="task-meta">
-                        <span class="task-id">ID: {{ task.assist_track_log_id }}</span>
+                      <div class="intervention-meta">
+                        <span class="task-id">ID: {{ task.assistTrackLogId }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+              
+              <!-- 如果没有服务措施 -->
+              <div v-else class="empty-interventions">
+                <p>暂无服务措施</p>
+              </div>
             </div>
           </div>
 
-          <!-- <Card class="ai-analysis-card" v-if="trackingDetail?.aiAnalysisId">
+          <!-- 服务调整原因 -->
+          <div class="adjustment-card" v-if="trackingDetail?.workerAdjustReason">
             <div class="card-header">
-              <h2 class="card-title">AI分析</h2>
+              <h2 class="card-title">服务调整原因</h2>
             </div>
             <div class="card-content">
-              <div class="ai-analysis-info">
-                <p class="analysis-id">AI分析ID: {{ trackingDetail?.aiAnalysisId }}</p>
-                <div class="evaluation-index" v-if="trackingDetail?.evaluationIndex && Object.keys(trackingDetail.evaluationIndex).length > 0">
-                  <h4 class="evaluation-title">评估指标</h4>
-                  <div class="evaluation-details">
-                    <pre class="evaluation-content">{{ JSON.stringify(trackingDetail.evaluationIndex, null, 2) }}</pre>
-                  </div>
-                </div>
-              </div>
+              <p class="adjustment-text">{{ trackingDetail?.workerAdjustReason }}</p>
             </div>
-          </Card> -->
+          </div>
         </div>
       </div>
     </div>
@@ -296,7 +309,7 @@ const fetchTrackingDetail = async () => {
     
     // 调用接口获取跟踪详情
     const response = await http.get(`/api/social-worker/track/scheme/${id}`);
-    trackingDetail.value = response;
+    trackingDetail.value = response.data;
   } catch (err) {
     error.value = '获取跟踪详情失败';
     console.error('获取跟踪详情失败:', err);
@@ -380,6 +393,18 @@ const getProgressClass = (progress: number) => {
   if (progress >= 80) return 'progress-success';
   if (progress >= 50) return 'progress-warning';
   return 'progress-normal';
+};
+
+// 获取本周已完成任务数
+const getWeekCompletedCount = (details: any[]) => {
+  return details.filter(detail => detail.status === 'completed').length;
+};
+
+// 获取本周进度百分比
+const getWeekProgress = (details: any[]) => {
+  if (details.length === 0) return 0;
+  const completedCount = getWeekCompletedCount(details);
+  return Math.round((completedCount / details.length) * 100);
 };
 
 // 格式化日期
@@ -692,13 +717,46 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+.week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
 .week-title {
   font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e5e7eb;
+  margin: 0;
+}
+
+.week-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.mini-progress-bar {
+  width: 80px;
+  height: 4px;
+  background-color: #f3f4f6;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background-color: #4f46e5;
+  transition: width 0.3s ease;
 }
 
 .task-item {
@@ -714,6 +772,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.task-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .task-number {
@@ -744,12 +808,25 @@ onMounted(() => {
 }
 
 .task-meta {
-  text-align: right;
-}
-
-.task-id {
   font-size: 12px;
   color: #9ca3af;
+}
+
+.empty-measures {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+.adjustment-card {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.adjustment-text {
+  color: #374151;
+  line-height: 1.6;
 }
 
 .analysis-section {
@@ -789,6 +866,162 @@ onMounted(() => {
   overflow-x: auto;
 }
 
+/* 周分组样式 */
+.week-group {
+  margin-bottom: 24px;
+}
+
+.week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background-color: #F9FAFB;
+  border-radius: 8px;
+  border-left: 4px solid #4F46E5;
+}
+
+.week-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+}
+
+.week-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #6B7280;
+  white-space: nowrap;
+}
+
+.mini-progress-bar {
+  width: 100px;
+  height: 8px;
+  background-color: #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background-color: #4F46E5;
+  transition: width 0.3s ease;
+}
+
+/* 干预措施项样式 */
+.intervention-item {
+  padding: 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.intervention-item:last-child {
+  margin-bottom: 0;
+}
+
+.empty-interventions {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+}
+
+.intervention-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.intervention-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.intervention-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: #F3F4F6;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.intervention-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+  flex: 1;
+}
+
+.intervention-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 状态和类别标签 */
+.status-badge,
+.category-badge,
+.completion-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-draft {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6B7280;
+}
+
+.status-active {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+}
+
+.status-completed {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: #4F46E5;
+}
+
+.status-paused {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.completion-planned {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6B7280;
+}
+
+.completion-in_progress {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.completion-completed {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .tracking-detail-container {
@@ -815,6 +1048,21 @@ onMounted(() => {
   .task-breakdown {
     flex-direction: column;
     gap: 12px;
+  }
+  
+  .intervention-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .intervention-info {
+    width: 100%;
+  }
+  
+  .intervention-meta {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 </style>
