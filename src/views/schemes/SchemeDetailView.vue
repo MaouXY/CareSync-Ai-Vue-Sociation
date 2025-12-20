@@ -18,10 +18,17 @@
             <i class="icon-file-text">📊</i> 生成报告
           </Button>
           <Button 
+            @click="handleStartScheme" 
+            variant="success" 
+            class="start-button"
+          >
+            <i class="icon-play">▶️</i> 开始服务方案
+          </Button>
+          <Button 
             @click="handleEditScheme" 
             variant="primary" 
             class="edit-button"
-            v-if="schemeDetail?.status !== 'completed'"
+            v-if="schemeDetail?.status !== 'completed' && schemeDetail?.status !== 'COMPLETED'"
           >
             <i class="icon-edit">✏️</i> 编辑方案
           </Button>
@@ -313,9 +320,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { Message } from '@arco-design/web-vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
+import { http } from '@/services/api';
 import { getSchemeDetail, getMockSchemeDetail, type AdaptedSchemeDetail } from '@/services/api/schemeApi';
 import {AssistSchemeVO} from '@/services/api/vo/schemeVo';
 
@@ -368,6 +377,31 @@ const handleGenerateReport = () => {
 const handleEditScheme = () => {
   if (schemeDetail.value) {
     router.push(`/schemes/edit/${schemeDetail.value.id}`);
+  }
+};
+
+// 开始服务方案
+const handleStartScheme = async () => {
+  if (!schemeDetail.value) return;
+  
+  try {
+    isLoading.value = true;
+    
+    const id = schemeDetail.value.id;
+    const response = await http.post(`/api/social-worker/scheme/start/${id}`, {});
+    
+    if (response.code === 1) {
+      // 更新方案状态
+      schemeDetail.value = response.data;
+      Message.success('服务方案已成功开始');
+    } else {
+      Message.error(response.msg || '开始服务方案失败');
+    }
+  } catch (error) {
+    console.error('开始服务方案失败:', error);
+    Message.error('开始服务方案失败，请重试');
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -698,6 +732,26 @@ onMounted(() => {
   color: #6B7280;
   font-size: 14px;
   margin: 0 0 20px 0;
+}
+
+/* 开始服务方案按钮样式 */
+.start-button {
+  background-color: #22C55E;
+  color: white;
+  border-color: #22C55E;
+  transition: all 0.2s ease;
+}
+
+.start-button:hover {
+  background-color: #16A34A;
+  border-color: #16A34A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.start-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
 }
 
 /* 详情内容区域 */
