@@ -46,6 +46,42 @@
         <!-- 功能快捷入口 -->
         <div class="quick-actions-section">
           <div class="quick-actions-grid">
+            <div class="quick-action-card" @click="navigateToChildren">
+              <div class="quick-action-icon">
+                <i class="fa fa-child"></i>
+              </div>
+              <div class="quick-action-content">
+                <h3 class="quick-action-title">儿童管理</h3>
+                <p class="quick-action-description">管理服务儿童的基本信息和档案</p>
+              </div>
+            </div>
+            <div class="quick-action-card" @click="navigateToAnalysis">
+              <div class="quick-action-icon">
+                <i class="fa fa-bar-chart"></i>
+              </div>
+              <div class="quick-action-content">
+                <h3 class="quick-action-title">AI分析</h3>
+                <p class="quick-action-description">查看AI生成的儿童情感和行为分析报告</p>
+              </div>
+            </div>
+            <div class="quick-action-card" @click="navigateToSchemes">
+              <div class="quick-action-icon">
+                <i class="fa fa-file-text"></i>
+              </div>
+              <div class="quick-action-content">
+                <h3 class="quick-action-title">服务方案</h3>
+                <p class="quick-action-description">管理和制定儿童服务方案</p>
+              </div>
+            </div>
+            <div class="quick-action-card" @click="navigateToTracking">
+              <div class="quick-action-icon">
+                <i class="fa fa-map-marker"></i>
+              </div>
+              <div class="quick-action-content">
+                <h3 class="quick-action-title">服务跟踪</h3>
+                <p class="quick-action-description">跟踪记录服务方案的执行情况</p>
+              </div>
+            </div>
             <div class="quick-action-card" @click="navigateToSimulation">
               <div class="quick-action-icon">
                 <i class="fa fa-graduation-cap"></i>
@@ -679,20 +715,20 @@ onMounted(() => {
 
 .statistics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* 1*4 布局 */
   gap: 1.5rem;
 }
 
-/* 响应式布局优化 */
+/* 响应式布局优化 - 只支持 2*2 和 1*4 两种方式 */
 @media (max-width: 1200px) {
   .statistics-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2*2 布局 */
   }
 }
 
 @media (max-width: 768px) {
   .statistics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr); /* 保持 2*2 布局 */
   }
 }
 
@@ -1448,7 +1484,8 @@ onMounted(() => {
   }
   
   .statistics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr); /* 保持 2*2 布局 */
+    gap: 1rem;
   }
   
   .statistics-card {
