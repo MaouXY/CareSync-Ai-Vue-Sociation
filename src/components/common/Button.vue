@@ -35,12 +35,12 @@
 import { computed } from 'vue';
 
 // Props定义
-defineProps({
+const props = defineProps({
   // 按钮类型：primary、secondary、accent、outline、ghost
   variant: {
     type: String,
     default: 'primary',
-    validator: (value: string) => ['primary', 'secondary', 'accent', 'outline', 'ghost'].includes(value)
+    validator: (value: string) => ['primary', 'secondary', 'accent', 'outline', 'ghost', 'success'].includes(value)
   },
   
   // 按钮尺寸：small、medium、large
@@ -92,9 +92,8 @@ defineProps({
 const emit = defineEmits(['click']);
 
 // 计算属性
-const iconSize = computed(() => {
+const computedIconSize = computed(() => {
   // 根据按钮尺寸自动调整图标大小
-  const props = defineProps();
   switch (props.size) {
     case 'small':
       return props.iconSize || 14;
@@ -107,7 +106,6 @@ const iconSize = computed(() => {
 
 // 处理点击事件
 const handleClick = (event: MouseEvent) => {
-  const props = defineProps();
   if (!props.disabled && !props.loading) {
     emit('click', event);
   }
@@ -163,6 +161,17 @@ const handleClick = (event: MouseEvent) => {
 
 .btn-accent:hover:not(:disabled) {
   background-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-success {
+  background-color: var(--success);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: var(--success-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -307,5 +316,11 @@ const handleClick = (event: MouseEvent) => {
 .btn-ghost.btn-disabled {
   color: var(--neutral);
   background-color: transparent;
+}
+
+/* success变体的特殊处理 */
+.btn-success:has(.btn-icon):not(:has(.btn-text)) {
+  background-color: var(--success);
+  color: white;
 }
 </style>

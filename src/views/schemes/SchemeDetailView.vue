@@ -394,6 +394,8 @@ const handleStartScheme = async () => {
       // 更新方案状态
       schemeDetail.value = response.data;
       Message.success('服务方案已成功开始');
+      // 重新获取方案详情，确保数据最新
+      await fetchSchemeDetail();
     } else {
       Message.error(response.msg || '开始服务方案失败');
     }
