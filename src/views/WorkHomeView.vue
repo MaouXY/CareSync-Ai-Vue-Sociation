@@ -988,8 +988,21 @@ onMounted(() => {
 
 .quick-actions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr); /* 大屏幕：3列布局 */
+  gap: 1.5rem;
+}
+
+/* 响应式布局优化 */
+@media (max-width: 1200px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr); /* 中屏幕：2列布局 */
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr; /* 小屏幕：1列布局 */
+  }
 }
 
 .quick-action-card {

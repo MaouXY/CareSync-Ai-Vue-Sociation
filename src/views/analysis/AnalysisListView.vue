@@ -494,14 +494,22 @@ onMounted(() => {
 /* 页面标题 */
 .page-header {
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
-  color: #1a202c;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  margin: 0 0 4px 0;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
 }
 
 /* Flexbox工具类 */
@@ -524,12 +532,6 @@ onMounted(() => {
   .sm\:items-center {
     align-items: center;
   }
-
-.page-subtitle {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-}
 
 /* 搜索筛选区 - 紫色社工端风格 */
 .search-filters-card {

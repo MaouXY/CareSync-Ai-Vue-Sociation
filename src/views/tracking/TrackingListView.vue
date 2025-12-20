@@ -853,6 +853,8 @@ onMounted(async () => {
 .page-header {
   margin-bottom: 24px;
   padding-bottom: 16px;
+  padding-left: 20px;
+  padding-right: 20px;
   border-bottom: 1px solid #e5e7eb;
 }
 

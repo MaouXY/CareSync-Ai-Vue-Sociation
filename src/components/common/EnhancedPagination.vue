@@ -303,7 +303,7 @@ const handlePageSizeChange = () => {
   gap: 16px;
   padding: 20px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 0px 0px 12px 12px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f5f9;

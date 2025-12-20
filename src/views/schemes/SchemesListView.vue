@@ -1,7 +1,7 @@
 <template>
   <div class="schemes-list-container">
     <WorkHeader />
-    <main class="schemes-main-content" style="padding-top: 80px;">
+    <main class="schemes-main-content">
       <!-- 页面标题和操作栏 -->
       <div class="page-header pt-4">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
@@ -14,7 +14,7 @@
               id="generateSchemeBtn" 
               type="primary"
               class="btn btn-primary"
-              style="padding-left: 0.4rem; padding-right: 0.8rem;"
+              style="padding-left: 0.2rem; padding-right: 0.8rem;"
               @click="handleOpenGenerateModal"
             >
               <template #icon>
@@ -22,18 +22,6 @@
               </template>
               <span>AI生成方案</span>
             </a-button>
-            <!-- <a-button 
-              id="addSchemeBtn" 
-              type="primary"
-              class="btn btn-primary"
-              style="padding-left: 0.4rem; padding-right: 0.8rem;"
-              @click="handleCreateScheme"
-            >
-              <template #icon>
-                <icon-plus />
-              </template>
-              <span>新建方案</span>
-            </a-button> -->
           </div>
         </div>
       </div>
@@ -562,17 +550,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 全局样式重置 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 /* 页面容器 */
 .schemes-main-content {
-  background-color: #ffffff;
+  /* background-color: #ffffff; */
   max-width: 1400px;
   /* background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); */
-  min-height: 100vh;
   margin: 0 auto;
-  padding: 24px;
+  padding: 96px 24px 24px 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .schemes-list-container {
+  background-color: #f9fafb;
   min-height: 100vh;
   /* background-color: #f9fafb; */
   position: relative;
@@ -820,6 +817,31 @@ onMounted(() => {
   margin-top: 8px;
 }
 
+/* Flexbox工具类 */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.sm\:flex-row {
+  flex-direction: row;
+}
+
+.sm\:justify-between {
+  justify-content: space-between;
+}
+
+.sm\:items-center {
+  align-items: center;
+}
+
 /* 按钮样式 - 紫色社工端风格 */
 .reset-btn {
   padding: 12px 24px;
@@ -859,6 +881,10 @@ onMounted(() => {
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
   transform: translateY(-1px);
   color: white;
+}
+
+.pt-4 {
+  padding-top: 1rem;
 }
 
 /* 表格容器样式 */
@@ -999,6 +1025,22 @@ onMounted(() => {
 .pagination-wrapper :deep(.ant-pagination-prev):hover .ant-pagination-item-link {
   border-color: #4F46E5;
   color: #4F46E5;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.space-x-4 {
+  gap: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
 }
 
 /* 响应式设计 - 紫色社工端风格 */
