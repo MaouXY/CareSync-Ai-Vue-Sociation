@@ -284,28 +284,22 @@ const columns = computed<TableColumnData[]>(() => [
     width: 100,
     align: 'center'
   },
-  {
-    title: '操作',
+  { title: '操作',
     dataIndex: 'operations',
     fixed: 'right',
-    width: 150,
+    width: 250,
     align: 'center',
     render: ({ record }:any) => {
-      return h('div', { class: 'table-actions' }, [
-        h('a', {
-          href: 'javascript:;',
-          onClick: () => handleViewDetail(record.id),
-          class: 'action-link view-link'
+      return h('div', { style: { display: 'flex', justifyContent: 'center', gap: '12px' } }, [
+        h('button', {
+          class: 'btn btn-sm btn-outline',
+          style: { minWidth: '60px', backgroundColor: 'white', color: '#4f46e5', border: '1px solid #4f46e5', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer' },
+          onClick: () => handleViewDetail(record.id)
         }, '查看'),
-        h('a', {
-          href: 'javascript:;',
-          onClick: () => handleEdit(record.id),
-          class: 'action-link edit-link'
-        }, '编辑'),
-        h('a', {
-          href: 'javascript:;',
-          onClick: () => handleDelete(record.id),
-          class: 'action-link delete-link'
+        h('button', {
+          class: 'btn btn-sm btn-danger',
+          style: { minWidth: '60px', backgroundColor: '#ef4444', color: 'white', border: '1px solid #ef4444', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer' },
+          onClick: () => handleDelete(record.id)
         }, '删除')
       ]);
     }
@@ -1192,6 +1186,34 @@ onMounted(() => {
   background-color: #4338ca;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+}
+
+.btn-outline {
+  background-color: white;
+  color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1), 0 2px 4px -1px rgba(239, 68, 68, 0.06);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
 }
 
 /* 加载动画优化 */

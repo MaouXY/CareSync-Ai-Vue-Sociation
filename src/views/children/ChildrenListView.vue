@@ -258,7 +258,7 @@ const columns: ATableColumn<ChildQueueVO>[] = [
     dataIndex: 'createTime', 
     key: 'createTime',
     width: 180,
-    customRender: ({ record }: any) => {
+    render: ({ record }: any) => {
       if (!record.createTime) return '-'
       const date = new Date(record.createTime)
       return date.toLocaleDateString('zh-CN', {
@@ -273,16 +273,18 @@ const columns: ATableColumn<ChildQueueVO>[] = [
   {
     title: '操作',
     key: 'action',
-    width: 120,
+    width: 250,
     fixed: 'right',
-    customRender: ({ record }: any) => {
+    render: ({ record }: any) => {
       return h('div', { class: 'action-buttons' }, [
         h('button', {
           class: 'btn btn-sm btn-outline',
+          style: { minWidth: '60px',margin:'3px' },
           onClick: () => handleViewChild(record.id)
         }, '查看'),
         h('button', {
           class: 'btn btn-sm btn-primary',
+          style: { minWidth: '60px',margin:'3px' },
           onClick: () => handleEditChild(record.id)  
         }, '编辑')
       ])
@@ -347,7 +349,7 @@ const handleAddChild = () => {
 
 // 查看儿童详情
 const handleViewChild = (id: number) => {
-  router.push(`/children/detail/${id}`)
+  router.push(`/children/${id}`)
 }
 
 // 编辑儿童
