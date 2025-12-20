@@ -64,8 +64,8 @@
                   <dd class="summary-value">
                     <span class="risk-badge risk-low">已完成</span>
                   </dd>
-                  <dt class="summary-label">会话数量</dt>
-                  <dd class="summary-value">{{ analysisRecord.sessionIds?.length || 0 }}</dd>
+                  <dt class="summary-label">上次分析时间</dt>
+                  <dd class="summary-value">{{ analysisRecord.latestAnalysis}}</dd>
                 </dl>
               </div>
             </div>
@@ -78,24 +78,11 @@
             <i class="icon-trend">📈</i> 情绪趋势分析
           </div>
           <div class="chart-container">
-            <div class="chart-placeholder">
-              <div class="chart-bars">
-                <div 
-                  v-for="(item, index) in emotionTrendData" 
-                  :key="index" 
-                  class="chart-bar"
-                >
-                  <div 
-                    class="bar-fill" 
-                    :style="{ 
-                      height: item.score + '%',
-                      backgroundColor: getEmotionColor(item.score)
-                    }"
-                  ></div>
-                  <div class="bar-label">{{ item.date }}</div>
-                </div>
-              </div>
-            </div>
+            <div 
+              ref="emotionChartRef" 
+              class="echart-container"
+              style="height: 400px; width: 100%;"
+            ></div>
             <div class="trend-summary">
               <div class="trend-item">
                 <span class="trend-label">平均情绪分数：</span>
@@ -234,8 +221,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import * as echarts from 'echarts';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
@@ -255,6 +243,10 @@ const defaultAvatar = 'https://picsum.photos/60/60?random=default';
 // 分析记录
 const analysisRecord = ref<AiAnalysisResultVO | null>(null);
 
+// 图表ref
+const emotionChartRef = ref<HTMLElement | null>(null);
+let emotionChart: echarts.ECharts | null = null;
+
 // 情绪趋势数据（从emotionHistory转换）
 const emotionTrendData = computed(() => {
   if (!analysisRecord.value?.emotionHistory) return [];
@@ -266,10 +258,10 @@ const emotionTrendData = computed(() => {
     
     return {
       date: item.date,
-      happiness: item.scores.happiness || 0,
-      anxiety: item.scores.anxiety || 0,
-      confidence: item.scores.confidence || 0,
-      stress: item.scores.stress || 0,
+      '情绪稳定性': item.scores['情绪稳定性'] || 0,
+      '幸福感': item.scores['幸福感'] || 0,
+      '社交自信': item.scores['社交自信'] || 0,
+      '焦虑水平': item.scores['焦虑水平'] || 0,
       score: avgScore // 综合分数用于趋势图
     };
   });
@@ -467,9 +459,145 @@ const handleCreateScheme = () => {
   }
 };
 
-// 组件挂载时初始化数据
+// 初始化图表
+const initChart = () => {
+  if (!emotionChartRef.value) return;
+  
+  // 初始化echarts实例
+  emotionChart = echarts.init(emotionChartRef.value);
+  
+  // 更新图表数据
+  updateChart();
+};
+
+// 更新图表数据
+const updateChart = () => {
+  if (!emotionChart || emotionTrendData.value.length === 0) return;
+  
+  // 提取情绪维度
+  const emotionDimensions = ['情绪稳定性', '幸福感', '社交自信', '焦虑水平'];
+  
+  // 准备图表数据
+  const dates = emotionTrendData.value.map(item => item.date);
+  
+  // 准备系列数据
+  const series = emotionDimensions.map(dimension => {
+    return {
+      name: dimension,
+      type: 'line',
+      data: emotionTrendData.value.map(item => item[dimension as keyof typeof item] as number),
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 8,
+      emphasis: {
+        focus: 'series'
+      },
+      lineStyle: {
+        width: 3
+      },
+      areaStyle: {
+        opacity: 0.1
+      }
+    };
+  });
+  
+  // 图表配置
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#E5E7EB',
+      borderWidth: 1,
+      textStyle: {
+        color: '#1F2937'
+      },
+      formatter: function(params: any) {
+        let result = `${params[0].axisValue}<br/>`;
+        params.forEach((param: any) => {
+          result += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+        });
+        return result;
+      }
+    },
+    legend: {
+      data: emotionDimensions,
+      top: 10,
+      textStyle: {
+        color: '#6B7280'
+      },
+      itemGap: 20
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates,
+      axisLabel: {
+        color: '#6B7280',
+        rotate: 45
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#E5E7EB'
+        }
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      axisLabel: {
+        color: '#6B7280',
+        formatter: '{value}分'
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#E5E7EB'
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#F3F4F6'
+        }
+      }
+    },
+    series: series
+  };
+  
+  // 设置图表配置
+  emotionChart.setOption(option);
+};
+
+// 监听数据变化，更新图表
+watch(
+  () => emotionTrendData.value,
+  () => {
+    updateChart();
+  },
+  { deep: true }
+);
+
+// 组件挂载时初始化数据和图表
 onMounted(() => {
   fetchAnalysisDetail();
+  
+  // 初始化图表
+  setTimeout(() => {
+    initChart();
+  }, 100);
+});
+
+// 监听窗口大小变化，调整图表大小
+window.addEventListener('resize', () => {
+  emotionChart?.resize();
 });
 </script>
 
