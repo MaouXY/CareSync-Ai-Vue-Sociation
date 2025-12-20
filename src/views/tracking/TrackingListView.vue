@@ -286,7 +286,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick, h } from 'vue';
 import { useRouter } from 'vue-router';
-import { Message } from '@arco-design/web-vue';
+import { Message, Button } from '@arco-design/web-vue';
 import type { TableColumnData } from '@arco-design/web-vue';
 import * as echarts from 'echarts';
 import { http } from '@/services/api';
@@ -471,22 +471,24 @@ const columns = computed<TableColumnData[]>(() => [
       return record.estimatedCompletionDate || '-';
     }
   },
-  {
-    title: '操作',
+  { title: '操作',
     dataIndex: 'operations',
-    width: 120,
+    width: 160,
     fixed: 'right',
     align: 'center',
     render: ({ record }: any) => {
-      return h('div', { class: 'flex justify-center space-x-2' }, [
+      return h('div', { class: 'flex justify-center space-x-4' }, [
         h('button', {
           class: 'btn btn-sm btn-outline',
+          style: { minWidth: '60px',margin:'3px' },
           onClick: () => handleViewDetail(record.id)
-        }, '查看'),
-        h('button', {
-          class: 'btn btn-sm btn-primary',
-          onClick: () => handleEdit(record.id)
-        }, '编辑')
+        }, '查看')
+        // ,
+        // h('button', {
+        //   class: 'btn btn-sm btn-primary',
+        //   style: { minWidth: '60px',margin:'3px' },
+        //   onClick: () => handleEdit(record.id)
+        // }, '编辑')
       ]);
     }
   }
