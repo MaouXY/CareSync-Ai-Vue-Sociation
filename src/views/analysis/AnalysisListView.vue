@@ -20,14 +20,14 @@
               <i class="fa fa-refresh" :class="{ 'fa-spin': loading }"></i>
               <span class="hidden sm:inline-block">刷新</span>
             </button> -->
-            <button 
+            <!-- <button 
               id="regenerateAnalysisBtn" 
               class="btn btn-primary"
               @click="showGenerateModal = true"
             >
               <i class="fa fa-refresh"></i>
               <span>重新分析</span>
-            </button>
+            </button> -->
           </div>
 
         </div>
@@ -471,17 +471,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 全局样式重置 */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
 .analysis-list-container {
   min-height: 100vh;
   background-color: #f8fafc;
-  padding: 0;
-  margin: 0;
+  position: relative;
 }
 
 .analysis-main-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 4em;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
 }
 /* 页面标题 */
 .page-header {

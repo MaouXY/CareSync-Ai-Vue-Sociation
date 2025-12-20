@@ -565,9 +565,11 @@ onMounted(() => {
 /* 页面容器 */
 .schemes-main-content {
   background-color: #ffffff;
+  max-width: 1400px;
   /* background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); */
   min-height: 100vh;
-  padding: 20px 0;
+  margin: 0 auto;
+  padding: 24px;
 }
 
 .schemes-list-container {

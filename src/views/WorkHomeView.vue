@@ -574,11 +574,27 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-
-
-
-
 // 快捷入口导航
+const navigateToChildren = () => {
+  // 跳转到儿童管理页面
+  window.location.href = '/children';
+};
+
+const navigateToAnalysis = () => {
+  // 跳转到AI分析页面
+  window.location.href = '/analysis';
+};
+
+const navigateToSchemes = () => {
+  // 跳转到服务方案页面
+  window.location.href = '/schemes';
+};
+
+const navigateToTracking = () => {
+  // 跳转到服务跟踪页面
+  window.location.href = '/tracking';
+};
+
 const navigateToSimulation = () => {
   // 跳转到AI模拟训练页面
   window.location.href = '/simulation';
