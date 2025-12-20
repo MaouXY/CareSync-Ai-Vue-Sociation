@@ -83,11 +83,11 @@
                 </div>
                 <div class="overview-item">
                   <span class="label">儿童年龄：</span>
-                  <span class="value">{{ trackingDetail?.childAge }}岁</span>
+                  <span class="value">{{ trackingDetail?.childAge }}</span>
                 </div>
                 <div class="overview-item">
                   <span class="label">服务人员：</span>
-                  <span class="value">{{ trackingDetail?.workerName }}</span>
+                  <span class="value">{{ trackingDetail?.workerInfo.name }}</span>
                 </div>
                 <div class="overview-item">
                   <span class="label">服务周期：</span>
@@ -299,10 +299,32 @@ interface MeasuresSuggest {
   details: MeasuresSuggestDetails[];
 }
 
+interface workerInfo{
+  id: number;
+  workerNo: string;
+  name:string
+  phone:string
+  role:number
+  createTime: string;
+  updateTime: string;
+}
+
+interface childInfo{
+  id:number;
+  name:string;
+  age:string;
+  gender:string;
+  riskLevel:string;
+  serviceStatus:string;
+  address:string;
+}
+
 interface TrackingDetailVO {
   id: number;
   childId: number;
   workerId: number;
+  workerInfo:workerInfo;
+  childInfo:childInfo;
   target: string;
   measures: string[];
   cycle: number;
