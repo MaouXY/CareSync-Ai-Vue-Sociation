@@ -175,7 +175,11 @@
                   </div>
                   
                   <div class="message-content">
-                    <div class="message-bubble" :class="`message-bubble-${message.senderType}`">
+                    <div class="message-bubble" 
+                         :class="[
+                           `message-bubble-${message.senderType}`,
+                           { 'message-bubble-streaming': message.isStreaming }
+                         ]">
                       <div v-if="message.isTyping" class="typing-indicator">
                         <span class="typing-dot"></span>
                         <span class="typing-dot"></span>
@@ -184,32 +188,52 @@
                       <div v-else class="message-text">
                         {{ message.content }}
                         
+                        <!-- 流式接收中的提示 -->
+                        <span v-if="message.isStreaming" class="streaming-indicator">
+                          <span class="streaming-dot"></span>
+                          <span class="streaming-dot"></span>
+                          <span class="streaming-dot"></span>
+                        </span>
+                        
                         <!-- AI消息显示情感分析和AI指导 -->
-                        <div v-if="message.senderType === 'ai' && (message.emotionAnalysis || message.aiGuidance)" class="message-extra-info">
+                        <div v-if="message.senderType === 'ai' && (message.isStreaming || (message.emotionAnalysis || message.aiGuidance))" class="message-extra-info">
                           <!-- 情感分析 -->
                           <div v-if="message.emotionAnalysis" class="emotion-analysis">
                             <div class="info-label">情感分析：</div>
                             <div class="info-content" v-if="getMessageEmotionAnalysis(message)?.parsed">
                               <div v-for="(emotion, index) in getMessageEmotionAnalysis(message).parsed.detected_emotions" 
-                                   :key="index" 
-                                   class="emotion-item">
+                                  :key="index" 
+                                  class="emotion-item">
                                 <span class="emotion-name">{{ emotion.emotion }}</span>
                                 <span class="emotion-confidence">{{ emotion.confidence }}%</span>
                               </div>
                               <div v-if="getMessageEmotionAnalysis(message).parsed.emotion_intensity" 
-                                   class="emotion-intensity">
+                                  class="emotion-intensity">
                                 情感强度: {{ getMessageEmotionAnalysis(message).parsed.emotion_intensity }}
                               </div>
                             </div>
                             <div v-else class="info-content">
                               {{ getMessageEmotionAnalysis(message)?.text }}
+                              <!-- 情感分析流式渲染提示 -->
+                              <span v-if="message.isStreaming" class="streaming-indicator">
+                                <span class="streaming-dot"></span>
+                                <span class="streaming-dot"></span>
+                                <span class="streaming-dot"></span>
+                              </span>
                             </div>
                           </div>
                           
                           <!-- AI指导 -->
                           <div v-if="message.aiGuidance" class="ai-guidance">
                             <div class="info-label">AI指导：</div>
-                            <div class="info-content guidance-content">{{ message.aiGuidance }}</div>
+                            <div class="info-content guidance-content">{{ message.aiGuidance }}
+                              <!-- 指导意见流式渲染提示 -->
+                              <span v-if="message.isStreaming" class="streaming-indicator">
+                                <span class="streaming-dot"></span>
+                                <span class="streaming-dot"></span>
+                                <span class="streaming-dot"></span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -319,44 +343,98 @@
       <div v-if="evaluationResult" class="evaluation-content">
         <div class="evaluation-header">
           <div class="overall-score">
-            <div class="score-circle">
-              <span class="score-value">{{ evaluationResult.overallScore }}</span>
+            <div class="score-circle" :style="{ '--score': calculateTotalScore(evaluationResult) }">
+              <span class="score-value">{{ calculateTotalScore(evaluationResult) }}</span>
               <span class="score-max">/100</span>
             </div>
             <div class="score-label">综合评分</div>
           </div>
-          <div class="score-grade" :class="`score-grade-${getScoreGrade(evaluationResult.overallScore)}`">
-            {{ getScoreGradeText(evaluationResult.overallScore) }}
+          <div class="score-grade" :class="`score-grade-${getScoreGrade(calculateTotalScore(evaluationResult))}`">
+            {{ getScoreGradeText(calculateTotalScore(evaluationResult)) }}
           </div>
         </div>
 
         <div class="evaluation-details">
           <h3 class="details-title">详细评估</h3>
           <div class="details-grid">
-            <div v-for="detail in evaluationResult.details" :key="detail.category" class="detail-item">
+            <div class="detail-item">
               <div class="detail-header">
-                <span class="detail-category">{{ detail.category }}</span>
-                <span class="detail-score">{{ detail.score }}/100</span>
+                <span class="detail-category">同理心得分</span>
+                <span class="detail-score">{{ evaluationResult.empathyScore || 0 }}/100</span>
               </div>
               <a-progress 
-                :percent="detail.score" 
-                :stroke-color="getScoreColor(detail.score)"
+                :percent="evaluationResult.empathyScore || 0" 
+                :stroke-color="getScoreColor(evaluationResult.empathyScore || 0)"
                 :show-text="false"
                 class="detail-progress"
               />
-              <p class="detail-feedback">{{ detail.feedback }}</p>
+              <p class="detail-feedback">反映您在对话中对儿童情感的理解和回应能力</p>
+            </div>
+            <div class="detail-item">
+              <div class="detail-header">
+                <span class="detail-category">沟通能力得分</span>
+                <span class="detail-score">{{ evaluationResult.communicationScore || 0 }}/100</span>
+              </div>
+              <a-progress 
+                :percent="evaluationResult.communicationScore || 0" 
+                :stroke-color="getScoreColor(evaluationResult.communicationScore || 0)"
+                :show-text="false"
+                class="detail-progress"
+              />
+              <p class="detail-feedback">评估您的语言表达和信息传递效果</p>
+            </div>
+            <div class="detail-item">
+              <div class="detail-header">
+                <span class="detail-category">问题解决能力得分</span>
+                <span class="detail-score">{{ evaluationResult.problemSolvingScore || 0 }}/100</span>
+              </div>
+              <a-progress 
+                :percent="evaluationResult.problemSolvingScore || 0" 
+                :stroke-color="getScoreColor(evaluationResult.problemSolvingScore || 0)"
+                :show-text="false"
+                class="detail-progress"
+              />
+              <p class="detail-feedback">衡量您帮助儿童解决问题的能力</p>
+            </div>
+            <div class="detail-item">
+              <div class="detail-header">
+                <span class="detail-category">情感识别能力得分</span>
+                <span class="detail-score">{{ evaluationResult.emotionalRecognitionScore || 0 }}/100</span>
+              </div>
+              <a-progress 
+                :percent="evaluationResult.emotionalRecognitionScore || 0" 
+                :stroke-color="getScoreColor(evaluationResult.emotionalRecognitionScore || 0)"
+                :show-text="false"
+                class="detail-progress"
+              />
+              <p class="detail-feedback">评估您识别儿童情感状态的准确性</p>
             </div>
           </div>
         </div>
 
         <div class="evaluation-suggestions">
-          <h3 class="suggestions-title">改进建议</h3>
-          <ul class="suggestions-list">
-            <li v-for="suggestion in evaluationResult.suggestions" :key="suggestion" class="suggestion-item">
+          <h3 class="suggestions-title">评估反馈</h3>
+          <div v-if="evaluationResult.strengths" class="suggestions-list">
+            <h4 class="suggestions-subtitle">优点</h4>
+            <li v-for="(strength, index) in parseEvaluationStrengths(evaluationResult.strengths).strengths" :key="index" class="suggestion-item">
               <icon-check-circle class="suggestion-icon" />
-              <span>{{ suggestion }}</span>
+              <span>{{ strength }}</span>
             </li>
-          </ul>
+          </div>
+          <div v-if="evaluationResult.strengths" class="suggestions-list">
+            <h4 class="suggestions-subtitle">不足</h4>
+            <li v-for="(weakness, index) in parseEvaluationStrengths(evaluationResult.strengths).weaknesses" :key="index" class="suggestion-item">
+              <icon-check-circle class="suggestion-icon" />
+              <span>{{ weakness }}</span>
+            </li>
+          </div>
+          <div v-if="evaluationResult.strengths" class="suggestions-list">
+            <h4 class="suggestions-subtitle">改进方向</h4>
+            <li v-for="(improvement, index) in parseEvaluationStrengths(evaluationResult.strengths).improvements" :key="index" class="suggestion-item">
+              <icon-check-circle class="suggestion-icon" />
+              <span>{{ improvement }}</span>
+            </li>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -540,56 +618,120 @@ const startTraining = async (scenario: SimulationScenario) => {
 
 
 
-//模拟AI回复
-const simulateAIResponse = async () => {
-  // 停止计时器
-  if (timer.value) {
-    clearInterval(timer.value);
-    timer.value = null;
-  }
-  
+// 流式获取AI回复
+const getAIResponseStream = async (userMessage: string) => {
   airesponding.value = true;
   
-  // 模拟AI思考时间
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // 添加临时AI消息，用于显示实时回复
+  const tempAiMessageId = `ai_temp_${Date.now()}`;
+  const tempAiMessage: ChatMessage = {
+    id: tempAiMessageId,
+    content: '',
+    senderType: 'ai',
+    role: 'ai',
+    timestamp: new Date(),
+    isTyping: false,
+    isStreaming: true, // 添加流式标记
+    streamContent: '', // 用于存储完整的流式内容
+    emotionAnalysis: undefined,
+    aiGuidance: undefined
+  };
+  
+  chatMessages.value.push(tempAiMessage);
+  
+  // 滚动到底部
+  await nextTick();
+  scrollToBottom();
   
   try {
-    const aiResponse = await simulationService.sendTrainingMessage(
+    // 调用流式接口
+    await simulationService.sendTrainingMessageStream(
       {
         sessionId: currentSession.value!.id,
-        prompt: '', // AI不需要输入
+        prompt: userMessage,
         chatHistory: chatMessages.value
+      },
+      (chunk) => {
+        // 处理流式数据
+        if (chunk.choices && chunk.choices.length > 0) {
+          const choice = chunk.choices[0];
+          if (choice.delta && choice.delta.content) {
+            // 更新临时AI消息的内容
+            const aiMessageIndex = chatMessages.value.findIndex(msg => msg.id === tempAiMessageId);
+            if (aiMessageIndex !== -1) {
+              // 将增量内容添加到streamContent中
+              chatMessages.value[aiMessageIndex].streamContent += choice.delta.content;
+              // 提取streamContent
+              const streamContent = chatMessages.value[aiMessageIndex].streamContent;
+              
+              // 提取儿童回复部分，用于实时显示
+              // 使用更宽松的正则表达式，允许不完整的内容
+              const childReplyMatch = streamContent.match(/---儿童回复---\n([\s\S]*?)(?=---情感分析---|$)/);
+              if (childReplyMatch) {
+                chatMessages.value[aiMessageIndex].content = childReplyMatch[1].trim();
+              }
+              
+              // 提取情感分析部分，用于实时显示
+              // 使用更宽松的正则表达式，允许不完整的内容
+              const emotionAnalysisMatch = streamContent.match(/---情感分析---\n([\s\S]*?)(?=---指导意见---|$)/);
+              if (emotionAnalysisMatch) {
+                chatMessages.value[aiMessageIndex].emotionAnalysis = emotionAnalysisMatch[1].trim();
+              }
+              
+              // 提取AI指导部分，用于实时显示
+              // 使用更宽松的正则表达式，允许不完整的内容
+              const aiGuidanceMatch = streamContent.match(/---指导意见---\n([\s\S]*$)/);
+              if (aiGuidanceMatch) {
+                chatMessages.value[aiMessageIndex].aiGuidance = aiGuidanceMatch[1].trim();
+              }
+              
+              // 滚动到底部
+              nextTick(() => scrollToBottom());
+            }
+          }
+        }
+      },
+      () => {
+        // 流式接收完成
+        const aiMessageIndex = chatMessages.value.findIndex(msg => msg.id === tempAiMessageId);
+        if (aiMessageIndex !== -1) {
+          const streamContent = chatMessages.value[aiMessageIndex].streamContent;
+          
+          // 提取完整的儿童回复、情感分析和指导意见
+          const childReplyMatch = streamContent.match(/---儿童回复---\n([\s\S]*?)(?=---情感分析---)/);
+          const emotionAnalysisMatch = streamContent.match(/---情感分析---\n([\s\S]*?)(?=---指导意见---)/);
+          const aiGuidanceMatch = streamContent.match(/---指导意见---\n([\s\S]*$)/);
+          
+          // 更新AI消息
+          chatMessages.value[aiMessageIndex] = {
+            ...chatMessages.value[aiMessageIndex],
+            content: childReplyMatch ? childReplyMatch[1].trim() : '',
+            emotionAnalysis: emotionAnalysisMatch ? emotionAnalysisMatch[1].trim() : undefined,
+            aiGuidance: aiGuidanceMatch ? aiGuidanceMatch[1].trim() : undefined,
+            isStreaming: false,
+            streamContent: ''
+          };
+          
+          messageCount.value++;
+          
+          // 保存聊天历史记录到localStorage
+          saveChatHistory();
+          
+          // 滚动到底部
+          nextTick(() => scrollToBottom());
+        }
+        
+        console.log("airesponding被重置");
+        airesponding.value = false;
+        sendingMessage.value = false;
+        // AI回复完成后重新开始计时
+        startTimer();
       }
     );
-    
-    // 添加AI消息
-    const messageId = `ai_${Date.now()}`;
-    const aiMessage: ChatMessage = {
-      id: messageId,
-      content: aiResponse.childReply,
-      senderType: 'ai',
-      role: 'ai',
-      timestamp: new Date(),
-      isTyping: false,
-      emotionAnalysis: aiResponse.emotionAnalysis,
-      aiGuidance: aiResponse.aiGuidance
-    };
-    
-    chatMessages.value.push(aiMessage);
-    messageCount.value++;
-    
-    // 保存聊天历史记录到localStorage
-    saveChatHistory();
-    
-    // 滚动到底部
-    await nextTick();
-    scrollToBottom();
-    
   } catch (err) {
-    console.error('Failed to get AI response:', err);
-  } finally {
+    console.log('Failed to get AI response stream:', err);
     airesponding.value = false;
-    // AI回复完成后重新开始计时
+    // 发生错误时重新开始计时
     startTimer();
   }
 };
@@ -637,8 +779,8 @@ const sendMessage = async () => {
       //message.info('已达到评估条件，您可以在右上角查看评估结果');
     }
     
-    // 模拟AI回复（计时器在simulateAIResponse中重新开始）
-    await simulateAIResponse();
+    // 调用流式AI回复（计时器在getAIResponseStream中重新开始）
+    await getAIResponseStream(userMessage);
     
   } catch (err) {
     //message.error('发送消息失败');
@@ -646,6 +788,7 @@ const sendMessage = async () => {
     // 发生错误时重新开始计时
     startTimer();
   } finally {
+    console("sendingMessage重置");
     sendingMessage.value = false;
   }
 };
@@ -760,20 +903,49 @@ const getScoreGrade = (score: number): string => {
 };
 
 // 得分等级文本映射
-const getScoreGradeText = (score: number): string => {
-  if (score >= 90) return '优秀';
-  if (score >= 80) return '良好';
-  if (score >= 70) return '一般';
-  return '需要改进';
-};
+  const getScoreGradeText = (score: number): string => {
+    if (score >= 90) return '优秀';
+    if (score >= 80) return '良好';
+    if (score >= 70) return '一般';
+    return '需要改进';
+  };
 
-// 得分等级颜色映射
-const getScoreColor = (score: number): string => {
-  if (score >= 90) return '#22C55E';
-  if (score >= 80) return '#10B981';
-  if (score >= 70) return '#F59E0B';
-  return '#EF4444';
-};
+  // 得分等级颜色映射
+  const getScoreColor = (score: number): string => {
+    if (score >= 90) return '#22C55E';
+    if (score >= 80) return '#10B981';
+    if (score >= 70) return '#F59E0B';
+    return '#EF4444';
+  };
+
+  // 解析评估结果中的优缺点和改进方向
+  const parseEvaluationStrengths = (strengths: string): { strengths: string[], weaknesses: string[], improvements: string[] } => {
+    const result = {
+      strengths: [],
+      weaknesses: [],
+      improvements: []
+    };
+
+    // 匹配优点部分
+    const strengthsMatch = strengths.match(/优点：([\s\S]*?)(?=\n不足：|$)/);
+    if (strengthsMatch) {
+      result.strengths = strengthsMatch[1].split('。').filter(item => item.trim());
+    }
+
+    // 匹配不足部分
+    const weaknessesMatch = strengths.match(/不足：([\s\S]*?)(?=\n改进方向：|$)/);
+    if (weaknessesMatch) {
+      result.weaknesses = weaknessesMatch[1].split('。').filter(item => item.trim());
+    }
+
+    // 匹配改进方向部分
+    const improvementsMatch = strengths.match(/改进方向：([\s\S]*$)/);
+    if (improvementsMatch) {
+      result.improvements = improvementsMatch[1].split('。').filter(item => item.trim());
+    }
+
+    return result;
+  };
 
 // 会话时间格式化
 const formatSessionTime = (time: Date): string => {
@@ -818,11 +990,23 @@ const scrollToBottom = () => {
 };
 
 // 处理评估结果确认
-const handleEvaluationConfirm = () => {
-  showEvaluation.value = false;
-  // 跳转到工作首页
-  router.push('/work-home');
-};
+  const handleEvaluationConfirm = () => {
+    showEvaluation.value = false;
+    // 跳转到工作首页
+    router.push('/work-home');
+  };
+
+  // 计算总分
+  const calculateTotalScore = (evaluation: TrainingEvaluation): number => {
+    if (!evaluation) return 0;
+    const scores = [
+      evaluation.empathyScore || 0,
+      evaluation.communicationScore || 0,
+      evaluation.problemSolvingScore || 0,
+      evaluation.emotionalRecognitionScore || 0
+    ];
+    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+  };
 
 const startTimer = () => {
   if (timer.value) {
@@ -1140,7 +1324,7 @@ onUnmounted(() => {
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  background: rgba(249, 115, 22, 0.1);
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1342,6 +1526,42 @@ onUnmounted(() => {
   animation-delay: 0s;
 }
 
+/* 流式回复指示器 */
+.streaming-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.streaming-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.streaming-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.streaming-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.streaming-dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+/* 流式消息气泡样式 */
+.message-bubble-streaming {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  animation: pulse 2s infinite;
+}
+
 /* 消息输入区域 */
 .chat-input-area {
   padding: 1.5rem 2rem;
@@ -1522,6 +1742,13 @@ onUnmounted(() => {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--dark);
+}
+
+.suggestions-subtitle {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
 }
 
 .suggestions-list {

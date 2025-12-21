@@ -47,7 +47,7 @@ export class SimulationService {
     }
   }
 
-  // 发送训练消息
+  // 发送训练消息（普通接口）
   async sendTrainingMessage(request: TrainingMessageRequest): Promise<TrainingChatResponse> {
     try {
       // 转换chatHistory为后端期望的history格式
@@ -75,10 +75,151 @@ export class SimulationService {
     }
   }
 
+  // 发送训练消息（流式接口）
+  async sendTrainingMessageStream(request: TrainingMessageRequest, onChunk: (chunk: any) => void, onComplete: () => void) {
+    try {
+      // 转换chatHistory为后端期望的history格式
+      const history = request.chatHistory.map(msg => ({
+        role: msg.senderType === 'user' ? 'user' : 'ai',
+        content: msg.content
+      }));
+      
+      // 使用fetch API处理流式响应，手动添加认证头
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${this.baseUrl}/send/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': token } : {})
+        },
+        body: JSON.stringify({
+          sessionId: request.sessionId,
+          prompt: request.prompt,
+          history: history
+        }),
+      });
+      
+      // 添加调试信息
+      console.log('流式响应状态:', response.status);
+      console.log('流式响应头:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      // 处理流式响应
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('无法获取响应流');
+      }
+      
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          console.log('流式响应结束，剩余buffer:', buffer);
+          break;
+        }
+        
+        // 解码二进制数据
+        const decodedChunk = decoder.decode(value, { stream: true });
+        console.log('解码后的chunk:', JSON.stringify(decodedChunk));
+        buffer += decodedChunk;
+        
+        // 按行处理数据
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          const line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          
+          // 跳过空行
+          if (line.trim() === '') continue;
+          
+          // 处理SSE事件格式：data: {"id": "chatcmpl-", "object": "chat.completion.chunk", ...}
+          if (line.startsWith('data: ')) {
+            // 提取data部分，处理可能的重复data:前缀
+            let data = line.slice(6).trim();
+            
+            // 检查是否是结束标志
+            if (data === '[DONE]') {
+              onComplete();
+              continue;
+            }
+            
+            // 只有当data非空时才尝试解析
+            if (data) {
+              try {
+                // 解析JSON数据
+                const parsedData = JSON.parse(data);
+                // console.log('解析后的JSON数据:', parsedData);
+                // 调用回调函数，传递解析后的数据
+                onChunk(parsedData);
+              } catch (jsonError) {
+                console.error('解析JSON数据失败:', jsonError, '原始数据:', JSON.stringify(data));
+              }
+            } else {
+              // data为空，可能是不完整的SSE事件，跳过
+              // console.log('收到空data行，跳过');
+            }
+          } else if (line === 'data:') {
+            // 只包含"data:"的行，是不完整的SSE事件，跳过
+            // console.log('收到不完整的SSE事件行，跳过');
+          } else if (line.startsWith('data:')) {
+            // 处理带有重复"data:"前缀的行，如"data:data: {json}"
+            let data = line;
+            // 移除所有重复的"data:"前缀
+            while (data.startsWith('data:')) {
+              data = data.slice(5).trim();
+            }
+            
+            // 检查是否是结束标志
+            if (data === '[DONE]') {
+              onComplete();
+              continue;
+            }
+            
+            // 只有当data非空时才尝试解析
+            if (data) {
+              try {
+                // 解析JSON数据
+                const parsedData = JSON.parse(data);
+                // console.log('解析重复前缀后的JSON数据:', parsedData);
+                // 调用回调函数，传递解析后的数据
+                onChunk(parsedData);
+              } catch (jsonError) {
+                console.log('解析重复前缀后的JSON失败:', jsonError, '原始数据:', JSON.stringify(line));
+              }
+            }
+          } else {
+            // 非SSE格式行，跳过处理，避免不必要的错误
+          }
+        }
+      }
+    } catch (error) {
+      console.log('发送训练消息（流式）失败:', error);
+      // 处理错误情况
+      onComplete();
+      // 可以选择回退到普通接口
+      const response = await this.sendTrainingMessage(request);
+      onChunk({
+        choices: [{
+          delta: {
+            content: `---儿童回复---\n${response.childReply}\n---情感分析---\n${response.emotionAnalysis}\n---指导意见---\n${response.aiGuidance}`
+          }
+        }]
+      });
+      onComplete();
+    }
+  }
+
   // 结束训练会话
   async endTrainingSession(sessionId: number): Promise<TrainingEvaluation> {
     try {
-      const result = await http.post(`${this.baseUrl}/end/${sessionId}`, { sessionId });
+      const result = await http.post(`${this.baseUrl}/end/${sessionId}`, { sessionId }, {
+        timeout: 300000 // 30秒超时
+      });
       
       if (result.code === 1) {
         return result.data;

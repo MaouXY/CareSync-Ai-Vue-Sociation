@@ -33,6 +33,8 @@ export interface ChatMessage {
   role: 'user' | 'ai'; // 角色
   timestamp: Date; // 时间戳
   isTyping?: boolean; // 是否正在输入
+  isStreaming?: boolean; // 是否正在流式接收
+  streamContent?: string; // 完整的流式内容
   emotionAnalysis?: string; // 情感分析（JSON字符串）
   aiGuidance?: string; // AI指导
 }
@@ -40,7 +42,7 @@ export interface ChatMessage {
 export interface TrainingMessageRequest {
   sessionId: number;
   prompt: string;
-  history: ChatMessage[];
+  chatHistory: ChatMessage[];
 }
 
 export interface EmotionAnalysis {
